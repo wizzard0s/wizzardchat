@@ -207,11 +207,36 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
 
 
+_OPENAPI_TAGS = [
+    {"name": "auth",         "description": "Authentication — obtain JWT tokens and register users"},
+    {"name": "users",        "description": "User account management and campaign assignments"},
+    {"name": "flows",        "description": "Flow CRUD, node/edge management, publish and simulate"},
+    {"name": "node-types",   "description": "Built-in and custom flow node type registry"},
+    {"name": "connectors",   "description": "Chat connectors — embed snippet generation and key rotation"},
+    {"name": "chat",         "description": "Visitor-facing chat endpoints (SSE stream, send, upload) and agent WebSocket"},
+    {"name": "queues",       "description": "Agent queues and queue membership"},
+    {"name": "contacts",     "description": "Contact records, lists, bulk operations and CSV import"},
+    {"name": "campaigns",    "description": "Outbound campaign lifecycle — create, start, pause, cancel"},
+    {"name": "teams",        "description": "Team management and membership"},
+    {"name": "roles",        "description": "Roles and permission management"},
+    {"name": "office-hours", "description": "Office hours groups, weekly schedules and date exclusions"},
+    {"name": "outcomes",     "description": "Interaction outcome definitions"},
+    {"name": "tags",         "description": "Tags and tag associations for interactions, contacts and users"},
+    {"name": "settings",     "description": "Global platform settings (key/value store)"},
+]
+
 app = FastAPI(
     title="WizzardChat",
-    description="Omnichannel Communication Platform – Voice, Chat, WhatsApp, App",
+    description=(
+        "Omnichannel Communication Platform – Voice, Chat, WhatsApp, App.\n\n"
+        "All `/api/v1/*` endpoints (except `/api/v1/auth/login` and `/api/v1/auth/register`) "
+        "require a **Bearer** JWT token obtained from `POST /api/v1/auth/login`.\n\n"
+        "See [docs/04-api.md](https://github.com/wizzard0s/wizzardchat/blob/main/docs/04-api.md) "
+        "for the full API reference."
+    ),
     version="0.1.0",
     lifespan=lifespan,
+    openapi_tags=_OPENAPI_TAGS,
 )
 
 # CORS
