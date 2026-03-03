@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Office Hours – WizzardChat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+    <style>
+        .group-item {
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: border-color .15s, background .15s;
+            border-radius: 4px;
+        }
+        .group-item:hover   { background: rgba(255,255,255,.06); }
+        .group-item.selected { border-left-color: #0dcaf0; background: rgba(13,202,240,.08); }
+        .group-item.inactive { opacity: .6; }
+
+        /* Day schedule cards */
+        .day-card {
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .day-card.day-open   { border-color: rgba(25,135,84,.4); background: rgba(25,135,84,.04); }
+        .day-card.day-closed { border-color: rgba(255,255,255,.08); opacity: .65; }
+        .day-name-col        { font-weight: 600; min-width: 110px; width: 110px; }
+        .toggle-col          { min-width: 100px; }
+        .times-col           { flex: 1; }
+        .day-closed .times-col { pointer-events: none; opacity: .35; }
+
+        .badge-active   { background:rgba(25,135,84,.2);  color:#4ade80; border:1px solid rgba(25,135,84,.35); border-radius:.25rem; padding:2px 8px; font-size:.7rem; }
+        .badge-inactive { background:rgba(108,117,125,.2); color:#adb5bd; border:1px solid rgba(108,117,125,.35); border-radius:.25rem; padding:2px 8px; font-size:.7rem; }
+        .badge-excl-closed { background:rgba(220,53,69,.15); color:#f87171; border:1px solid rgba(220,53,69,.3); border-radius:.25rem; font-size:.75rem; padding:3px 8px; }
+        .badge-excl-open   { background:rgba(25,135,84,.15);  color:#4ade80; border:1px solid rgba(25,135,84,.3);  border-radius:.25rem; font-size:.75rem; padding:3px 8px; }
+    </style>
+</head>
+<body>
+<!-- ── Sidebar ──────────────────────────────────────────────────────────────── -->
+<nav id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark"
+     style="width:220px;height:100vh;position:fixed;">
+    <a href="/" class="d-flex align-items-center mb-3 text-white text-decoration-none">
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+        <span class="fs-5 fw-bold">WizzardChat</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+        <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+        <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+        <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+        <li class="nav-item"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">User Management</li>
+        <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+        <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+        <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">Business Settings</li>
+        <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+        <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+        <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>
+        <li class="nav-item"><a href="/office-hours" class="nav-link active"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+        <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+    </ul>
+    <hr>
+    <div class="dropdown">
+        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle me-2"></i><strong id="currentUser">Admin</strong>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+            <li><a class="dropdown-item" href="#" id="btnLogout">Sign out</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- ── Main ─────────────────────────────────────────────────────────────────── -->
+<main style="margin-left:220px; padding:24px; min-height:100vh;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0"><i class="bi bi-clock me-2 text-info"></i>Office Hours</h4>
+            <small class="text-muted">Define operating hours per group and override specific dates (e.g. public holidays).</small>
+        </div>
+        <button class="btn btn-info text-dark fw-semibold" onclick="openGroupModal(false)">
+            <i class="bi bi-plus-lg me-1"></i>New Group
+        </button>
+    </div>
+
+    <div class="row g-3">
+
+        <!-- LEFT: Group list ─────────────────────────────────────────── -->
+        <div class="col-md-3">
+            <div class="card h-100" style="border-color:rgba(255,255,255,.12)">
+                <div class="card-header py-2" style="border-color:rgba(255,255,255,.12)">
+                    <span class="fw-semibold small"><i class="bi bi-collection me-2 text-info"></i>Groups</span>
+                    <span class="badge bg-secondary ms-2" id="groupCountBadge">0</span>
+                </div>
+                <div class="card-body p-2" id="groupListBody">
+                    <p class="text-muted text-center py-4 small" id="groupListEmpty">
+                        No groups yet.<br>
+                        <a href="#" onclick="openGroupModal(false); return false">Create one now</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Detail ────────────────────────────────────────────── -->
+        <div class="col-md-9">
+
+            <!-- Placeholder shown when nothing is selected -->
+            <div id="panelEmpty" class="d-flex flex-column align-items-center justify-content-center text-muted rounded py-5"
+                 style="border:2px dashed rgba(255,255,255,.1); min-height:400px;">
+                <i class="bi bi-clock fs-1 opacity-25 mb-3"></i>
+                <p class="mb-0">Select a group on the left, or create a new one.</p>
+            </div>
+
+            <!-- Group detail panel (shown when a group is selected) -->
+            <div id="panelDetail" style="display:none">
+
+                <!-- Group header -->
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                        <h5 class="mb-0 fw-bold" id="gpName">—</h5>
+                        <small class="text-muted" id="gpMeta"></small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="openGroupModal(true)">
+                            <i class="bi bi-pencil me-1"></i>Edit Group
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="confirmDeleteGroup()">
+                            <i class="bi bi-trash me-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <ul class="nav nav-tabs mb-0">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="tabBtnSchedule" onclick="showTab('schedule')">
+                            <i class="bi bi-calendar-week me-2"></i>Weekly Schedule
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="tabBtnExcl" onclick="showTab('exclusions')">
+                            <i class="bi bi-calendar-x me-2"></i>Date Overrides
+                            <span class="badge bg-warning text-dark ms-1" id="exclBadge">0</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- ─── Tab: Weekly Schedule ──────────────────────────────── -->
+                <div id="tabSchedule" class="card rounded-top-0"
+                     style="border-top:none; border-color:rgba(255,255,255,.12)">
+                    <div class="card-body p-3">
+                        <p class="text-muted small mb-3">
+                            Toggle each day on or off and set the opening / closing times.
+                            Click <strong class="text-white">Save Schedule</strong> when done.
+                        </p>
+
+                        <!-- Day cards rendered here by JS -->
+                        <div id="schedDays"></div>
+                    </div>
+                    <div class="card-footer border-top d-flex justify-content-end py-3"
+                         style="border-color:rgba(255,255,255,.12)">
+                        <button class="btn btn-info text-dark fw-semibold px-4"
+                                onclick="saveSchedule()">
+                            <i class="bi bi-floppy me-1"></i>Save Schedule
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ─── Tab: Date Overrides ───────────────────────────────── -->
+                <div id="tabExcl" class="card rounded-top-0"
+                     style="display:none; border-top:none; border-color:rgba(255,255,255,.12)">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <p class="text-muted small mb-0 me-3">
+                                Mark specific dates as closed (e.g. public holidays) or give them custom
+                                opening hours that override the weekly schedule.
+                            </p>
+                            <button class="btn btn-sm btn-warning text-dark fw-semibold flex-shrink-0"
+                                    onclick="openAddExclusion()">
+                                <i class="bi bi-plus-lg me-1"></i>Add Override
+                            </button>
+                        </div>
+                        <!-- Exclusion rows rendered here by JS -->
+                        <div id="exclRows"></div>
+                    </div>
+                </div>
+
+            </div><!-- /panelDetail -->
+        </div>
+    </div>
+</main>
+
+<!-- ═══ Group Modal ══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalGroup" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalGroupTitle">
+                    <i class="bi bi-collection me-2 text-info"></i>New Group
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="grpName"
+                           placeholder="e.g. Main Office, After-Hours Support">
+                    <div class="invalid-feedback">Please enter a group name.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Description <span class="text-muted fw-normal">(optional)</span></label>
+                    <input type="text" class="form-control" id="grpDesc"
+                           placeholder="Short description">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Timezone</label>
+                    <select class="form-select" id="grpTimezone">
+                        <option value="Africa/Johannesburg">Africa/Johannesburg (SAST, UTC+2)</option>
+                        <option value="UTC">UTC</option>
+                        <option value="Europe/London">Europe/London (GMT/BST)</option>
+                        <option value="Europe/Paris">Europe/Paris (CET)</option>
+                        <option value="America/New_York">America/New_York (ET)</option>
+                        <option value="America/Chicago">America/Chicago (CT)</option>
+                        <option value="America/Denver">America/Denver (MT)</option>
+                        <option value="America/Los_Angeles">America/Los_Angeles (PT)</option>
+                        <option value="Asia/Dubai">Asia/Dubai (GST, UTC+4)</option>
+                        <option value="Asia/Kolkata">Asia/Kolkata (IST, UTC+5:30)</option>
+                        <option value="Asia/Singapore">Asia/Singapore (SST, UTC+8)</option>
+                        <option value="Australia/Sydney">Australia/Sydney (AEST)</option>
+                    </select>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="grpActive" checked>
+                    <label class="form-check-label" for="grpActive">Active</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info text-dark fw-semibold" onclick="saveGroup()">
+                    <i class="bi bi-check-lg me-1"></i>Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Exclusion Modal ══════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalExcl" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalExclTitle">
+                    <i class="bi bi-calendar-x me-2 text-warning"></i>Add Date Override
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" id="exclDate">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Label <span class="text-muted fw-normal">(optional)</span></label>
+                    <input type="text" class="form-control" id="exclLabel"
+                           placeholder="e.g. New Year's Day, Christmas, Public Holiday">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">What happens on this date?</label>
+                    <div class="d-flex flex-column gap-2">
+                        <label class="d-flex align-items-start gap-2 p-3 rounded"
+                               style="border:1px solid rgba(220,53,69,.35); background:rgba(220,53,69,.06); cursor:pointer">
+                            <input type="radio" name="exclStatus" id="exclClosed" value="closed" checked class="mt-1">
+                            <div>
+                                <div class="fw-semibold text-danger"><i class="bi bi-x-circle me-1"></i>Closed all day</div>
+                                <div class="text-muted small">This date is treated as closed regardless of the weekly schedule.</div>
+                            </div>
+                        </label>
+                        <label class="d-flex align-items-start gap-2 p-3 rounded"
+                               style="border:1px solid rgba(25,135,84,.35); background:rgba(25,135,84,.06); cursor:pointer">
+                            <input type="radio" name="exclStatus" id="exclOpen" value="open" class="mt-1">
+                            <div>
+                                <div class="fw-semibold text-success"><i class="bi bi-check-circle me-1"></i>Open with custom hours</div>
+                                <div class="text-muted small">This date uses the times below instead of the normal schedule.</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div id="exclTimesSection" style="display:none"
+                     class="p-3 rounded" style="border:1px solid rgba(255,255,255,.1)">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold small">Opens at</label>
+                            <input type="time" class="form-control" id="exclOpenTime" value="08:00">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold small">Closes at</label>
+                            <input type="time" class="form-control" id="exclCloseTime" value="17:00">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning text-dark fw-semibold" onclick="saveExclusion()">
+                    <i class="bi bi-check-lg me-1"></i>Save Override
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ─── State ───────────────────────────────────────────────────────────────────
+const DAY_NAMES   = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const TOKEN_KEY   = 'wizzardchat_token';
+
+let allGroups     = [];
+let curGroupId    = null;
+let modalEditing  = false;   // true = editing existing group
+let editExclId    = null;
+
+// ─── API helper ───────────────────────────────────────────────────────────────
+async function api(url, method, body) {
+    method = method || 'GET';
+    const token = localStorage.getItem(TOKEN_KEY);
+    const opts  = {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token,
+        },
+    };
+    if (body !== undefined && body !== null) opts.body = JSON.stringify(body);
+
+    const res = await fetch(url, opts);
+    if (res.status === 401) { localStorage.removeItem(TOKEN_KEY); location.href = '/'; return null; }
+    if (res.status === 204) return null;
+    if (!res.ok) {
+        const txt = await res.text().catch(function(){ return res.statusText; });
+        throw new Error(txt || 'HTTP ' + res.status);
+    }
+    return res.json();
+}
+
+// ─── Startup ─────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    if (!localStorage.getItem(TOKEN_KEY)) { location.href = '/'; return; }
+
+    api('/api/v1/users/me').then(function(me) {
+        if (me) document.getElementById('currentUser').textContent = me.username || 'Me';
+    }).catch(function(){});
+
+    document.getElementById('btnLogout').addEventListener('click', function(e) {
+        e.preventDefault();
+        localStorage.removeItem(TOKEN_KEY);
+        location.href = '/';
+    });
+
+    // Toggle the custom hours section in the exclusion modal
+    document.getElementById('exclOpen').addEventListener('change', function() {
+        document.getElementById('exclTimesSection').style.display = '';
+    });
+    document.getElementById('exclClosed').addEventListener('change', function() {
+        document.getElementById('exclTimesSection').style.display = 'none';
+    });
+
+    loadGroups(null);
+});
+
+// ─── Load groups ──────────────────────────────────────────────────────────────
+function loadGroups(selectId) {
+    api('/api/v1/office-hours').then(function(data) {
+        allGroups = data || [];
+        renderGroupList(selectId);
+    }).catch(function(e) {
+        toast('Failed to load office hour groups: ' + e.message, 'danger');
+    });
+}
+
+// ─── Render left-panel group list ─────────────────────────────────────────────
+function renderGroupList(selectId) {
+    var body  = document.getElementById('groupListBody');
+    var empty = document.getElementById('groupListEmpty');
+
+    // Remove previous items
+    Array.from(body.querySelectorAll('.group-item')).forEach(function(el){ el.remove(); });
+
+    document.getElementById('groupCountBadge').textContent = allGroups.length;
+
+    if (!allGroups.length) {
+        empty.style.display = '';
+        showEmptyPanel();
+        return;
+    }
+    empty.style.display = 'none';
+
+    allGroups.forEach(function(g) {
+        var el = document.createElement('div');
+        el.className    = 'group-item px-3 py-2 mb-1' + (g.is_active ? '' : ' inactive');
+        el.dataset.id   = g.id;
+        el.innerHTML    =
+            '<div class="d-flex align-items-center justify-content-between">' +
+                '<div style="min-width:0">' +
+                    '<div class="fw-semibold text-truncate small">' + esc(g.name) + '</div>' +
+                    '<div class="text-muted" style="font-size:.7rem">' + esc(g.timezone) + '</div>' +
+                '</div>' +
+                '<span class="ms-2 ' + (g.is_active ? 'badge-active' : 'badge-inactive') + '">' +
+                    (g.is_active ? 'Active' : 'Inactive') +
+                '</span>' +
+            '</div>';
+        el.addEventListener('click', function() { selectGroup(g.id); });
+        body.appendChild(el);
+    });
+
+    // Auto-select
+    var target = selectId || curGroupId;
+    if (target && allGroups.find(function(g){ return g.id === target; })) {
+        selectGroup(target);
+    } else if (allGroups.length) {
+        selectGroup(allGroups[0].id);
+    } else {
+        showEmptyPanel();
+    }
+}
+
+// ─── Select a group and show its detail ───────────────────────────────────────
+function selectGroup(id) {
+    curGroupId = id;
+
+    Array.from(document.querySelectorAll('.group-item')).forEach(function(el) {
+        el.classList.toggle('selected', el.dataset.id === id);
+    });
+
+    var g = allGroups.find(function(x){ return x.id === id; });
+    if (!g) { showEmptyPanel(); return; }
+
+    document.getElementById('panelEmpty').style.display  = 'none';
+    document.getElementById('panelDetail').style.display = '';
+
+    document.getElementById('gpName').textContent = g.name;
+    var meta = g.timezone;
+    if (g.description) meta += ' · ' + g.description;
+    if (!g.is_active)  meta += ' · (inactive)';
+    document.getElementById('gpMeta').textContent = meta;
+
+    renderScheduleDays(g.schedule  || []);
+    renderExclusionRows(g.exclusions || []);
+    document.getElementById('exclBadge').textContent = (g.exclusions || []).length;
+
+    showTab('schedule');
+}
+
+function showEmptyPanel() {
+    document.getElementById('panelEmpty').style.display  = '';
+    document.getElementById('panelDetail').style.display = 'none';
+    curGroupId = null;
+}
+
+// ─── Tab switching ────────────────────────────────────────────────────────────
+function showTab(name) {
+    var isSched = (name === 'schedule');
+    document.getElementById('tabSchedule').style.display = isSched ? '' : 'none';
+    document.getElementById('tabExcl').style.display     = isSched ? 'none' : '';
+    document.getElementById('tabBtnSchedule').classList.toggle('active', isSched);
+    document.getElementById('tabBtnExcl').classList.toggle('active', !isSched);
+}
+
+// ─── Render day-by-day schedule ───────────────────────────────────────────────
+function renderScheduleDays(schedule) {
+    var container = document.getElementById('schedDays');
+    container.innerHTML = '';
+
+    var byDay = {};
+    schedule.forEach(function(s){ byDay[s.day_of_week] = s; });
+
+    for (var dow = 0; dow < 7; dow++) {
+        (function(d) {
+            var s = byDay[d] || { day_of_week: d, is_open: d < 5, open_time: '08:00', close_time: '17:00' };
+
+            var card = document.createElement('div');
+            card.className   = 'day-card ' + (s.is_open ? 'day-open' : 'day-closed');
+            card.dataset.dow = d;
+
+            card.innerHTML =
+                '<span class="day-name-col">' + DAY_NAMES[d] + '</span>' +
+                '<div class="toggle-col form-check form-switch mb-0">' +
+                    '<input class="form-check-input fs-5 day-toggle" type="checkbox"' +
+                           ' id="dt' + d + '"' + (s.is_open ? ' checked' : '') +
+                           ' style="cursor:pointer">' +
+                    '<label class="form-check-label ms-1 small day-lbl" for="dt' + d + '"' +
+                           ' style="color:' + (s.is_open ? '#4ade80' : '#6c757d') + '">' +
+                        (s.is_open ? 'Open' : 'Closed') +
+                    '</label>' +
+                '</div>' +
+                '<div class="times-col">' +
+                    '<div class="input-group input-group-sm" style="max-width:290px">' +
+                        '<span class="input-group-text" title="Opening time"><i class="bi bi-door-open"></i></span>' +
+                        '<input type="time" class="form-control day-open-t" value="' + s.open_time + '">' +
+                        '<span class="input-group-text px-2 text-muted">–</span>' +
+                        '<input type="time" class="form-control day-close-t" value="' + s.close_time + '">' +
+                        '<span class="input-group-text" title="Closing time"><i class="bi bi-door-closed"></i></span>' +
+                    '</div>' +
+                '</div>';
+
+            // Toggle handler
+            card.querySelector('.day-toggle').addEventListener('change', function(evt) {
+                var open  = evt.target.checked;
+                var lbl   = card.querySelector('.day-lbl');
+                lbl.textContent = open ? 'Open' : 'Closed';
+                lbl.style.color = open ? '#4ade80' : '#6c757d';
+                if (open) {
+                    card.classList.replace('day-closed','day-open');
+                } else {
+                    card.classList.replace('day-open','day-closed');
+                }
+            });
+
+            container.appendChild(card);
+        })(dow);
+    }
+}
+
+// ─── Save weekly schedule ─────────────────────────────────────────────────────
+function saveSchedule() {
+    var entries = [];
+    Array.from(document.querySelectorAll('.day-card')).forEach(function(card) {
+        entries.push({
+            day_of_week: parseInt(card.dataset.dow, 10),
+            is_open:     card.querySelector('.day-toggle').checked,
+            open_time:   card.querySelector('.day-open-t').value  || '08:00',
+            close_time:  card.querySelector('.day-close-t').value || '17:00',
+        });
+    });
+
+    api('/api/v1/office-hours/' + curGroupId + '/schedule', 'PUT', entries).then(function() {
+        toast('Schedule saved.', 'success');
+        loadGroups(curGroupId);
+    }).catch(function(e) {
+        toast('Failed to save: ' + e.message, 'danger');
+    });
+}
+
+// ─── Render exclusion rows ────────────────────────────────────────────────────
+function renderExclusionRows(exclusions) {
+    var container = document.getElementById('exclRows');
+
+    if (!exclusions || !exclusions.length) {
+        container.innerHTML =
+            '<div class="text-center py-5 text-muted">' +
+                '<i class="bi bi-calendar-check fs-2 opacity-25 d-block mb-2"></i>' +
+                '<p class="mb-0">No date overrides set.<br>' +
+                '<small>Use <strong>Add Override</strong> above to mark holidays or special hours.</small></p>' +
+            '</div>';
+        return;
+    }
+
+    container.innerHTML = exclusions.map(function(ex) {
+        var d       = new Date(ex.date + 'T00:00:00');
+        var dateFmt = d.toLocaleDateString('en-ZA', { day:'2-digit', month:'short', year:'numeric' });
+        var dayFmt  = d.toLocaleDateString('en-ZA', { weekday:'long' });
+
+        var statusBadge = ex.is_open
+            ? '<span class="badge-excl-open"><i class="bi bi-check-circle me-1"></i>Open – custom hours</span>'
+            : '<span class="badge-excl-closed"><i class="bi bi-x-circle me-1"></i>Closed all day</span>';
+
+        var hours = (ex.is_open && ex.override_open)
+            ? '<small class="text-muted"><i class="bi bi-clock me-1"></i>' + esc(ex.override_open) + ' – ' + esc(ex.override_close) + '</small>'
+            : '<small class="text-muted">—</small>';
+
+        var exSafe = JSON.stringify(ex).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
+        return '<div class="d-flex align-items-center px-3 py-2 rounded mb-1"' +
+                    ' style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)">' +
+                '<div style="min-width:140px">' +
+                    '<div class="fw-semibold small">' + esc(dateFmt) + '</div>' +
+                    '<div class="text-muted" style="font-size:.7rem">' + esc(dayFmt) + '</div>' +
+                '</div>' +
+                '<div class="flex-grow-1 px-2">' +
+                    '<div class="small">' + esc(ex.label || '—') + '</div>' +
+                '</div>' +
+                '<div class="px-3">' + statusBadge + '</div>' +
+                '<div class="px-3" style="min-width:130px">' + hours + '</div>' +
+                '<div class="d-flex gap-1 ms-auto">' +
+                    '<button class="btn btn-sm btn-outline-secondary" title="Edit"' +
+                            ' onclick=\'openEditExclusion(' + exSafe + ')\'>' +
+                        '<i class="bi bi-pencil-fill"></i>' +
+                    '</button>' +
+                    '<button class="btn btn-sm btn-outline-danger" title="Remove"' +
+                            ' onclick="deleteExclusion(\'' + esc(ex.id) + '\')">' +
+                        '<i class="bi bi-x-lg"></i>' +
+                    '</button>' +
+                '</div>' +
+            '</div>';
+    }).join('');
+}
+
+// ─── Group modal ──────────────────────────────────────────────────────────────
+function openGroupModal(editing) {
+    modalEditing = !!editing;
+    var g = editing ? allGroups.find(function(x){ return x.id === curGroupId; }) : null;
+
+    document.getElementById('modalGroupTitle').innerHTML =
+        '<i class="bi bi-' + (g ? 'pencil' : 'collection') + ' me-2 text-info"></i>' +
+        (g ? 'Edit Group' : 'New Group');
+
+    document.getElementById('grpName').value     = (g && g.name)        ? g.name        : '';
+    document.getElementById('grpDesc').value     = (g && g.description) ? g.description : '';
+    document.getElementById('grpTimezone').value = (g && g.timezone)    ? g.timezone    : 'Africa/Johannesburg';
+    document.getElementById('grpActive').checked = g ? g.is_active : true;
+    document.getElementById('grpName').classList.remove('is-invalid');
+
+    new bootstrap.Modal(document.getElementById('modalGroup')).show();
+    setTimeout(function(){ document.getElementById('grpName').focus(); }, 350);
+}
+
+function saveGroup() {
+    var name = document.getElementById('grpName').value.trim();
+    if (!name) {
+        document.getElementById('grpName').classList.add('is-invalid');
+        document.getElementById('grpName').focus();
+        return;
+    }
+    document.getElementById('grpName').classList.remove('is-invalid');
+
+    var payload = {
+        name:        name,
+        description: document.getElementById('grpDesc').value.trim() || null,
+        timezone:    document.getElementById('grpTimezone').value,
+        is_active:   document.getElementById('grpActive').checked,
+    };
+
+    var url    = modalEditing && curGroupId
+        ? '/api/v1/office-hours/' + curGroupId
+        : '/api/v1/office-hours';
+    var method = (modalEditing && curGroupId) ? 'PUT' : 'POST';
+
+    api(url, method, payload).then(function(created) {
+        var newId = (created && created.id) ? created.id : curGroupId;
+        bootstrap.Modal.getInstance(document.getElementById('modalGroup')).hide();
+        loadGroups(newId);
+        toast(modalEditing ? 'Group updated.' : 'Group created — configure the weekly hours below.', 'success');
+    }).catch(function(e) {
+        toast('Error: ' + e.message, 'danger');
+    });
+}
+
+function confirmDeleteGroup() {
+    var g = allGroups.find(function(x){ return x.id === curGroupId; });
+    if (!g) return;
+    if (!confirm('Delete group "' + g.name + '"?\n\nThis removes all its schedule data and date overrides.')) return;
+
+    api('/api/v1/office-hours/' + curGroupId, 'DELETE').then(function() {
+        curGroupId = null;
+        loadGroups(null);
+        toast('Group deleted.', 'success');
+    }).catch(function(e) {
+        toast('Delete failed: ' + e.message, 'danger');
+    });
+}
+
+// ─── Exclusion modal ──────────────────────────────────────────────────────────
+function openAddExclusion() {
+    editExclId = null;
+    document.getElementById('modalExclTitle').innerHTML =
+        '<i class="bi bi-calendar-x me-2 text-warning"></i>Add Date Override';
+    document.getElementById('exclDate').value     = '';
+    document.getElementById('exclDate').disabled  = false;
+    document.getElementById('exclLabel').value    = '';
+    document.getElementById('exclClosed').checked = true;
+    document.getElementById('exclOpen').checked   = false;
+    document.getElementById('exclOpenTime').value  = '08:00';
+    document.getElementById('exclCloseTime').value = '17:00';
+    document.getElementById('exclTimesSection').style.display = 'none';
+    new bootstrap.Modal(document.getElementById('modalExcl')).show();
+    setTimeout(function(){ document.getElementById('exclDate').focus(); }, 350);
+}
+
+function openEditExclusion(ex) {
+    editExclId = ex.id;
+    document.getElementById('modalExclTitle').innerHTML =
+        '<i class="bi bi-pencil me-2 text-warning"></i>Edit Date Override';
+    document.getElementById('exclDate').value    = ex.date;
+    document.getElementById('exclDate').disabled = true;
+    document.getElementById('exclLabel').value   = ex.label || '';
+
+    if (ex.is_open) {
+        document.getElementById('exclOpen').checked   = true;
+        document.getElementById('exclClosed').checked = false;
+        document.getElementById('exclTimesSection').style.display = '';
+        document.getElementById('exclOpenTime').value  = ex.override_open  || '08:00';
+        document.getElementById('exclCloseTime').value = ex.override_close || '17:00';
+    } else {
+        document.getElementById('exclClosed').checked = true;
+        document.getElementById('exclOpen').checked   = false;
+        document.getElementById('exclTimesSection').style.display = 'none';
+    }
+    new bootstrap.Modal(document.getElementById('modalExcl')).show();
+}
+
+function saveExclusion() {
+    var dateVal = document.getElementById('exclDate').value;
+    if (!dateVal) { document.getElementById('exclDate').focus(); return; }
+
+    var isOpen  = document.getElementById('exclOpen').checked;
+    var payload = {
+        date:           dateVal,
+        label:          document.getElementById('exclLabel').value.trim() || null,
+        is_open:        isOpen,
+        override_open:  isOpen ? document.getElementById('exclOpenTime').value  : null,
+        override_close: isOpen ? document.getElementById('exclCloseTime').value : null,
+    };
+
+    var url    = '/api/v1/office-hours/' + curGroupId + '/exclusions' + (editExclId ? '/' + editExclId : '');
+    var method = editExclId ? 'PUT' : 'POST';
+
+    api(url, method, payload).then(function() {
+        document.getElementById('exclDate').disabled = false;
+        bootstrap.Modal.getInstance(document.getElementById('modalExcl')).hide();
+        loadGroups(curGroupId);
+        showTab('exclusions');
+        toast('Date override saved.', 'success');
+    }).catch(function(e) {
+        toast('Error: ' + e.message, 'danger');
+    });
+}
+
+function deleteExclusion(exId) {
+    if (!confirm('Remove this date override?')) return;
+    api('/api/v1/office-hours/' + curGroupId + '/exclusions/' + exId, 'DELETE').then(function() {
+        loadGroups(curGroupId);
+        toast('Override removed.', 'success');
+    }).catch(function(e) {
+        toast('Delete failed: ' + e.message, 'danger');
+    });
+}
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
+function esc(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, type) {
+    type = type || 'info';
+    var el = document.createElement('div');
+    el.className = 'alert alert-' + type + ' alert-dismissible position-fixed bottom-0 end-0 m-3 shadow';
+    el.style.cssText = 'z-index:9999; max-width:380px';
+    el.innerHTML = esc(msg) +
+        '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+    document.body.appendChild(el);
+    setTimeout(function(){ if (el.parentNode) el.remove(); }, 5000);
+}
+</script>
+</body>
+</html>

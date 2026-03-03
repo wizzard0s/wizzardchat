@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users – WizzardChat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+    <style>
+        .user-card { cursor: pointer; transition: transform .15s, box-shadow .15s; }
+        .user-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.3); }
+        .user-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center;
+                       justify-content: center; font-weight: 700; font-size: 1.1rem; flex-shrink: 0; }
+        .online-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    </style>
+</head>
+<body>
+<!-- Sidebar -->
+<nav id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark" style="width:220px;height:100vh;position:fixed;">
+    <a href="/" class="d-flex align-items-center mb-3 text-white text-decoration-none">
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+        <span class="fs-5 fw-bold">WizzardChat</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+        <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+        <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+        <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+        <li class="nav-item"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">User Management</li>
+        <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+        <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+        <li class="nav-item"><a href="/users" class="nav-link active"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">Business Settings</li>
+        <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+        <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+        <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>            <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>        <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+    </ul>
+    <hr>
+    <div class="dropdown">
+        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle me-2"></i><strong id="currentUser">Agent</strong>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+            <li><a class="dropdown-item" href="#" id="btnLogout">Sign out</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- Main -->
+<main style="margin-left:220px;padding:24px;min-height:100vh;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="bi bi-shield-lock me-2 text-info"></i>Users</h4>
+        <button class="btn btn-info" onclick="openUserModal()">
+            <i class="bi bi-plus-lg me-1"></i>New User
+        </button>
+    </div>
+
+    <!-- User grid -->
+    <div id="userGrid" class="row g-3">
+        <div class="col-12 text-center text-muted py-5" id="userEmpty" style="display:none;">
+            <i class="bi bi-people fs-1 d-block mb-2"></i>
+            No users found. Click <strong>New User</strong> to add one.
+        </div>
+    </div>
+</main>
+
+<!-- ─── User modal ─────────────────────────────────────────────────── -->
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userModalTitle"><i class="bi bi-person me-2"></i>New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs mb-3" id="userTabs">
+                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabUBasic">Basic</button></li>
+                    <li class="nav-item"><button class="nav-link" id="tabUCampaignsBtn" data-bs-toggle="tab" data-bs-target="#tabUCampaigns">Campaigns</button></li>
+                </ul>
+                <div class="tab-content">
+
+                    <!-- ── Basic ── -->
+                    <div class="tab-pane fade show active" id="tabUBasic">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                                <input type="text" id="uFullName" class="form-control" placeholder="John Smith">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Username <span class="text-danger">*</span></label>
+                                <input type="text" id="uUsername" class="form-control" placeholder="jsmith">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email <span class="text-danger">*</span></label>
+                                <input type="email" id="uEmail" class="form-control" placeholder="jsmith@company.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone Number</label>
+                                <input type="text" id="uPhone" class="form-control" placeholder="+27 83 000 0000">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Role</label>
+                                <select id="uRole" class="form-select">
+                                    <option value="agent">Agent</option>
+                                    <option value="supervisor">Supervisor</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="super_admin">Super Admin</option>
+                                    <option value="viewer">Viewer</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Max Concurrent Chats</label>
+                                <input type="number" id="uMaxChats" class="form-control" value="5" min="1" max="50">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Password <span id="uPasswordNote" class="text-muted small">(leave blank to keep current)</span></label>
+                                <input type="password" id="uPassword" class="form-control" placeholder="••••••••" autocomplete="new-password">
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="uIsActive" checked>
+                                    <label class="form-check-label" for="uIsActive">Active</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── Campaigns ── -->
+                    <div class="tab-pane fade" id="tabUCampaigns">
+                        <p class="text-muted small mb-2">Select the campaigns this user is assigned to work on.</p>
+                        <div id="uCampaignList" class="row g-2"></div>
+                        <div id="uCampaignEmpty" class="text-muted small fst-italic mt-2" style="display:none;">
+                            No campaigns found. <a href="/campaigns" class="text-info">Create a campaign</a> first.
+                        </div>
+                        <div id="uCampaignLoading" class="text-muted small mt-2">
+                            <div class="spinner-border spinner-border-sm me-1"></div> Loading campaigns…
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info" onclick="saveUser()">
+                    <i class="bi bi-floppy me-1"></i>Save User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm delete -->
+<div class="modal fade" id="deleteUModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title">Delete User</h6></div>
+            <div class="modal-body">
+                <p class="mb-0">Delete <strong id="deleteUName"></strong>? This cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-sm btn-danger" onclick="confirmDeleteUser()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/users.js"></script>
+</body>
+</html>

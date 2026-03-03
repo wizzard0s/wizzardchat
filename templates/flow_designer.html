@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WizzardChat – Flow Designer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+    <link href="/static/css/flow-designer.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Top bar -->
+    <nav class="navbar navbar-dark bg-dark border-bottom px-3" style="height:48px;">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/" class="text-white text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Back</a>
+            <span class="text-muted">|</span>
+            <span class="fw-bold" id="flowName">New Flow</span>
+            <span class="badge bg-secondary" id="flowVersion">v1</span>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" id="btnZoomIn" title="Zoom In"><i class="bi bi-zoom-in"></i></button>
+            <button class="btn btn-sm btn-outline-secondary" id="btnZoomOut" title="Zoom Out"><i class="bi bi-zoom-out"></i></button>
+            <button class="btn btn-sm btn-outline-secondary" id="btnFitView" title="Fit View"><i class="bi bi-arrows-fullscreen"></i></button>
+            <span class="text-muted">|</span>
+            <button class="btn btn-sm btn-outline-warning" id="btnSave"><i class="bi bi-save me-1"></i>Save</button>
+            <button class="btn btn-sm btn-outline-success" id="btnPublish"><i class="bi bi-rocket me-1"></i>Publish</button>
+            <button class="btn btn-sm btn-outline-info" id="btnTestFlow" title="Test Flow"><i class="bi bi-play-circle me-1"></i>Test</button>
+        </div>
+    </nav>
+
+    <div class="d-flex" style="height:calc(100vh - 48px);">
+        <!-- Node palette (left sidebar) -->
+        <div id="nodePalette" class="border-end p-2" style="width:200px;overflow-y:auto;">
+            <h6 class="text-muted small text-uppercase mb-2">Nodes</h6>
+            <div id="paletteGroups">
+                <!-- Populated dynamically from the node-type registry -->
+                <p class="text-muted small px-2">Loading…</p>
+            </div>
+        </div>
+
+        <!-- Canvas -->
+        <div id="canvasContainer" style="flex:1;position:relative;overflow:hidden;background:#1a1a2e;">
+            <svg id="edgeSvg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible;"></svg>
+            <div id="canvas" style="position:absolute;top:0;left:0;width:6000px;height:6000px;transform-origin:0 0;">
+                <!-- Nodes will be rendered here -->
+            </div>
+            <!-- Temp edge while dragging connection -->
+            <svg id="tempEdgeSvg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;overflow:visible;"></svg>
+        </div>
+
+        <!-- Properties panel (right sidebar) -->
+        <div id="propertiesPanel" class="border-start p-3" style="width:300px;overflow-y:auto;display:none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0" id="propTitle">Properties</h6>
+                <button class="btn btn-sm btn-outline-danger" id="btnDeleteNode" title="Delete"><i class="bi bi-trash"></i></button>
+            </div>
+            <div id="propBody">
+                <!-- Dynamic properties form -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Flow selector modal -->
+    <div class="modal fade" id="flowListModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select or Create Flow</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <button class="btn btn-primary w-100" id="btnNewFlow"><i class="bi bi-plus me-1"></i>Create New Flow</button>
+                    </div>
+                    <hr>
+                    <div id="flowListItems">
+                        <p class="text-muted">Loading flows...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New flow modal -->
+    <div class="modal fade" id="newFlowModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">New Flow</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Flow Name</label>
+                        <input type="text" class="form-control" id="newFlowName" placeholder="e.g. IVR Main Menu">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Channel</label>
+                        <select class="form-select" id="newFlowChannel">
+                            <option value="">Any</option>
+                            <option value="voice">Voice</option>
+                            <option value="chat">Chat</option>
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="app">App</option>
+                            <option value="email">Email</option>
+                            <option value="sms">SMS</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="newFlowDesc" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" id="btnCreateFlow">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Flow Modal -->
+    <div class="modal fade" id="testFlowModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content bg-dark border-secondary">
+                <div class="modal-header border-secondary" style="background:#0d1117;">
+                    <h5 class="modal-title"><i class="bi bi-play-circle-fill text-info me-2"></i>Flow Simulator</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" id="btnCloseTest"></button>
+                </div>
+                <div class="modal-body p-0" style="min-height:70vh;">
+                    <div class="d-flex h-100" style="min-height:70vh;">
+                        <!-- Left: Setup -->
+                        <div id="testSetupPanel" class="border-end border-secondary p-3" style="width:340px;flex-shrink:0;overflow-y:auto;background:#111827;">
+                            <h6 class="text-muted small text-uppercase mb-3">Simulation Setup</h6>
+
+                            <!-- Initial context -->
+                            <div class="mb-3">
+                                <label class="form-label small">Initial Context <small class="text-muted">(JSON)</small></label>
+                                <textarea class="form-control form-control-sm font-monospace" id="testContextInput" rows="6"
+                                    placeholder='{"contact": {"name": "John"}, "flow": {}}'>{}</textarea>
+                                <div class="form-text">Variables available to the flow from the start.</div>
+                            </div>
+
+                            <!-- Node inputs auto-detected -->
+                            <div id="testNodeInputsSection">
+                                <label class="form-label small">Node Inputs</label>
+                                <div id="testNodeInputs" class="mb-3">
+                                    <p class="text-muted small">No input nodes detected in this flow.</p>
+                                </div>
+                            </div>
+
+                            <!-- Run -->
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-info" id="btnRunSim">
+                                    <i class="bi bi-play-fill me-1"></i>Run Simulation
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" id="btnResetSim">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Right: Results -->
+                        <div class="flex-fill p-3 overflow-auto" style="background:#0a0e1a;">
+                            <!-- Status banner -->
+                            <div id="testStatusBanner" class="d-none mb-3"></div>
+
+                            <!-- Trace table -->
+                            <div id="testTraceContainer" class="d-none">
+                                <h6 class="text-muted small text-uppercase mb-2">Execution Trace <small class="text-muted fw-normal normal-case ms-1" style="text-transform:none;">(click row to inspect context)</small></h6>
+                                <table class="table table-sm table-dark table-hover mb-4" id="testTraceTable">
+                                    <thead class="table-secondary">
+                                        <tr>
+                                            <th style="width:36px">#</th>
+                                            <th style="width:110px">Type</th>
+                                            <th>Label / Note</th>
+                                            <th style="width:70px">Edge</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="testTraceBody"></tbody>
+                                </table>
+
+                                <!-- Context inspector -->
+                                <h6 class="text-muted small text-uppercase mb-2" id="testFinalVarsLabel">Final Variables</h6>
+                                <div id="testFinalVars" class="font-monospace p-3 rounded"
+                                    style="background:#0d1117;border:1px solid #1f2937;font-size:0.82rem;max-height:260px;overflow:auto;"></div>
+                            </div>
+
+                            <!-- Placeholder -->
+                            <div id="testPlaceholder" class="text-center text-muted py-5">
+                                <i class="bi bi-play-circle display-4 opacity-25"></i>
+                                <p class="mt-2">Configure inputs on the left and click <strong>Run Simulation</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test: variable diff detail modal -->
+    <div class="modal fade" id="testVarDiffModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark border-secondary">
+                <div class="modal-header border-secondary">
+                    <h6 class="modal-title">Variables at Step <span id="testVarDiffStep"></span></h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="testVarDiffBody" class="font-monospace" style="font-size:0.82rem;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JSONata Expression Builder Modal -->
+    <div class="modal fade" id="exprBuilderModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content bg-dark">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Expression Builder &ndash; <span id="exprFieldName" class="text-info"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <!-- Editor column -->
+                        <div class="col-md-8">
+                            <label class="form-label">JSONata Expression</label>
+                            <textarea class="form-control font-monospace expr-editor-input" id="exprInput" rows="4"
+                                placeholder="e.g. contact.name & ' (' & contact.email & ')'"></textarea>
+                            <div class="mt-3">
+                                <label class="form-label">Test Data <small class="text-muted">(JSON)</small></label>
+                                <textarea class="form-control font-monospace" id="exprTestData" rows="6"></textarea>
+                            </div>
+                            <div class="mt-2 d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-info" id="exprEvaluate"><i class="bi bi-play-fill me-1"></i>Evaluate</button>
+                                <span class="text-muted small align-self-center" id="exprStatus"></span>
+                            </div>
+                            <div class="mt-2">
+                                <label class="form-label">Result</label>
+                                <pre class="p-2 rounded border border-secondary expr-result-box" id="exprResult" style="min-height:40px;max-height:150px;overflow:auto;"></pre>
+                            </div>
+                        </div>
+                        <!-- Quick reference column -->
+                        <div class="col-md-4">
+                            <label class="form-label">Quick Reference</label>
+                            <div class="expr-ref-panel border rounded p-2" style="max-height:440px;overflow-y:auto;font-size:0.78rem;">
+                                <div class="mb-2">
+                                    <div class="fw-bold text-info small mb-1">String</div>
+                                    <code>$string(val)</code><br>
+                                    <code>$length(str)</code><br>
+                                    <code>$substring(str,s,l)</code><br>
+                                    <code>$uppercase(str)</code> &middot; <code>$lowercase(str)</code><br>
+                                    <code>$trim(str)</code><br>
+                                    <code>$replace(str,pat,rep)</code><br>
+                                    <code>$split(str,sep)</code> &middot; <code>$join(arr,sep)</code><br>
+                                    <code>str1 &amp; str2</code> <small class="text-muted">concat</small>
+                                </div>
+                                <div class="mb-2">
+                                    <div class="fw-bold text-info small mb-1">Numeric</div>
+                                    <code>$number(val)</code><br>
+                                    <code>$round(num,dp)</code><br>
+                                    <code>$floor(n)</code> &middot; <code>$ceil(n)</code><br>
+                                    <code>$abs(n)</code> &middot; <code>$sqrt(n)</code><br>
+                                    <code>$sum(arr)</code> &middot; <code>$average(arr)</code><br>
+                                    <code>$min(arr)</code> &middot; <code>$max(arr)</code>
+                                </div>
+                                <div class="mb-2">
+                                    <div class="fw-bold text-info small mb-1">Boolean / Comparison</div>
+                                    <code>$boolean(val)</code> &middot; <code>$not(val)</code><br>
+                                    <code>$exists(val)</code><br>
+                                    <code>a = b</code> &middot; <code>a != b</code><br>
+                                    <code>a &gt; b</code> &middot; <code>a &lt; b</code><br>
+                                    <code>a and b</code> &middot; <code>a or b</code><br>
+                                    <code>cond ? t : f</code> <small class="text-muted">ternary</small>
+                                </div>
+                                <div class="mb-2">
+                                    <div class="fw-bold text-info small mb-1">Date / Time</div>
+                                    <code>$now()</code> &middot; <code>$millis()</code><br>
+                                    <code>$toMillis(ts)</code><br>
+                                    <code>$fromMillis(ms)</code><br>
+                                    <code>$fromMillis(ms, fmt)</code>
+                                </div>
+                                <div class="mb-2">
+                                    <div class="fw-bold text-info small mb-1">Array</div>
+                                    <code>$count(arr)</code><br>
+                                    <code>$append(a1,a2)</code><br>
+                                    <code>$sort(arr)</code> &middot; <code>$reverse(arr)</code><br>
+                                    <code>$distinct(arr)</code><br>
+                                    <code>$map(arr, fn)</code> &middot; <code>$filter(arr, fn)</code><br>
+                                    <code>$reduce(arr, fn)</code><br>
+                                    <code>arr[idx]</code> &middot; <code>arr[cond]</code>
+                                </div>
+                                <div class="mb-2">
+                                    <div class="fw-bold text-info small mb-1">Object</div>
+                                    <code>$keys(obj)</code> &middot; <code>$values(obj)</code><br>
+                                    <code>$lookup(obj,k)</code><br>
+                                    <code>$merge([o1,o2])</code><br>
+                                    <code>$spread(obj)</code>
+                                </div>
+                                <div class="mb-2">
+                                    <div class="fw-bold text-info small mb-1">Type / Misc</div>
+                                    <code>$type(val)</code><br>
+                                    <code>$match(str, /re/)</code><br>
+                                    <code>$eval(expr)</code><br>
+                                    <code>$error(msg)</code>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-info small mb-1">Path Operators</div>
+                                    <code>field.nested</code> <small class="text-muted">dot nav</small><br>
+                                    <code>arr.field</code> <small class="text-muted">map field</small><br>
+                                    <code>arr[cond]</code> <small class="text-muted">filter</small><br>
+                                    <code>*</code> <small class="text-muted">wildcard</small><br>
+                                    <code>**</code> <small class="text-muted">descendants</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-warning" id="exprApply"><i class="bi bi-check-lg me-1"></i>Apply Expression</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsonata@2.0.5/jsonata.min.js"></script>
+    <script src="/static/js/flow-designer.js?v=2"></script>
+</body>
+</html>

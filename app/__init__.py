@@ -1,0 +1,1 @@
+"""WizzardChat – Omnichannel Communication Platform"""

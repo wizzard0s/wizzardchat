@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tags – WizzardChat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+    <style>
+        .tag-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 12px 5px 10px; border-radius: 20px;
+            font-size: .82rem; font-weight: 500; cursor: default;
+            border: 1px solid rgba(255,255,255,.12);
+            transition: transform .1s, box-shadow .1s;
+        }
+        .tag-pill:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,.4); }
+        .tag-pill .tag-actions { display: none; gap: 4px; }
+        .tag-pill:hover .tag-actions { display: inline-flex; }
+        .tag-pill .tag-actions button {
+            background: none; border: none; padding: 0 2px; cursor: pointer;
+            font-size: .72rem; opacity: .75; color: inherit;
+        }
+        .tag-pill .tag-actions button:hover { opacity: 1; }
+        .tag-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .section-card { border-left: 3px solid transparent; }
+        .section-card.interaction-type { border-left-color: #0dcaf0; }
+        .section-card.contact-type     { border-left-color: #198754; }
+        .section-card.user-type        { border-left-color: #6f42c1; }
+        #colorPreview { width: 32px; height: 32px; border-radius: 6px; border: 1px solid rgba(255,255,255,.2); flex-shrink: 0; }
+    </style>
+</head>
+<body>
+<!-- Sidebar -->
+<nav id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark" style="width:220px;height:100vh;position:fixed;">
+    <a href="/" class="d-flex align-items-center mb-3 text-white text-decoration-none">
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+        <span class="fs-5 fw-bold">WizzardChat</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+        <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+        <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+        <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+        <li class="nav-item"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">User Management</li>
+        <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+        <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+        <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">Business Settings</li>
+        <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+        <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+        <li class="nav-item"><a href="/tags" class="nav-link active"><i class="bi bi-tags me-2"></i>Tags</a></li>
+        <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+        <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+    </ul>
+    <hr>
+    <div class="dropdown">
+        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle me-2"></i><strong id="currentUser">Agent</strong>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+            <li><a class="dropdown-item" href="#" id="btnLogout">Sign out</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- Main -->
+<main style="margin-left:220px;padding:24px;min-height:100vh;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="bi bi-tags me-2 text-warning"></i>Tags</h4>
+        <button class="btn btn-warning" onclick="openTagModal()">
+            <i class="bi bi-plus-lg me-1"></i>New Tag
+        </button>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="card bg-body-secondary border-0 p-3 text-center">
+                <div class="fs-2 fw-bold text-info" id="statInteraction">–</div>
+                <div class="small text-muted"><i class="bi bi-chat-left-dots me-1"></i>Interaction Tags</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card bg-body-secondary border-0 p-3 text-center">
+                <div class="fs-2 fw-bold text-success" id="statContact">–</div>
+                <div class="small text-muted"><i class="bi bi-person-lines-fill me-1"></i>Contact Tags</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card bg-body-secondary border-0 p-3 text-center">
+                <div class="fs-2 fw-bold text-purple" style="color:#a78bfa" id="statUser">–</div>
+                <div class="small text-muted"><i class="bi bi-person-badge me-1"></i>User Tags</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three columns -->
+    <div class="row g-4">
+
+        <!-- Interaction Tags -->
+        <div class="col-xl-4">
+            <div class="card bg-body-secondary border-0 section-card interaction-type h-100">
+                <div class="card-header bg-transparent d-flex align-items-center justify-content-between py-3">
+                    <span class="fw-semibold"><i class="bi bi-chat-left-dots me-2 text-info"></i>Interaction Tags</span>
+                    <button class="btn btn-sm btn-outline-info" onclick="openTagModal('interaction')">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+                <div class="card-body" id="interactionTagsArea">
+                    <div class="text-center text-muted py-4" id="interactionEmpty">
+                        <i class="bi bi-chat-left-dots fs-3 d-block mb-2 opacity-40"></i>
+                        No interaction tags yet.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Tags -->
+        <div class="col-xl-4">
+            <div class="card bg-body-secondary border-0 section-card contact-type h-100">
+                <div class="card-header bg-transparent d-flex align-items-center justify-content-between py-3">
+                    <span class="fw-semibold"><i class="bi bi-person-lines-fill me-2 text-success"></i>Contact Tags</span>
+                    <button class="btn btn-sm btn-outline-success" onclick="openTagModal('contact')">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+                <div class="card-body" id="contactTagsArea">
+                    <div class="text-center text-muted py-4" id="contactEmpty">
+                        <i class="bi bi-person-lines-fill fs-3 d-block mb-2 opacity-40"></i>
+                        No contact tags yet.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Tags -->
+        <div class="col-xl-4">
+            <div class="card bg-body-secondary border-0 section-card user-type h-100">
+                <div class="card-header bg-transparent d-flex align-items-center justify-content-between py-3">
+                    <span class="fw-semibold"><i class="bi bi-person-badge me-2" style="color:#a78bfa"></i>User Tags</span>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="openTagModal('user')" style="border-color:#a78bfa;color:#a78bfa">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+                <div class="card-body" id="userTagsArea">
+                    <div class="text-center text-muted py-4" id="userEmpty">
+                        <i class="bi bi-person-badge fs-3 d-block mb-2 opacity-40"></i>
+                        No user tags yet.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ─── Tag Create/Edit Modal ──────────────────────────────────────────────── -->
+<div class="modal fade" id="tagModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tagModalTitle"><i class="bi bi-tag me-2"></i>New Tag</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tag Type <span class="text-danger">*</span></label>
+                    <select class="form-select" id="tagType">
+                        <option value="interaction">Interaction</option>
+                        <option value="contact">Contact</option>
+                        <option value="user">User</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tag Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="tagName" placeholder="e.g. VIP, Escalated, Support">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Color</label>
+                    <div class="d-flex align-items-center gap-3">
+                        <input type="color" class="form-control form-control-color" id="tagColor" value="#6c757d" title="Pick a color">
+                        <div id="colorPreview" style="background:#6c757d"></div>
+                        <span class="text-muted small">Tag badge preview:</span>
+                        <span class="tag-pill" id="tagPreviewPill" style="background:#6c757d22;color:#6c757d;border-color:#6c757d55">
+                            <span class="tag-dot" id="tagPreviewDot" style="background:#6c757d"></span>
+                            <span id="tagPreviewName">Tag Name</span>
+                        </span>
+                    </div>
+                    <!-- Quick color suggestions -->
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <span class="quick-color rounded-circle" title="#dc3545" data-color="#dc3545"
+                              style="width:20px;height:20px;background:#dc3545;cursor:pointer;border:2px solid transparent"></span>
+                        <span class="quick-color rounded-circle" title="#fd7e14" data-color="#fd7e14"
+                              style="width:20px;height:20px;background:#fd7e14;cursor:pointer;border:2px solid transparent"></span>
+                        <span class="quick-color rounded-circle" title="#ffc107" data-color="#ffc107"
+                              style="width:20px;height:20px;background:#ffc107;cursor:pointer;border:2px solid transparent"></span>
+                        <span class="quick-color rounded-circle" title="#198754" data-color="#198754"
+                              style="width:20px;height:20px;background:#198754;cursor:pointer;border:2px solid transparent"></span>
+                        <span class="quick-color rounded-circle" title="#0dcaf0" data-color="#0dcaf0"
+                              style="width:20px;height:20px;background:#0dcaf0;cursor:pointer;border:2px solid transparent"></span>
+                        <span class="quick-color rounded-circle" title="#0d6efd" data-color="#0d6efd"
+                              style="width:20px;height:20px;background:#0d6efd;cursor:pointer;border:2px solid transparent"></span>
+                        <span class="quick-color rounded-circle" title="#6f42c1" data-color="#6f42c1"
+                              style="width:20px;height:20px;background:#6f42c1;cursor:pointer;border:2px solid transparent"></span>
+                        <span class="quick-color rounded-circle" title="#d63384" data-color="#d63384"
+                              style="width:20px;height:20px;background:#d63384;cursor:pointer;border:2px solid transparent"></span>
+                        <span class="quick-color rounded-circle" title="#20c997" data-color="#20c997"
+                              style="width:20px;height:20px;background:#20c997;cursor:pointer;border:2px solid transparent"></span>
+                        <span class="quick-color rounded-circle" title="#6c757d" data-color="#6c757d"
+                              style="width:20px;height:20px;background:#6c757d;cursor:pointer;border:2px solid transparent"></span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Description <span class="text-muted fw-normal">(optional)</span></label>
+                    <input type="text" class="form-control" id="tagDesc" placeholder="What does this tag mean?">
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="tagActive" checked>
+                    <label class="form-check-label" for="tagActive">Active</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="btnSaveTag" onclick="saveTag()">
+                    <i class="bi bi-check-lg me-1"></i>Save Tag
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const TOKEN_KEY = 'wizzardchat_token';
+const token = () => localStorage.getItem(TOKEN_KEY);
+const authHeaders = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token()}` });
+
+async function apiGet(url) {
+    const r = await fetch(url, { headers: authHeaders() });
+    if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); location.href = '/'; return null; }
+    if (!r.ok) { const t = await r.text(); throw new Error(t); }
+    return r.json();
+}
+async function apiPost(url, body) {
+    const r = await fetch(url, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+    if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); location.href = '/'; return null; }
+    if (!r.ok) { const t = await r.text(); throw new Error(t); }
+    return r.status === 204 ? null : r.json();
+}
+async function apiPut(url, body) {
+    const r = await fetch(url, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
+    if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); location.href = '/'; return null; }
+    if (!r.ok) { const t = await r.text(); throw new Error(t); }
+    return r.json();
+}
+async function apiDelete(url) {
+    const r = await fetch(url, { method: 'DELETE', headers: authHeaders() });
+    if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); location.href = '/'; return null; }
+    if (!r.ok) { const t = await r.text(); throw new Error(t); }
+    return null;
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let allTags = [];
+let editingTagId = null;
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!token()) { location.href = '/'; return; }
+
+    try {
+        const me = await apiGet('/api/v1/users/me');
+        if (me) document.getElementById('currentUser').textContent = me.username || 'Me';
+    } catch {}
+
+    document.getElementById('btnLogout').addEventListener('click', e => {
+        e.preventDefault(); localStorage.removeItem(TOKEN_KEY); location.href = '/';
+    });
+
+    // Color picker live preview
+    document.getElementById('tagColor').addEventListener('input', e => updateColorPreview(e.target.value));
+    document.getElementById('tagName').addEventListener('input', e => {
+        document.getElementById('tagPreviewName').textContent = e.target.value || 'Tag Name';
+    });
+
+    // Quick color swatches
+    document.querySelectorAll('.quick-color').forEach(el => {
+        el.addEventListener('click', () => {
+            document.getElementById('tagColor').value = el.dataset.color;
+            updateColorPreview(el.dataset.color);
+        });
+    });
+
+    await loadTags();
+});
+
+function updateColorPreview(color) {
+    document.getElementById('colorPreview').style.background = color;
+    const pill = document.getElementById('tagPreviewPill');
+    pill.style.background = color + '22';
+    pill.style.color = color;
+    pill.style.borderColor = color + '55';
+    document.getElementById('tagPreviewDot').style.background = color;
+}
+
+// ── Load ──────────────────────────────────────────────────────────────────────
+async function loadTags() {
+    try {
+        const data = await apiGet('/api/v1/tags');
+        if (!data) return;
+        allTags = data;
+
+        const byType = { interaction: [], contact: [], user: [] };
+        for (const t of allTags) {
+            if (byType[t.tag_type]) byType[t.tag_type].push(t);
+        }
+
+        renderTagArea('interaction', byType.interaction);
+        renderTagArea('contact',     byType.contact);
+        renderTagArea('user',        byType.user);
+
+        document.getElementById('statInteraction').textContent = byType.interaction.length;
+        document.getElementById('statContact').textContent     = byType.contact.length;
+        document.getElementById('statUser').textContent        = byType.user.length;
+    } catch (e) {
+        showToast('Failed to load tags: ' + e.message, 'danger');
+    }
+}
+
+function renderTagArea(type, tags) {
+    const area    = document.getElementById(`${type}TagsArea`);
+    const emptyId = `${type}Empty`;
+    const empty   = document.getElementById(emptyId);
+
+    if (!tags.length) {
+        if (empty) empty.style.display = '';
+        // Clear any pills but keep the empty placeholder
+        [...area.children].forEach(c => { if (c.classList.contains('tag-pill')) c.remove(); });
+        return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    // Rebuild all pills
+    const existing = area.querySelectorAll('.tag-pill');
+    existing.forEach(p => p.remove());
+
+    const wrap = document.createDocumentFragment();
+    for (const tag of tags) {
+        const pill = document.createElement('span');
+        pill.className = 'tag-pill me-2 mb-2';
+        pill.style.cssText = `background:${tag.color}22;color:${tag.color};border-color:${tag.color}55`;
+        pill.title = tag.description || tag.name;
+        pill.innerHTML = `
+            <span class="tag-dot" style="background:${tag.color}"></span>
+            <span>${escHtml(tag.name)}</span>
+            ${tag.is_active ? '' : '<span class="badge bg-secondary ms-1" style="font-size:.65rem">inactive</span>'}
+            <span class="tag-actions">
+                <button onclick='editTag(${JSON.stringify(tag)})' title="Edit"><i class="bi bi-pencil-fill"></i></button>
+                <button onclick="deleteTag('${tag.id}','${escHtml(tag.name)}')" title="Delete"><i class="bi bi-x-lg"></i></button>
+            </span>`;
+        wrap.appendChild(pill);
+    }
+    area.appendChild(wrap);
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function openTagModal(preType = null) {
+    editingTagId = null;
+    document.getElementById('tagModalTitle').innerHTML = '<i class="bi bi-tag me-2"></i>New Tag';
+    document.getElementById('tagName').value    = '';
+    document.getElementById('tagDesc').value    = '';
+    document.getElementById('tagActive').checked = true;
+    document.getElementById('tagColor').value   = '#6c757d';
+    document.getElementById('tagType').disabled = false;
+    if (preType) document.getElementById('tagType').value = preType;
+    updateColorPreview('#6c757d');
+    document.getElementById('tagPreviewName').textContent = 'Tag Name';
+    new bootstrap.Modal(document.getElementById('tagModal')).show();
+}
+
+function editTag(tag) {
+    editingTagId = tag.id;
+    document.getElementById('tagModalTitle').innerHTML = '<i class="bi bi-pencil me-2"></i>Edit Tag';
+    document.getElementById('tagType').value    = tag.tag_type;
+    document.getElementById('tagType').disabled = true; // type is immutable after creation
+    document.getElementById('tagName').value    = tag.name;
+    document.getElementById('tagDesc').value    = tag.description || '';
+    document.getElementById('tagActive').checked = tag.is_active;
+    document.getElementById('tagColor').value   = tag.color;
+    updateColorPreview(tag.color);
+    document.getElementById('tagPreviewName').textContent = tag.name;
+    new bootstrap.Modal(document.getElementById('tagModal')).show();
+}
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+async function saveTag() {
+    const name = document.getElementById('tagName').value.trim();
+    if (!name) { document.getElementById('tagName').focus(); return; }
+
+    const body = {
+        name,
+        tag_type:    document.getElementById('tagType').value,
+        color:       document.getElementById('tagColor').value,
+        description: document.getElementById('tagDesc').value.trim() || null,
+        is_active:   document.getElementById('tagActive').checked,
+    };
+
+    try {
+        if (editingTagId) {
+            await apiPut(`/api/v1/tags/${editingTagId}`, body);
+        } else {
+            await apiPost('/api/v1/tags', body);
+        }
+        bootstrap.Modal.getInstance(document.getElementById('tagModal')).hide();
+        await loadTags();
+    } catch(e) {
+        showToast('Error saving tag: ' + e.message, 'danger');
+    }
+}
+
+// ── Delete ────────────────────────────────────────────────────────────────────
+async function deleteTag(id, name) {
+    if (!confirm(`Delete tag "${name}"? It will be removed from all assigned entities.`)) return;
+    try {
+        await apiDelete(`/api/v1/tags/${id}`);
+        await loadTags();
+    } catch(e) {
+        showToast('Delete failed: ' + e.message, 'danger');
+    }
+}
+
+// ── Utility ───────────────────────────────────────────────────────────────────
+function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg, type = 'info') {
+    const id = 'toast_' + Date.now();
+    const el  = document.createElement('div');
+    el.id = id;
+    el.className = `alert alert-${type} alert-dismissible position-fixed bottom-0 end-0 m-3 shadow`;
+    el.style.zIndex = 9999;
+    el.innerHTML = `${escHtml(msg)}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 5000);
+}
+</script>
+</body>
+</html>

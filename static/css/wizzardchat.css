@@ -1,0 +1,35 @@
+/* WizzardChat global styles */
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: #1a1a2e;
+    color: #e0e0e0;
+}
+
+.card {
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.04);
+}
+
+.card:hover {
+    border-color: rgba(255,255,255,.15);
+}
+
+#sidebar .nav-link {
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 2px;
+    transition: background .15s;
+}
+#sidebar .nav-link:hover {
+    background: rgba(255,255,255,.1);
+}
+#sidebar .nav-link.active {
+    background: var(--bs-primary);
+}
+
+.toast-container {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 9999;
+}

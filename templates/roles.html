@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roles – WizzardChat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+    <style>
+        .role-card { transition: transform .15s, box-shadow .15s; }
+        .role-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.35); }
+        .perm-badge { font-size: .7rem; padding: 2px 7px; border-radius: 12px; margin: 2px; display: inline-block; }
+        .perm-badge.granted { background: rgba(25,135,84,.25); color: #75e09e; border: 1px solid rgba(25,135,84,.4); }
+        .perm-badge.denied  { background: rgba(108,117,125,.12); color: #6c757d; border: 1px solid rgba(108,117,125,.2); text-decoration: line-through; }
+        .system-icon { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center;
+                       justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
+        .perm-group-header { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em;
+                             color: var(--bs-secondary-color); font-weight: 600; margin-top: .75rem; }
+        .form-check-label { font-size: .875rem; }
+        /* permission matrix in modal */
+        .perm-matrix th { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }
+        .perm-matrix td, .perm-matrix th { padding: .3rem .5rem; }
+        .perm-resource-label { font-size: .82rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+<!-- ───────────────────────── Sidebar ───────────────────────── -->
+<nav id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark"
+     style="width:220px;height:100vh;position:fixed;overflow-y:auto;">
+    <a href="/" class="d-flex align-items-center mb-3 text-white text-decoration-none">
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+        <span class="fs-5 fw-bold">WizzardChat</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+        <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+        <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+        <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+        <li class="nav-item"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">User Management</li>
+        <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+        <li class="nav-item"><a href="/roles" class="nav-link active"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+        <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">Business Settings</li>
+        <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+        <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+        <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>            <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>        <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+    </ul>
+    <hr>
+    <div class="dropdown">
+        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle me-2"></i><strong id="currentUser">Admin</strong>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+            <li><a class="dropdown-item" href="#" id="btnLogout">Sign out</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- ───────────────────────── Main ───────────────────────── -->
+<main style="margin-left:220px;padding:24px;min-height:100vh;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="bi bi-shield-check me-2 text-primary"></i>Roles &amp; Permissions</h4>
+        <button class="btn btn-primary" onclick="openRoleModal()">
+            <i class="bi bi-plus-lg me-1"></i>New Custom Role
+        </button>
+    </div>
+
+    <!-- ── Stats ── -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="card bg-body-secondary border-0 p-3 text-center">
+                <div class="fs-2 fw-bold text-primary" id="statSystem">5</div>
+                <div class="small text-muted">System Roles</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card bg-body-secondary border-0 p-3 text-center">
+                <div class="fs-2 fw-bold text-success" id="statCustom">–</div>
+                <div class="small text-muted">Custom Roles</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card bg-body-secondary border-0 p-3 text-center">
+                <div class="fs-2 fw-bold text-warning" id="statPerms">–</div>
+                <div class="small text-muted">Permission Keys</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── System roles section ── -->
+    <h6 class="text-uppercase text-secondary fw-semibold mb-3" style="letter-spacing:.06em;font-size:.75rem;">
+        <i class="bi bi-lock-fill me-1"></i>System Roles (read-only)
+    </h6>
+    <div class="row g-3 mb-4" id="systemRolesRow">
+        <div class="col-12 text-center text-muted py-4">
+            <div class="spinner-border spinner-border-sm me-2"></div>Loading…
+        </div>
+    </div>
+
+    <!-- ── Custom roles section ── -->
+    <h6 class="text-uppercase text-secondary fw-semibold mb-3" style="letter-spacing:.06em;font-size:.75rem;">
+        <i class="bi bi-pencil-square me-1"></i>Custom Roles
+    </h6>
+    <div class="card bg-body-secondary border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0" id="customRolesTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th class="text-center">Permissions</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="customRolesBody">
+                    <tr id="rolesLoading">
+                        <td colspan="4" class="text-center text-muted py-5">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Loading roles…
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- ─────────────── System Role Detail Modal ─────────────── -->
+<div class="modal fade" id="systemRoleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sysRoleModalTitle">Role Permissions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="sysRoleModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─────────────── Create / Edit Custom Role Modal ─────────────── -->
+<div class="modal fade" id="roleModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="roleModalTitle">New Custom Role</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-5">
+                        <label class="form-label fw-semibold">Role Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="roleName" placeholder="e.g. Team Lead">
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label fw-semibold">Description</label>
+                        <input type="text" class="form-control" id="roleDesc" placeholder="What can this role do?">
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-semibold">Permissions</span>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-success" onclick="toggleAll(true)">Grant All</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="toggleAll(false)">Revoke All</button>
+                    </div>
+                </div>
+
+                <div id="permMatrix"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveRole()">
+                    <i class="bi bi-check2 me-1"></i>Save Role
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ─── Auth ───────────────────────────────────────────────────────────────────
+const TOKEN_KEY = 'wizzardchat_token';
+const token = () => localStorage.getItem(TOKEN_KEY);
+const authHeaders = () => ({ 'Authorization': 'Bearer ' + token(), 'Content-Type': 'application/json' });
+
+async function apiGet(url) {
+    const r = await fetch(url, { headers: authHeaders() });
+    if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); location.href = '/'; return null; }
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+}
+async function apiPost(url, body) {
+    const r = await fetch(url, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+    if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); location.href = '/'; return null; }
+    if (!r.ok) { const t = await r.text(); throw new Error(t); }
+    return r.json();
+}
+async function apiPut(url, body) {
+    const r = await fetch(url, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
+    if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); location.href = '/'; return null; }
+    if (!r.ok) { const t = await r.text(); throw new Error(t); }
+    return r.json();
+}
+async function apiDelete(url) {
+    const r = await fetch(url, { method: 'DELETE', headers: authHeaders() });
+    if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); location.href = '/'; return null; }
+    if (!r.ok) { const t = await r.text(); throw new Error(t); }
+    return r.status === 204 ? null : r.json();
+}
+
+// ─── State ──────────────────────────────────────────────────────────────────
+let allRoles = [];
+let allPermissions = [];
+let editingRoleId = null;
+
+// ─── Page ready ─────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!token()) { location.href = '/'; return; }
+
+    // Load current user
+    try {
+        const me = await apiGet('/api/v1/users/me');
+        if (me) document.getElementById('currentUser').textContent = me.username || 'Me';
+    } catch {}
+
+    document.getElementById('btnLogout').addEventListener('click', e => {
+        e.preventDefault();
+        localStorage.removeItem(TOKEN_KEY);
+        location.href = '/';
+    });
+
+    await loadPermissions();
+    await loadRoles();
+});
+
+// ─── Load Permissions ────────────────────────────────────────────────────────
+async function loadPermissions() {
+    try {
+        const data = await apiGet('/api/v1/roles/permissions');
+        if (data) {
+            allPermissions = data.permissions || [];
+            document.getElementById('statPerms').textContent = allPermissions.length;
+        }
+    } catch (e) {
+        console.error('Could not load permissions', e);
+    }
+}
+
+// ─── Load Roles ──────────────────────────────────────────────────────────────
+async function loadRoles() {
+    try {
+        const data = await apiGet('/api/v1/roles');
+        if (!data) return;
+        allRoles = data;
+
+        const systemRoles = allRoles.filter(r => r.is_system);
+        const customRoles = allRoles.filter(r => !r.is_system);
+
+        renderSystemRoles(systemRoles);
+        renderCustomRoles(customRoles);
+
+        document.getElementById('statCustom').textContent = customRoles.length;
+    } catch (e) {
+        document.getElementById('systemRolesRow').innerHTML = `<div class="col-12 text-danger">Error: ${e.message}</div>`;
+        document.getElementById('customRolesBody').innerHTML = `<tr><td colspan="4" class="text-center text-danger">Error: ${e.message}</td></tr>`;
+    }
+}
+
+// ─── System Roles ────────────────────────────────────────────────────────────
+const ROLE_META = {
+    super_admin: { color: 'danger',  icon: 'bi-star-fill',       label: 'Super Admin' },
+    admin:       { color: 'warning', icon: 'bi-shield-fill',      label: 'Admin' },
+    supervisor:  { color: 'info',    icon: 'bi-person-badge-fill', label: 'Supervisor' },
+    agent:       { color: 'success', icon: 'bi-headset',           label: 'Agent' },
+    viewer:      { color: 'secondary',icon: 'bi-eye-fill',         label: 'Viewer' },
+};
+
+function renderSystemRoles(roles) {
+    const row = document.getElementById('systemRolesRow');
+    if (!roles.length) { row.innerHTML = '<div class="col-12 text-muted">No system roles found.</div>'; return; }
+
+    row.innerHTML = roles.map(r => {
+        const m = ROLE_META[r.name] || { color: 'primary', icon: 'bi-shield', label: r.name };
+        const granted = Object.entries(r.permissions || {}).filter(([,v]) => v).length;
+        const total   = Object.keys(r.permissions || {}).length || allPermissions.length;
+
+        return `
+        <div class="col-xl-4 col-md-6">
+            <div class="card bg-body-secondary border-0 role-card h-100"
+                 onclick="viewSystemRole('${r.id}')" style="cursor:pointer">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="system-icon bg-${m.color} bg-opacity-25 text-${m.color}">
+                            <i class="bi ${m.icon}"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">${m.label}</h6>
+                            <small class="text-muted font-monospace">${r.name}</small>
+                        </div>
+                        <span class="ms-auto badge bg-secondary">System</span>
+                    </div>
+                    <p class="small text-muted mb-2">${r.description || ''}</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="progress flex-grow-1" style="height:6px">
+                            <div class="progress-bar bg-${m.color}" style="width:${total ? Math.round(granted/total*100) : 0}%"></div>
+                        </div>
+                        <small class="text-muted">${granted}/${total}</small>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Click to view permissions</small>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function viewSystemRole(roleId) {
+    const r = allRoles.find(x => x.id === roleId);
+    if (!r) return;
+    const m = ROLE_META[r.name] || { color: 'primary', label: r.name };
+    document.getElementById('sysRoleModalTitle').innerHTML =
+        `<span class="text-${m.color}">${m.label}</span> – Permissions`;
+
+    const grouped = groupPermissions(allPermissions);
+    let html = '<div class="row g-2">';
+    for (const [group, perms] of Object.entries(grouped)) {
+        html += `<div class="col-md-6 col-lg-4">
+            <div class="card bg-body-tertiary border-0 p-2">
+                <div class="perm-group-header mb-1"><i class="bi bi-folder2 me-1"></i>${group}</div>`;
+        for (const p of perms) {
+            const granted = r.permissions?.[p] === true;
+            html += `<div class="d-flex align-items-center gap-2 py-1 border-bottom border-secondary border-opacity-25">
+                <i class="bi ${granted ? 'bi-check-circle-fill text-success' : 'bi-x-circle text-secondary'}" style="font-size:.8rem"></i>
+                <span style="font-size:.8rem">${p.split('.')[1]}</span>
+            </div>`;
+        }
+        html += '</div></div>';
+    }
+    html += '</div>';
+    document.getElementById('sysRoleModalBody').innerHTML = html;
+    new bootstrap.Modal(document.getElementById('systemRoleModal')).show();
+}
+
+// ─── Custom Roles ─────────────────────────────────────────────────────────────
+function renderCustomRoles(roles) {
+    const tbody = document.getElementById('customRolesBody');
+    if (!roles.length) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-5">
+            <i class="bi bi-shield-plus fs-3 d-block mb-2 opacity-50"></i>
+            No custom roles yet. Create one to get started.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = roles.map(r => {
+        const granted = Object.values(r.permissions || {}).filter(Boolean).length;
+        const total   = allPermissions.length;
+        return `<tr>
+            <td><strong>${escHtml(r.name)}</strong></td>
+            <td class="text-muted small">${escHtml(r.description || '–')}</td>
+            <td class="text-center">
+                <span class="badge bg-primary bg-opacity-25 text-primary">${granted} / ${total}</span>
+            </td>
+            <td class="text-end">
+                <button class="btn btn-sm btn-outline-primary me-1" onclick='editRole(${JSON.stringify(r)})'>
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteRole('${r.id}', '${escHtml(r.name)}')">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+// ─── Permission Matrix (modal) ────────────────────────────────────────────────
+function groupPermissions(permList) {
+    const groups = {};
+    for (const p of permList) {
+        const [resource] = p.split('.');
+        if (!groups[resource]) groups[resource] = [];
+        groups[resource].push(p);
+    }
+    return groups;
+}
+
+function buildPermMatrix(currentPerms = {}) {
+    const grouped = groupPermissions(allPermissions);
+    const container = document.getElementById('permMatrix');
+    let html = '<div class="row g-3">';
+
+    for (const [group, perms] of Object.entries(grouped)) {
+        html += `<div class="col-md-6 col-lg-4">
+            <div class="card bg-body-tertiary border-0 p-2">
+                <div class="perm-group-header mb-2">
+                    <i class="bi bi-folder2 me-1"></i>${group}
+                </div>`;
+        for (const p of perms) {
+            const checked = currentPerms[p] === true ? 'checked' : '';
+            const action = p.split('.')[1];
+            html += `<div class="form-check form-switch py-1 border-bottom border-secondary border-opacity-25">
+                <input class="form-check-input perm-toggle" type="checkbox" id="perm_${p}"
+                       data-perm="${p}" ${checked}>
+                <label class="form-check-label" for="perm_${p}">${action}</label>
+            </div>`;
+        }
+        html += '</div></div>';
+    }
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function toggleAll(value) {
+    document.querySelectorAll('.perm-toggle').forEach(cb => cb.checked = value);
+}
+
+function collectPerms() {
+    const result = {};
+    document.querySelectorAll('.perm-toggle').forEach(cb => {
+        result[cb.dataset.perm] = cb.checked;
+    });
+    return result;
+}
+
+// ─── Modal Open / Edit ────────────────────────────────────────────────────────
+function openRoleModal() {
+    editingRoleId = null;
+    document.getElementById('roleModalTitle').textContent = 'New Custom Role';
+    document.getElementById('roleName').value = '';
+    document.getElementById('roleDesc').value = '';
+    buildPermMatrix({});
+    new bootstrap.Modal(document.getElementById('roleModal')).show();
+}
+
+function editRole(r) {
+    editingRoleId = r.id;
+    document.getElementById('roleModalTitle').textContent = 'Edit Role – ' + r.name;
+    document.getElementById('roleName').value = r.name;
+    document.getElementById('roleDesc').value = r.description || '';
+    buildPermMatrix(r.permissions || {});
+    new bootstrap.Modal(document.getElementById('roleModal')).show();
+}
+
+// ─── Save ─────────────────────────────────────────────────────────────────────
+async function saveRole() {
+    const name = document.getElementById('roleName').value.trim();
+    if (!name) { alert('Role name is required.'); return; }
+
+    const payload = {
+        name,
+        description: document.getElementById('roleDesc').value.trim(),
+        permissions: collectPerms()
+    };
+
+    try {
+        if (editingRoleId) {
+            await apiPut(`/api/v1/roles/${editingRoleId}`, payload);
+        } else {
+            await apiPost('/api/v1/roles', payload);
+        }
+        bootstrap.Modal.getInstance(document.getElementById('roleModal')).hide();
+        await loadRoles();
+    } catch (e) {
+        alert('Error saving role: ' + e.message);
+    }
+}
+
+// ─── Delete ───────────────────────────────────────────────────────────────────
+async function deleteRole(id, name) {
+    if (!confirm(`Delete custom role "${name}"? This cannot be undone.`)) return;
+    try {
+        await apiDelete(`/api/v1/roles/${id}`);
+        await loadRoles();
+    } catch (e) {
+        alert('Delete failed: ' + e.message);
+    }
+}
+
+// ─── Util ─────────────────────────────────────────────────────────────────────
+function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connectors – WizzardChat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+    <style>
+        /* ── Connector cards ── */
+        .connector-card .connector-status { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .connector-card .card-footer { background: transparent; border-top: 1px solid rgba(255,255,255,.08); }
+
+        /* ── Snippet output ── */
+        #snippetCode { user-select: all; font-size: 12px; white-space: pre; }
+
+        /* ── Meta fields table ── */
+        #metaFieldsBody tr td input, #metaFieldsBody tr td select {
+            font-size: 13px;
+        }
+
+        /* ── Live chat inbox ── */
+        .inbox-session { cursor: pointer; transition: background .15s; }
+        .inbox-session:hover { background: rgba(255,255,255,.06); }
+        .inbox-session.active { background: rgba(13,110,253,.18); border-left: 3px solid #0d6efd; }
+
+        #chatMsgs { overflow-y: auto; height: calc(100vh - 310px); min-height: 200px; display: flex; flex-direction: column; gap: 6px; }
+        .chat-bubble { max-width: 78%; padding: 8px 12px; border-radius: 14px; font-size: 13.5px; line-height: 1.45; }
+        .chat-bubble.from-visitor { background: #2d2d2d; align-self: flex-start; }
+        .chat-bubble.from-bot { background: #1a3a5c; align-self: flex-start; }
+        .chat-bubble.from-agent { background: #1a4a2e; align-self: flex-end; }
+        .chat-bubble.system { background: transparent; font-size: 12px; color: #888; align-self: center; font-style: italic; }
+
+        /* ── Style preview ── */
+        #stylePreview {
+            border-radius: 10px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,.3);
+            font-family: -apple-system,sans-serif; font-size: 13.5px;
+        }
+        #previewHeader { padding: 10px 14px; display: flex; align-items: center; gap: 8px; }
+        #previewMsgs { background: #f8f9fa; color: #212529; padding: 10px; min-height: 90px; }
+        .prev-bubble { display: inline-block; padding: 7px 10px; border-radius: 12px; margin: 3px 0; font-size: 12px; }
+        .prev-bot { background: #e9ecef; color: #212529; }
+        .prev-user { float: right; color: #fff; }
+    </style>
+</head>
+<body>
+<!-- Sidebar -->
+<nav id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark" style="width:220px;height:100vh;position:fixed;">
+    <a href="/" class="d-flex align-items-center mb-3 text-white text-decoration-none">
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+        <span class="fs-5 fw-bold">WizzardChat</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+        <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+        <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+        <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+        <li class="nav-item"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">User Management</li>
+        <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+        <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+        <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">Business Settings</li>
+        <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+        <li class="nav-item"><a href="/connectors" class="nav-link active"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+        <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>            <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>        <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+    </ul>
+    <hr>
+    <div class="dropdown">
+        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle me-2"></i><strong id="currentUser">Agent</strong>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+            <li><a class="dropdown-item" href="#" id="btnLogout">Sign out</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- Main -->
+<main style="margin-left:220px;padding:24px;min-height:100vh;">
+
+    <!-- Page header -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h4 class="mb-0"><i class="bi bi-plug-fill me-2"></i>Connectors</h4>
+        <ul class="nav nav-pills" id="connectorsTabs">
+            <li class="nav-item"><a class="nav-link active px-3" href="#" data-tab="connectors">
+                <i class="bi bi-grid me-1"></i>Connectors
+            </a></li>
+            <li class="nav-item"><a class="nav-link px-3" href="#" data-tab="inbox">
+                <i class="bi bi-inbox me-1"></i>Live Chat Inbox
+                <span class="badge bg-danger ms-1 d-none" id="inboxBadge">0</span>
+            </a></li>
+        </ul>
+        <button class="btn btn-primary btn-sm" id="btnNewConnector">
+            <i class="bi bi-plus-lg me-1"></i>New Connector
+        </button>
+    </div>
+
+    <!-- ── Connectors Tab ── -->
+    <div id="tabConnectors">
+        <div id="connectorsList" class="row g-3">
+            <div class="col-12 text-center text-muted py-4" id="connectorsEmpty">
+                <i class="bi bi-plug fs-1"></i><br>No connectors yet. Create your first one.
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Inbox Tab ── -->
+    <div id="tabInbox" class="d-none">
+        <div class="row g-3" style="height:calc(100vh - 130px)">
+            <!-- Session list -->
+            <div class="col-md-4 col-lg-3 d-flex flex-column">
+                <div class="card flex-fill overflow-hidden">
+                    <div class="card-header d-flex justify-content-between align-items-center py-2">
+                        <span class="fw-semibold"><i class="bi bi-chat-dots me-1"></i> Sessions</span>
+                        <span class="badge bg-secondary" id="sessionCount">0</span>
+                    </div>
+                    <div id="sessionList" class="list-group list-group-flush overflow-auto flex-fill">
+                        <div class="text-center text-muted py-4 small" id="noSessions">No active sessions</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat window -->
+            <div class="col-md-8 col-lg-9 d-flex flex-column">
+                <div class="card flex-fill" id="chatArea">
+                    <div class="card-header d-flex align-items-center gap-2 py-2" id="chatHeader">
+                        <div class="flex-fill">
+                            <span class="fw-semibold" id="chatVisitorName">Select a session</span>
+                            <span class="badge ms-2 d-none" id="chatStatus">—</span>
+                        </div>
+                        <div class="d-flex gap-2" id="chatActions" style="display:none!important">
+                            <button class="btn btn-sm btn-success d-none" id="btnTakeSession" title="Take this session">
+                                <i class="bi bi-person-check me-1"></i>Take
+                            </button>
+                            <button class="btn btn-sm btn-warning d-none" id="btnReleaseSession" title="Release back to queue">
+                                <i class="bi bi-arrow-return-left me-1"></i>Release
+                            </button>
+                            <button class="btn btn-sm btn-danger d-none" id="btnCloseSession" title="Close session">
+                                <i class="bi bi-x-lg me-1"></i>Close
+                            </button>
+                        </div>
+                    </div>
+                    <div id="chatMsgs" class="card-body p-3"></div>
+                    <div class="card-footer py-2">
+                        <div id="chatMeta" class="mb-2 small text-muted d-none p-2 rounded bg-body-secondary">
+                            <strong>Visitor metadata:</strong>
+                            <span id="chatMetaContent"></span>
+                        </div>
+                        <div class="input-group">
+                            <textarea class="form-control form-control-sm" id="agentMsgInput" rows="1"
+                                      placeholder="Type a reply…" style="resize:none" disabled></textarea>
+                            <button class="btn btn-primary" id="btnAgentSend" disabled>
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                        <div class="mt-1 small text-muted" id="agentTypingStatus"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+<!-- ═══════════════════════════ MODALS ═══════════════════════════ -->
+
+<!-- Create / Edit Connector Modal -->
+<div class="modal fade" id="connectorModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="connectorModalTitle"><i class="bi bi-plug me-2"></i>New Connector</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4">
+                    <!-- Left: form -->
+                    <div class="col-lg-8">
+                        <input type="hidden" id="connectorId">
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Connector Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="cName" placeholder="e.g. Website Chat">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Linked Flow</label>
+                                <select class="form-select" id="cFlowId">
+                                    <option value="">— No flow —</option>
+                                </select>
+                                <div class="form-text">The flow that runs when a visitor starts a chat.</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="cDescription" rows="2" placeholder="Optional description"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Allowed Origins</label>
+                            <input type="text" class="form-control" id="cAllowedOrigins"
+                                   placeholder="* (all) or comma-separated: https://example.com, https://shop.com">
+                            <div class="form-text">Domains allowed to embed this connector. Use <code>*</code> for any.</div>
+                        </div>
+
+                        <!-- Style section -->
+                        <div class="card mb-3">
+                            <div class="card-header py-2 d-flex align-items-center gap-2">
+                                <i class="bi bi-palette2 me-1"></i><strong>Widget Style</strong>
+                                <button class="btn btn-outline-secondary btn-sm ms-auto" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#styleSection">
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                            </div>
+                            <div class="collapse show" id="styleSection">
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Chat Title</label>
+                                            <input type="text" class="form-control" id="sTitle" placeholder="Chat with us">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Subtitle</label>
+                                            <input type="text" class="form-control" id="sSubtitle" placeholder="Reply in minutes">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Primary Color</label>
+                                            <div class="input-group">
+                                                <input type="color" class="form-control form-control-color" id="sPrimaryColor" value="#0d6efd">
+                                                <input type="text" class="form-control form-control-sm" id="sPrimaryColorHex" value="#0d6efd">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Position</label>
+                                            <select class="form-select" id="sPosition">
+                                                <option value="bottom-right">Bottom Right</option>
+                                                <option value="bottom-left">Bottom Left</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Theme</label>
+                                            <select class="form-select" id="sTheme">
+                                                <option value="light">Light</option>
+                                                <option value="dark">Dark</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Logo URL</label>
+                                            <input type="url" class="form-control" id="sLogoUrl" placeholder="https://...">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Width</label>
+                                            <input type="text" class="form-control" id="sWidth" value="370px">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Height</label>
+                                            <input type="text" class="form-control" id="sHeight" value="520px">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Meta Fields section -->
+                        <div class="card mb-2">
+                            <div class="card-header py-2 d-flex align-items-center gap-2">
+                                <i class="bi bi-tags me-1"></i><strong>Metadata Field Mappings</strong>
+                                <button class="btn btn-outline-success btn-sm ms-auto" id="btnAddMetaField" type="button">
+                                    <i class="bi bi-plus-lg"></i> Add Field
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-sm mb-0" id="metaFieldsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Metadata Key</th>
+                                            <th>Label</th>
+                                            <th class="text-center" style="width:80px">Required</th>
+                                            <th>Map to Flow Variable</th>
+                                            <th style="width:40px"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="metaFieldsBody">
+                                        <!-- rows injected by JS -->
+                                    </tbody>
+                                </table>
+                                <div class="text-muted small p-2" id="metaFieldsEmpty">
+                                    No field mappings. Add mappings to pass visitor page data into flow variables.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: preview -->
+                    <div class="col-lg-4">
+                        <label class="form-label text-muted small"><i class="bi bi-eye me-1"></i>Widget Preview</label>
+                        <div id="stylePreview">
+                            <div id="previewHeader">
+                                <div id="previewLogo" style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;">💬</div>
+                                <div>
+                                    <div id="previewTitle" style="font-weight:700;font-size:14px;color:#fff"></div>
+                                    <div id="previewSubtitle" style="font-size:11px;opacity:.85;color:#fff"></div>
+                                </div>
+                            </div>
+                            <div id="previewMsgs">
+                                <div><span class="prev-bubble prev-bot">Hi there! 👋 How can I help you today?</span></div>
+                                <div style="text-align:right"><span class="prev-bubble prev-user" id="previewUserBubble">I need help with my order</span></div>
+                                <div><span class="prev-bubble prev-bot">Sure! What's your order number?</span></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="cIsActive" checked>
+                                <label class="form-check-label" for="cIsActive">Connector Active</label>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 d-none" id="existingKeyPanel">
+                            <label class="form-label small text-muted">API Key</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control font-monospace" id="displayApiKey" readonly>
+                                <button class="btn btn-outline-secondary" id="btnRegenKey" title="Regenerate key">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnSaveConnector">
+                    <i class="bi bi-check-lg me-1"></i>Save Connector
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Snippet Modal -->
+<div class="modal fade" id="snippetModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-code-slash me-2"></i>Embed Snippet</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-2">
+                    Paste this snippet into the <code>&lt;head&gt;</code> or before <code>&lt;/body&gt;</code>
+                    of any page where you want the chat widget to appear.
+                </p>
+                <div class="position-relative">
+                    <pre class="p-3 rounded bg-body-secondary overflow-auto" style="max-height:220px"><code id="snippetCode"></code></pre>
+                    <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2" id="btnCopySnippet">
+                        <i class="bi bi-clipboard me-1"></i>Copy
+                    </button>
+                </div>
+                <hr>
+                <h6 class="small text-muted mb-2">Pass custom metadata from your page:</h6>
+                <pre class="p-3 rounded bg-body-secondary small overflow-auto"><code id="snippetMetaExample"></code></pre>
+                <hr>
+                <h6 class="mb-2">Test the Widget</h6>
+                <p class="small text-muted mb-2">Open a preview page with the widget loaded:</p>
+                <a href="#" id="snippetTestLink" target="_blank" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Open Test Page
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete confirm -->
+<div class="modal fade" id="deleteConnectorModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger"><i class="bi bi-trash me-2"></i>Delete Connector</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Delete <strong id="deleteConnectorName"></strong>? All sessions will be removed. This cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-danger btn-sm" id="btnConfirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/connectors.js"></script>
+</body>
+</html>

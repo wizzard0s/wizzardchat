@@ -1,0 +1,509 @@
+/* Flow Designer styles */
+
+/* ─── Palette ─── */
+#nodePalette {
+    background: #16213e;
+}
+
+.palette-group {
+    margin-bottom: 12px;
+}
+
+.palette-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: #6c757d;
+    padding: 4px 8px;
+    letter-spacing: 0.5px;
+}
+
+.palette-node {
+    padding: 6px 10px;
+    margin: 2px 4px;
+    border-radius: 6px;
+    cursor: grab;
+    font-size: 0.82rem;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.08);
+    transition: all .15s;
+    user-select: none;
+}
+
+.palette-node:hover {
+    background: rgba(255,255,255,.12);
+    border-color: rgba(100,149,237,.5);
+}
+
+.palette-node:active {
+    cursor: grabbing;
+}
+
+/* ─── Canvas ─── */
+#canvasContainer {
+    background:
+        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    cursor: grab;
+}
+
+#canvasContainer.panning {
+    cursor: grabbing;
+}
+
+/* ─── Flow Nodes ─── */
+.flow-node {
+    position: absolute;
+    min-width: 160px;
+    background: #1e2a4a;
+    border: 2px solid #3a4a7a;
+    border-radius: 8px;
+    padding: 0;
+    cursor: move;
+    user-select: none;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    transition: box-shadow .15s, border-color .15s;
+}
+
+.flow-node:hover {
+    border-color: #5a7abb;
+    box-shadow: 0 4px 16px rgba(0,0,0,.4);
+}
+
+.flow-node.selected {
+    border-color: #6ea8fe;
+    box-shadow: 0 0 0 3px rgba(110,168,254,.3);
+}
+
+.flow-node .node-header {
+    padding: 6px 12px;
+    border-radius: 6px 6px 0 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.flow-node .node-body {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
+
+/* Node type colors */
+.flow-node[data-type="start"] .node-header { background: #198754; color: #fff; }
+.flow-node[data-type="end"] .node-header { background: #dc3545; color: #fff; }
+.flow-node[data-type="message"] .node-header { background: #0d6efd; color: #fff; }
+.flow-node[data-type="condition"] .node-header { background: #ffc107; color: #000; }
+.flow-node[data-type="input"] .node-header { background: #6f42c1; color: #fff; }
+.flow-node[data-type="menu"] .node-header { background: #0dcaf0; color: #000; }
+.flow-node[data-type="queue"] .node-header { background: #fd7e14; color: #fff; }
+.flow-node[data-type="transfer"] .node-header { background: #e85d04; color: #fff; }
+.flow-node[data-type="http_request"] .node-header { background: #20c997; color: #000; }
+.flow-node[data-type="webhook"] .node-header { background: #d63384; color: #fff; }
+.flow-node[data-type="set_variable"] .node-header { background: #6c757d; color: #fff; }
+.flow-node[data-type="wait"] .node-header { background: #adb5bd; color: #000; }
+.flow-node[data-type="play_audio"] .node-header { background: #6610f2; color: #fff; }
+.flow-node[data-type="record"] .node-header { background: #d63384; color: #fff; }
+.flow-node[data-type="dtmf"] .node-header { background: #495057; color: #fff; }
+.flow-node[data-type="ai_bot"] .node-header { background: #7c3aed; color: #fff; }
+.flow-node[data-type="goto"] .node-header { background: #6c757d; color: #fff; }
+.flow-node[data-type="sub_flow"] .node-header { background: #087990; color: #fff; }
+
+/* ─── Ports (connection points) ─── */
+.node-port {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #6ea8fe;
+    border: 2px solid #1e2a4a;
+    cursor: crosshair;
+    z-index: 3;
+    transition: transform .1s;
+}
+
+.node-port:hover {
+    transform: scale(1.4);
+    background: #fff;
+}
+
+.node-port.port-in {
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.node-port.port-in:hover {
+    transform: translateX(-50%) scale(1.4);
+}
+
+.node-port.port-out {
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.node-port.port-out:hover {
+    transform: translateX(-50%) scale(1.4);
+}
+
+/* Condition node: multiple outputs */
+.node-port.port-out-true {
+    bottom: -6px;
+    left: 30%;
+    transform: translateX(-50%);
+    background: #198754;
+}
+
+.node-port.port-out-false {
+    bottom: -6px;
+    left: 70%;
+    transform: translateX(-50%);
+    background: #dc3545;
+}
+
+/* ─── Edges (SVG) ─── */
+.edge-path {
+    fill: none;
+    stroke: #5a7abb;
+    stroke-width: 2;
+    pointer-events: stroke;
+    cursor: pointer;
+    transition: stroke .15s;
+}
+
+.edge-path:hover {
+    stroke: #6ea8fe;
+    stroke-width: 3;
+}
+
+.edge-path.selected {
+    stroke: #ffc107;
+    stroke-width: 3;
+}
+
+.temp-edge {
+    fill: none;
+    stroke: #6ea8fe;
+    stroke-width: 2;
+    stroke-dasharray: 6 3;
+    opacity: 0.7;
+}
+
+/* ─── Properties Panel ─── */
+#propertiesPanel {
+    background: #16213e;
+}
+
+#propertiesPanel .form-label {
+    font-size: 0.8rem;
+    color: #adb5bd;
+}
+
+/* ─── Set Fields (set_variable) ─── */
+.sf-row {
+    position: relative;
+    border-color: rgba(255,255,255,.1) !important;
+}
+.sf-row-summary {
+    background: rgba(255,255,255,.04);
+    cursor: default;
+    min-height: 32px;
+    font-size: 0.83rem;
+}
+.sf-row-summary:hover {
+    background: rgba(255,255,255,.08);
+}
+.sf-summary-name {
+    font-weight: 600;
+    color: #e0e0e0;
+    max-width: 100px;
+    flex-shrink: 0;
+}
+.sf-summary-val {
+    min-width: 0;
+    font-size: 0.78rem;
+}
+.sf-type-badge {
+    font-size: 0.65rem;
+    padding: 1px 5px;
+    flex-shrink: 0;
+}
+.sf-row-edit {
+    background: rgba(255,255,255,.06);
+}
+.sf-row .sf-name {
+    flex: 1;
+}
+.sf-row .sf-remove {
+    padding: 2px 6px;
+    line-height: 1;
+}
+.sf-value-wrap {
+    margin-top: 2px;
+}
+.sf-reldate {
+    flex-wrap: nowrap;
+}
+/* ─── Input mode toggle (text / expression) ─── */
+.sf-mode-toggle {
+    min-width: 30px;
+    padding: 2px 5px;
+    line-height: 1.4;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+.sf-mode-text {
+    color: #adb5bd;
+    border-color: rgba(255,255,255,.15);
+    background: transparent;
+}
+.sf-mode-text:hover {
+    color: #fff;
+    border-color: rgba(255,255,255,.3);
+}
+.sf-mode-expr {
+    color: #ffc107;
+    border-color: #ffc107;
+    background: rgba(255,193,7,.1);
+}
+.sf-mode-expr:hover {
+    color: #ffcd39;
+    border-color: #ffcd39;
+    background: rgba(255,193,7,.18);
+}
+.sf-expr-input {
+    border-color: rgba(255,193,7,.35) !important;
+    background: rgba(255,193,7,.05) !important;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 0.82rem;
+}
+
+/* ─── Minimap ─── */
+.minimap {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 180px;
+    height: 120px;
+    background: rgba(0,0,0,.5);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 6px;
+    z-index: 10;
+    overflow: hidden;
+}
+
+/* ─── Form Fields with Expression Toggle ─── */
+.form-field-group {
+    position: relative;
+}
+
+.field-mode-toggle {
+    min-width: 28px;
+    padding: 1px 5px;
+    line-height: 1.3;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+.field-mode-text {
+    color: #adb5bd;
+    border-color: rgba(255,255,255,.15);
+    background: transparent;
+}
+.field-mode-text:hover {
+    color: #fff;
+    border-color: rgba(255,255,255,.3);
+}
+.field-mode-expr {
+    color: #ffc107;
+    border-color: #ffc107;
+    background: rgba(255,193,7,.1);
+}
+.field-mode-expr:hover {
+    color: #ffcd39;
+    border-color: #ffcd39;
+    background: rgba(255,193,7,.18);
+}
+.field-expr-input {
+    border-color: rgba(255,193,7,.35) !important;
+    background: rgba(255,193,7,.05) !important;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 0.82rem;
+}
+.field-expr-builder {
+    min-width: 28px;
+    padding: 1px 5px;
+    line-height: 1.3;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+.field-description {
+    font-size: 0.72rem;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+/* ─── Options List Editor (menu nodes) ─── */
+.options-list-editor .opt-key {
+    font-weight: 600;
+    text-align: center;
+    flex: 0 0 60px;
+}
+.options-list-editor .opt-remove {
+    padding: 2px 6px;
+}
+
+/* ─── Key-Value Editor ─── */
+.kv-editor .kv-k {
+    flex: 0 0 40%;
+}
+.kv-editor .kv-remove {
+    padding: 2px 6px;
+}
+
+/* ─── Expression Builder Modal ─── */
+#exprBuilderModal .modal-content {
+    background: #1a1f36;
+}
+.expr-editor-input {
+    background: #0d1117 !important;
+    border-color: rgba(255,193,7,.3) !important;
+    color: #e6db74 !important;
+    font-size: 0.88rem;
+}
+.expr-editor-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255,193,7,.15) !important;
+}
+.expr-result-box {
+    background: #0d1117;
+    color: #e0e0e0;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 0.82rem;
+}
+.expr-ref-panel {
+    background: rgba(0,0,0,.2);
+    border-color: rgba(255,255,255,.1) !important;
+}
+.expr-ref-panel code {
+    color: #79c0ff;
+    font-size: 0.76rem;
+}
+
+/* ─── Flow Simulator ─── */
+.sim-visited .node-header {
+    outline: 2px solid rgba(13,202,240,.5);
+}
+.sim-active {
+    border-color: #0dcaf0 !important;
+    box-shadow: 0 0 0 3px rgba(13,202,240,.4), 0 4px 16px rgba(0,0,0,.4) !important;
+}
+.sim-blocked {
+    border-color: #ffc107 !important;
+    box-shadow: 0 0 0 3px rgba(255,193,7,.35) !important;
+}
+.sim-end {
+    border-color: #198754 !important;
+    box-shadow: 0 0 0 3px rgba(25,135,84,.4) !important;
+}
+.sim-error {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 3px rgba(220,53,69,.4) !important;
+}
+.sim-external .node-header {
+    outline: 2px dashed rgba(173,181,189,.4);
+}
+
+/* Trace table */
+#testTraceTable td {
+    vertical-align: middle;
+    font-size: 0.82rem;
+}
+#testTraceTable .trace-row-active {
+    background: rgba(13,202,240,.08) !important;
+}
+.sim-type-badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    font-weight: 600;
+}
+.sim-diff-pill {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,.2);
+}
+.sim-diff-pill:hover {
+    background: rgba(255,255,255,.1);
+}
+.var-diff-row {
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.var-diff-key {
+    color: #79c0ff;
+    font-weight: 600;
+}
+.var-diff-before {
+    color: #f85149;
+    text-decoration: line-through;
+    opacity: .7;
+}
+.var-diff-after {
+    color: #56d364;
+}
+.var-diff-added {
+    background: rgba(86,211,100,.06);
+    border-left: 2px solid #56d364;
+    padding-left: 6px;
+}
+.var-diff-changed {
+    background: rgba(210,153,34,.06);
+    border-left: 2px solid #d99222;
+    padding-left: 6px;
+}
+/* Inline diff rows in trace table */
+.sim-diff-inline-row td {
+    background: rgba(0,0,0,.18) !important;
+    padding-top: 0 !important;
+}
+.sim-inline-diff-table {
+    font-size: .75rem;
+    color: #cdd9e5;
+}
+.sim-inline-diff-table td {
+    padding: 1px 6px !important;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+.sim-inline-diff-table .var-diff-added {
+    background: rgba(86,211,100,.08);
+    border-left: 3px solid #56d364;
+}
+.sim-inline-diff-table .var-diff-changed {
+    background: rgba(210,153,34,.08);
+    border-left: 3px solid #d99222;
+}
+.sim-inline-diff-table .var-diff-key {
+    color: #79c0ff;
+    font-weight: 600;
+    min-width: 100px;
+}
+.sim-row-has-diff {
+    border-bottom: none !important;
+}
+.sim-row-selected > td {
+    background: rgba(56, 139, 253, 0.14) !important;
+    border-top: 1px solid rgba(56, 139, 253, 0.4) !important;
+    border-bottom: none !important;
+}
+.sim-row-selected + .sim-diff-inline-row > td {
+    background: rgba(56, 139, 253, 0.07) !important;
+    border-bottom: 1px solid rgba(56, 139, 253, 0.4) !important;
+}

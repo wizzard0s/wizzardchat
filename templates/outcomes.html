@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outcomes – WizzardChat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+    <style>
+        .type-badge-positive   { background:#198754; }
+        .type-badge-negative   { background:#dc3545; }
+        .type-badge-neutral    { background:#6c757d; }
+        .type-badge-escalation { background:#fd7e14; }
+    </style>
+</head>
+<body>
+<!-- Sidebar -->
+<nav id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark" style="width:220px;height:100vh;position:fixed;">
+    <a href="/" class="d-flex align-items-center mb-3 text-white text-decoration-none">
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+        <span class="fs-5 fw-bold">WizzardChat</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+        <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+        <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+        <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+        <li class="nav-item"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">User Management</li>
+        <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+        <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+        <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">Business Settings</li>
+        <li class="nav-item"><a href="/outcomes" class="nav-link active"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+        <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+        <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>            <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>        <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+    </ul>
+    <hr>
+    <div class="dropdown">
+        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle me-2"></i><strong id="currentUser">Agent</strong>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+            <li><a class="dropdown-item" href="#" id="btnLogout">Sign out</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- Main -->
+<main style="margin-left:220px;padding:24px;min-height:100vh;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0"><i class="bi bi-flag me-2 text-info"></i>Outcomes</h4>
+            <p class="text-muted small mb-0 mt-1">Define global outcome codes agents use to close sessions. Assign them to queues and campaigns.</p>
+        </div>
+        <button class="btn btn-info" onclick="openOutcomeModal()">
+            <i class="bi bi-plus-lg me-1"></i>New Outcome
+        </button>
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-dark table-hover table-bordered mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width:140px">Code</th>
+                        <th>Label</th>
+                        <th style="width:130px">Type</th>
+                        <th>Description</th>
+                        <th style="width:90px" class="text-center">Status</th>
+                        <th style="width:90px" class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="outcomeTableBody">
+                    <tr id="outcomeEmpty">
+                        <td colspan="6" class="text-center text-muted py-5">
+                            <i class="bi bi-flag fs-2 d-block mb-2"></i>No outcomes yet. Add one to get started.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- ═══════════════ Outcome Modal ═══════════════ -->
+<div class="modal fade" id="outcomeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="outcomeModalTitle"><i class="bi bi-flag me-2"></i>New Outcome</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <label class="form-label">Code <span class="text-danger">*</span>
+                            <i class="bi bi-info-circle text-muted ms-1" title="Short machine key, lowercase, no spaces. e.g. resolved" data-bs-toggle="tooltip"></i>
+                        </label>
+                        <input type="text" id="oCode" class="form-control font-monospace" placeholder="e.g. resolved" maxlength="50">
+                        <div class="form-text">Lowercase, no spaces</div>
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label">Label <span class="text-danger">*</span></label>
+                        <input type="text" id="oLabel" class="form-control" placeholder="e.g. Resolved" maxlength="100">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Type</label>
+                        <select id="oType" class="form-select">
+                            <option value="positive">Positive</option>
+                            <option value="negative">Negative</option>
+                            <option value="neutral" selected>Neutral</option>
+                            <option value="escalation">Escalation</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="oIsActive" checked>
+                            <label class="form-check-label" for="oIsActive">Active</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Description</label>
+                        <textarea id="oDescription" class="form-control" rows="2" placeholder="Optional description…"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info" onclick="saveOutcome()">
+                    <i class="bi bi-floppy me-1"></i>Save Outcome
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm delete -->
+<div class="modal fade" id="deleteOModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title">Delete Outcome</h6></div>
+            <div class="modal-body">
+                <p class="mb-0">Delete <strong id="deleteOName"></strong>? This cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-sm btn-danger" onclick="confirmDeleteOutcome()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/outcomes.js"></script>
+</body>
+</html>

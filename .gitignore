@@ -1,0 +1,45 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment / secrets
+.env
+
+# Logs
+*.log
+wizzardchat.log
+server.log
+server_crash.log
+uvicorn.log
+
+# Uploads (user-generated content)
+static/uploads/
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+alembic/versions/*.pyc
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test cache
+.pytest_cache/
+.coverage
+htmlcov/

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Settings – WizzardChat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+    <style>
+        .cat-nav .nav-link { border-radius: 8px; padding: .55rem 1rem; margin-bottom: 2px;
+                             display: flex; align-items: center; gap: .6rem; transition: background .12s; }
+        .cat-nav .nav-link:not(.active) { color: var(--bs-body-color); }
+        .cat-nav .nav-link.active { font-weight: 600; }
+        .field-row { border-bottom: 1px solid rgba(255,255,255,.06); padding: .75rem 0; }
+        .field-row:last-child { border-bottom: none; }
+        .field-label { font-weight: 600; font-size: .9rem; }
+        .field-desc { font-size: .78rem; color: var(--bs-secondary-color); }
+        .updated-tag { font-size: .7rem; color: var(--bs-secondary-color); }
+        .form-control, .form-select { max-width: 360px; }
+        .form-control[type="color"] { max-width: 80px; height: 38px; padding: 2px 4px; }
+        .form-check-input { width: 2.4em; height: 1.3em; cursor: pointer; }
+        .save-bar { position: sticky; bottom: 0; background: var(--bs-body-bg);
+                    border-top: 1px solid rgba(255,255,255,.08); padding: .75rem 1.5rem;
+                    display: flex; align-items: center; gap: .75rem; z-index: 10; }
+        .toast-stack { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1100; }
+    </style>
+</head>
+<body>
+<!-- ─────────────────────── Sidebar ─────────────────────── -->
+<nav id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark"
+     style="width:220px;height:100vh;position:fixed;overflow-y:auto;">
+    <a href="/" class="d-flex align-items-center mb-3 text-white text-decoration-none">
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+        <span class="fs-5 fw-bold">WizzardChat</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+        <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+        <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+        <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+        <li class="nav-item"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">User Management</li>
+        <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+        <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+        <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">Business Settings</li>
+        <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+        <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+        <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>            <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>        <li class="nav-item"><a href="/settings" class="nav-link active"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+    </ul>
+    <hr>
+    <div class="dropdown">
+        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle me-2"></i><strong id="currentUser">Admin</strong>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+            <li><a class="dropdown-item" href="#" id="btnLogout">Sign out</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- ─────────────────────── Main ─────────────────────── -->
+<main style="margin-left:220px;min-height:100vh;">
+    <div class="d-flex justify-content-between align-items-center p-4 pb-2">
+        <h4 class="mb-0"><i class="bi bi-gear-fill me-2 text-secondary"></i>System Settings</h4>
+        <span id="adminBadge" class="badge bg-danger" style="display:none">Read-only (admin only)</span>
+    </div>
+
+    <div id="loadingState" class="p-4 text-center text-muted py-5">
+        <div class="spinner-border spinner-border-sm me-2"></div>Loading settings…
+    </div>
+
+    <!-- Two-column layout: category tabs + panel -->
+    <div id="settingsLayout" class="d-flex" style="display:none!important">
+        <!-- Category nav -->
+        <nav class="cat-nav p-3 flex-shrink-0" style="width:200px;position:sticky;top:0;height:calc(100vh - 68px);overflow-y:auto;">
+            <ul class="nav flex-column" id="catNav"></ul>
+        </nav>
+
+        <!-- Panels -->
+        <div class="flex-grow-1 p-4 pt-3 tab-content" id="catPanels" style="min-width:0"></div>
+    </div>
+</main>
+
+<!-- Toast container -->
+<div class="toast-stack" id="toastStack"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ─── Auth ────────────────────────────────────────────────────────────────────
+const TOKEN_KEY = 'wizzardchat_token';
+const token = () => localStorage.getItem(TOKEN_KEY);
+const authH = () => ({ 'Authorization': 'Bearer ' + token(), 'Content-Type': 'application/json' });
+
+async function apiFetch(url, opts = {}) {
+    const r = await fetch(url, { headers: authH(), ...opts });
+    if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); location.href = '/'; return null; }
+    if (!r.ok) { const t = await r.text(); throw new Error(t); }
+    return r.status === 204 ? null : r.json();
+}
+
+// ─── State ───────────────────────────────────────────────────────────────────
+let schema = [];       // [{category, icon, color, fields:[...]}]
+let values = {};       // {key: value}
+let isAdmin = false;
+let _activeCat = null;
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!token()) { location.href = '/'; return; }
+
+    try {
+        const me = await apiFetch('/api/v1/users/me');
+        if (!me) return;
+        document.getElementById('currentUser').textContent = me.username || 'Me';
+        isAdmin = ['admin', 'super_admin'].includes(me.role);
+        if (!isAdmin) document.getElementById('adminBadge').style.display = 'inline';
+    } catch {}
+
+    document.getElementById('btnLogout').addEventListener('click', e => {
+        e.preventDefault(); localStorage.removeItem(TOKEN_KEY); location.href = '/';
+    });
+
+    try {
+        const [schemaRes, valuesRes] = await Promise.all([
+            apiFetch('/api/v1/settings/schema'),
+            apiFetch('/api/v1/settings'),
+        ]);
+        if (!schemaRes || !valuesRes) return;
+
+        schema = schemaRes.schema;
+        // Build flat values map
+        valuesRes.forEach(s => values[s.key] = s.value);
+
+        renderLayout();
+    } catch (e) {
+        document.getElementById('loadingState').innerHTML =
+            `<div class="text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Failed to load: ${e.message}</div>`;
+    }
+});
+
+// ─── Render layout ────────────────────────────────────────────────────────────
+function renderLayout() {
+    document.getElementById('loadingState').style.display = 'none';
+    const layout = document.getElementById('settingsLayout');
+    layout.style.display = 'flex';
+
+    const nav  = document.getElementById('catNav');
+    const pane = document.getElementById('catPanels');
+    nav.innerHTML = '';
+    pane.innerHTML = '';
+
+    schema.forEach((cat, idx) => {
+        const id = 'cat-' + cat.category.replace(/\s+/g, '_');
+        const isFirst = idx === 0;
+
+        // Nav item
+        nav.insertAdjacentHTML('beforeend', `
+            <li class="nav-item">
+                <a class="nav-link ${isFirst ? 'active' : ''}" href="#${id}"
+                   data-bs-toggle="tab" data-cat="${cat.category}">
+                    <i class="bi ${cat.icon} text-${cat.color}"></i>
+                    ${cat.category}
+                </a>
+            </li>`);
+
+        // Panel
+        pane.insertAdjacentHTML('beforeend', `
+            <div class="tab-pane fade ${isFirst ? 'show active' : ''}" id="${id}">
+                ${renderCategoryPanel(cat)}
+            </div>`);
+    });
+
+    // Hook save buttons
+    document.querySelectorAll('.btn-save-cat').forEach(btn => {
+        btn.addEventListener('click', () => saveCategory(btn.dataset.cat));
+    });
+}
+
+function renderCategoryPanel(cat) {
+    const fields = cat.fields.map(f => renderField(f)).join('');
+    const ro = isAdmin ? '' : 'pe-none opacity-50';
+    return `
+    <div class="card bg-body-secondary border-0 mb-3">
+        <div class="card-header d-flex align-items-center gap-2 border-bottom border-secondary border-opacity-25">
+            <i class="bi ${cat.icon} text-${cat.color} fs-5"></i>
+            <span class="fw-semibold">${cat.category}</span>
+        </div>
+        <div class="card-body ${ro}">${fields}</div>
+        ${isAdmin ? `
+        <div class="save-bar">
+            <button class="btn btn-primary btn-save-cat" data-cat="${cat.category}">
+                <i class="bi bi-check2 me-1"></i>Save ${cat.category}
+            </button>
+            <span class="save-status text-success small" id="status-${cat.category.replace(/\s+/g,'_')}" style="display:none">
+                <i class="bi bi-check-circle me-1"></i>Saved
+            </span>
+            <span class="save-err text-danger small" id="err-${cat.category.replace(/\s+/g,'_')}" style="display:none"></span>
+        </div>` : ''}
+    </div>`;
+}
+
+function renderField(f) {
+    const val = values[f.key] ?? f.default ?? '';
+    let input = '';
+
+    if (f.type === 'select') {
+        const opts = (f.options || []).map(o =>
+            `<option value="${esc(o)}" ${o === val ? 'selected' : ''}>${esc(o)}</option>`
+        ).join('');
+        input = `<select class="form-select setting-input" data-key="${f.key}">${opts}</select>`;
+
+    } else if (f.type === 'toggle') {
+        const checked = (val === 'true' || val === true) ? 'checked' : '';
+        input = `
+            <div class="form-check form-switch">
+                <input class="form-check-input setting-input" type="checkbox"
+                       data-key="${f.key}" ${checked} role="switch">
+            </div>`;
+
+    } else if (f.type === 'number') {
+        input = `<input type="number" class="form-control setting-input"
+                        data-key="${f.key}" value="${esc(val)}"
+                        ${f.min !== undefined ? 'min="' + f.min + '"' : ''}
+                        ${f.max !== undefined ? 'max="' + f.max + '"' : ''}>`;
+
+    } else if (f.type === 'color') {
+        input = `
+            <div class="d-flex align-items-center gap-2">
+                <input type="color" class="form-control setting-input"
+                       data-key="${f.key}" value="${esc(val)}">
+                <code class="small" id="color-text-${f.key}">${esc(val)}</code>
+            </div>`;
+
+    } else if (f.type === 'password') {
+        input = `<input type="password" class="form-control setting-input"
+                        data-key="${f.key}" value="${esc(val)}"
+                        placeholder="${esc(f.placeholder || '')}">`;
+    } else {
+        // text
+        input = `<input type="text" class="form-control setting-input"
+                        data-key="${f.key}" value="${esc(val)}"
+                        placeholder="${esc(f.placeholder || '')}">`;
+    }
+
+    return `
+    <div class="field-row row align-items-center">
+        <div class="col-md-5">
+            <div class="field-label">${esc(f.label)}</div>
+            <div class="field-desc">${esc(f.description)}</div>
+        </div>
+        <div class="col-md-7">
+            ${input}
+        </div>
+    </div>`;
+}
+
+// ─── Color preview sync ───────────────────────────────────────────────────────
+document.addEventListener('input', e => {
+    if (e.target.type === 'color') {
+        const el = document.getElementById('color-text-' + e.target.dataset.key);
+        if (el) el.textContent = e.target.value;
+    }
+});
+
+// ─── Save category ────────────────────────────────────────────────────────────
+async function saveCategory(catName) {
+    const catId  = catName.replace(/\s+/g, '_');
+    const panel  = document.getElementById('cat-' + catName.replace(/\s+/g, '_'));
+    const inputs = panel ? panel.querySelectorAll('.setting-input') : [];
+    const statusEl = document.getElementById('status-' + catId);
+    const errEl    = document.getElementById('err-' + catId);
+
+    if (statusEl) statusEl.style.display = 'none';
+    if (errEl)    errEl.style.display = 'none';
+
+    const updates = [];
+    inputs.forEach(el => {
+        const key = el.dataset.key;
+        const val = el.type === 'checkbox' ? String(el.checked) : el.value;
+        updates.push({ key, value: val });
+    });
+
+    let errors = [];
+    await Promise.all(updates.map(async ({ key, value }) => {
+        try {
+            const res = await apiFetch(`/api/v1/settings/${key}`, {
+                method: 'PUT',
+                body: JSON.stringify({ value }),
+            });
+            if (res) values[key] = res.value;
+        } catch (e) {
+            errors.push(`${key}: ${e.message}`);
+        }
+    }));
+
+    if (errors.length) {
+        if (errEl) { errEl.textContent = errors.join('; '); errEl.style.display = 'inline'; }
+        toast('Some settings failed to save.', 'danger');
+    } else {
+        if (statusEl) {
+            statusEl.style.display = 'inline';
+            setTimeout(() => statusEl.style.display = 'none', 3000);
+        }
+        toast(`${catName} settings saved.`, 'success');
+    }
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+function toast(msg, type = 'success') {
+    const id = 't' + Date.now();
+    const html = `
+        <div id="${id}" class="toast align-items-center text-bg-${type} border-0 show" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">${msg}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>`;
+    const container = document.getElementById('toastStack');
+    container.insertAdjacentHTML('beforeend', html);
+    setTimeout(() => { const el = document.getElementById(id); if (el) el.remove(); }, 4000);
+}
+
+// ─── Util ─────────────────────────────────────────────────────────────────────
+function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
