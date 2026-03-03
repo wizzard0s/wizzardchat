@@ -899,9 +899,9 @@
 
         if (filtered.length === 0) { _hideVariablePicker(); return; }
 
-        picker.innerHTML = filtered
-            .map(v => `<button class="var-chip" data-varname="${v.name}" data-exprmode="${!!exprMode}" title="From: ${v.source}">${v.name}</button>`)
-            .join('');
+        picker.innerHTML = '<div class="var-picker-label">Insert variable</div><div class="var-picker-chips">' +
+            filtered.map(v => `<button class="var-chip" data-varname="${v.name}" data-exprmode="${!!exprMode}" title="From: ${v.source}">${v.name}</button>`).join('') +
+            '</div>';
 
         picker.querySelectorAll('.var-chip').forEach(btn => {
             btn.addEventListener('mousedown', e => {
@@ -912,13 +912,8 @@
             });
         });
 
-        // Position below the input element (fixed, relative to viewport)
-        const rect = inputEl.getBoundingClientRect();
-        picker.style.position = 'fixed';
-        picker.style.left  = rect.left + 'px';
-        picker.style.top   = (rect.bottom + 3) + 'px';
-        picker.style.minWidth = Math.max(rect.width, 160) + 'px';
         picker.style.display = 'flex';
+        _positionPicker(picker, inputEl);
     }
 
     /**
@@ -935,9 +930,9 @@
         if (allVars.length === 0) {
             picker.innerHTML = '<span class="text-muted small px-2 py-1">No variables declared upstream yet</span>';
         } else {
-            picker.innerHTML = allVars
-                .map(v => `<button class="var-chip" data-varname="${v.name}" data-exprmode="${!!exprMode}" title="From: ${v.source}">${v.name}</button>`)
-                .join('');
+            picker.innerHTML = '<div class="var-picker-label">Insert variable</div><div class="var-picker-chips">' +
+                allVars.map(v => `<button class="var-chip" data-varname="${v.name}" data-exprmode="${!!exprMode}" title="From: ${v.source}">${v.name}</button>`).join('') +
+                '</div>';
         }
 
         picker.querySelectorAll('.var-chip').forEach(chip => {
@@ -950,13 +945,45 @@
             });
         });
 
-        // Position below the button
-        const rect = btnEl.getBoundingClientRect();
-        picker.style.position = 'fixed';
-        picker.style.left  = rect.left + 'px';
-        picker.style.top   = (rect.bottom + 3) + 'px';
-        picker.style.minWidth = '180px';
         picker.style.display = 'flex';
+        _positionPicker(picker, btnEl);
+    }
+
+    /**
+     * Position the picker below (or above) anchorEl, clamped within the viewport.
+     * Always left-aligns to the anchor's left edge, then right-clamps if needed.
+     */
+    function _positionPicker(picker, anchorEl) {
+        picker.style.position = 'fixed';
+        picker.style.left = '-9999px';   // off-screen so we can measure
+        picker.style.top  = '-9999px';
+
+        const rect    = anchorEl.getBoundingClientRect();
+        const pw      = picker.offsetWidth  || 280;
+        const ph      = picker.offsetHeight || 220;
+        const vw      = window.innerWidth;
+        const vh      = window.innerHeight;
+        const gap     = 4;
+
+        // Horizontal: left-align to anchor, clamp so we don't go off the right edge
+        let left = rect.left;
+        if (left + pw > vw - 8) {
+            left = Math.max(8, vw - pw - 8);
+        }
+
+        // Vertical: prefer below, flip above if not enough room
+        let top;
+        if (rect.bottom + gap + ph <= vh) {
+            top = rect.bottom + gap;
+        } else if (rect.top - gap - ph >= 0) {
+            top = rect.top - gap - ph;
+        } else {
+            // Not enough room either way — just clamp below inside viewport
+            top = Math.max(8, vh - ph - 8);
+        }
+
+        picker.style.left = left + 'px';
+        picker.style.top  = top  + 'px';
     }
 
     function _hideVariablePicker() {
