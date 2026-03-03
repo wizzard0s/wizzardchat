@@ -900,7 +900,7 @@
         if (filtered.length === 0) { _hideVariablePicker(); return; }
 
         picker.innerHTML = '<div class="var-picker-label">Insert variable</div><div class="var-picker-chips">' +
-            filtered.map(v => `<button class="var-chip" data-varname="${v.name}" data-exprmode="${!!exprMode}" title="From: ${v.source}">${v.name}</button>`).join('') +
+            filtered.map(v => `<button class="var-chip" data-varname="${v.name}" data-exprmode="${!!exprMode}" >${v.name}<span class="var-chip-source">${v.source}</span></button>`).join('') +
             '</div>';
 
         picker.querySelectorAll('.var-chip').forEach(btn => {
@@ -931,7 +931,7 @@
             picker.innerHTML = '<span class="text-muted small px-2 py-1">No variables declared upstream yet</span>';
         } else {
             picker.innerHTML = '<div class="var-picker-label">Insert variable</div><div class="var-picker-chips">' +
-                allVars.map(v => `<button class="var-chip" data-varname="${v.name}" data-exprmode="${!!exprMode}" title="From: ${v.source}">${v.name}</button>`).join('') +
+                allVars.map(v => `<button class="var-chip" data-varname="${v.name}" data-exprmode="${!!exprMode}" >${v.name}<span class="var-chip-source">${v.source}</span></button>`).join('') +
                 '</div>';
         }
 
@@ -1340,77 +1340,68 @@
         const esc = (v) => String(v ?? '').replace(/"/g, '&quot;');
         const mode = field.input_mode || 'text';
         const isExpr = mode === 'expression';
+        const noVarTypes = ['number', 'boolean', 'date', 'relative_date', 'array'];
+        const showVarBtn = isExpr || !noVarTypes.includes(field.type);
 
-        // Mode toggle button
-        const modeBtn = `<button class="btn btn-sm sf-mode-toggle ${isExpr ? 'sf-mode-expr' : 'sf-mode-text'}" data-idx="${idx}" title="${isExpr ? 'Expression (JSONata) – click for Text' : 'Text (literal) – click for Expression'}">
-            ${isExpr ? '<i class="bi bi-lightning-charge-fill"></i>' : '<i class="bi bi-fonts"></i>'}
-        </button>`;
-
-        // If expression mode, always show a single text input for the JSONata expression
+        // ── Value input widget ──
+        let inputHtml;
         if (isExpr) {
-            return `<div class="d-flex gap-1 align-items-start">
-                ${modeBtn}
-                <input type="text" class="form-control form-control-sm sf-val sf-expr-input flex-fill" data-idx="${idx}" value="${esc(field.value)}" placeholder="JSONata expression">
-                <button class="btn btn-sm btn-outline-secondary sf-var-insert" data-idx="${idx}" title="Insert variable reference">
-                    <i class="bi bi-braces"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-warning sf-expr-builder" data-idx="${idx}" title="Expression Builder">
-                    <i class="bi bi-tools"></i>
-                </button>
-            </div>`;
-        }
-
-        // Text mode – type-specific widget
-        let widget;
-        switch (field.type) {
-            case 'string':
-                widget = `<div class="input-group input-group-sm">
-                    <input type="text" class="form-control sf-val" data-idx="${idx}" value="${esc(field.value)}" placeholder="Value or {{variable}}">
-                    <button class="btn btn-outline-secondary sf-var-insert" type="button" data-idx="${idx}" title="Insert {{variable}}"><i class="bi bi-braces"></i></button>
-                </div>`;
-                break;
-            case 'number':
-                widget = `<input type="number" class="form-control form-control-sm sf-val" data-idx="${idx}" step="any" value="${esc(field.value)}">`;
-                break;
-            case 'boolean':
-                widget = `<select class="form-select form-select-sm sf-val" data-idx="${idx}">
-                    <option value="true"  ${field.value === true  || field.value === 'true'  ? 'selected' : ''}>true</option>
-                    <option value="false" ${field.value === false || field.value === 'false' ? 'selected' : ''}>false</option>
-                </select>`;
-                break;
-            case 'date':
-                widget = `<input type="date" class="form-control form-control-sm sf-val" data-idx="${idx}" value="${esc(field.value)}">`;
-                break;
-            case 'relative_date': {
-                const v = (typeof field.value === 'object' && field.value) ? field.value : { direction: '+', amount: 0, unit: 'days' };
-                widget = `<div class="d-flex gap-1 align-items-center sf-reldate" data-idx="${idx}">
-                    <select class="form-select form-select-sm sf-rd-dir" style="width:60px">
-                        <option value="+" ${v.direction === '+' ? 'selected' : ''}>+</option>
-                        <option value="-" ${v.direction === '-' ? 'selected' : ''}>−</option>
-                    </select>
-                    <input type="number" class="form-control form-control-sm sf-rd-amt" style="width:70px" value="${v.amount || 0}" min="0">
-                    <select class="form-select form-select-sm sf-rd-unit">
-                        <option value="seconds" ${v.unit === 'seconds' ? 'selected' : ''}>sec</option>
-                        <option value="minutes" ${v.unit === 'minutes' ? 'selected' : ''}>min</option>
-                        <option value="hours"   ${v.unit === 'hours'   ? 'selected' : ''}>hrs</option>
-                        <option value="days"    ${v.unit === 'days'    ? 'selected' : ''}>days</option>
-                    </select>
-                </div>`;
-                break;
+            inputHtml = `<input type="text" class="form-control form-control-sm sf-val sf-expr-input" data-idx="${idx}" value="${esc(field.value)}" placeholder="JSONata expression">`;
+        } else {
+            switch (field.type) {
+                case 'number':
+                    inputHtml = `<input type="number" class="form-control form-control-sm sf-val" data-idx="${idx}" step="any" value="${esc(field.value)}">`;
+                    break;
+                case 'boolean':
+                    inputHtml = `<select class="form-select form-select-sm sf-val" data-idx="${idx}">
+                        <option value="true"  ${field.value === true  || field.value === 'true'  ? 'selected' : ''}>true</option>
+                        <option value="false" ${field.value === false || field.value === 'false' ? 'selected' : ''}>false</option>
+                    </select>`;
+                    break;
+                case 'date':
+                    inputHtml = `<input type="date" class="form-control form-control-sm sf-val" data-idx="${idx}" value="${esc(field.value)}">`;
+                    break;
+                case 'relative_date': {
+                    const v = (typeof field.value === 'object' && field.value) ? field.value : { direction: '+', amount: 0, unit: 'days' };
+                    inputHtml = `<div class="d-flex gap-1 align-items-center sf-reldate" data-idx="${idx}">
+                        <select class="form-select form-select-sm sf-rd-dir" style="width:60px">
+                            <option value="+" ${v.direction === '+' ? 'selected' : ''}>+</option>
+                            <option value="-" ${v.direction === '-' ? 'selected' : ''}>−</option>
+                        </select>
+                        <input type="number" class="form-control form-control-sm sf-rd-amt" style="width:70px" value="${v.amount || 0}" min="0">
+                        <select class="form-select form-select-sm sf-rd-unit">
+                            <option value="seconds" ${v.unit === 'seconds' ? 'selected' : ''}>sec</option>
+                            <option value="minutes" ${v.unit === 'minutes' ? 'selected' : ''}>min</option>
+                            <option value="hours"   ${v.unit === 'hours'   ? 'selected' : ''}>hrs</option>
+                            <option value="days"    ${v.unit === 'days'    ? 'selected' : ''}>days</option>
+                        </select>
+                    </div>`;
+                    break;
+                }
+                case 'array':
+                    inputHtml = `<textarea class="form-control form-control-sm sf-val" data-idx="${idx}" rows="2" placeholder='["a","b"] or comma-separated'>${esc(Array.isArray(field.value) ? JSON.stringify(field.value) : field.value)}</textarea>`;
+                    break;
+                default: // string
+                    inputHtml = `<input type="text" class="form-control form-control-sm sf-val" data-idx="${idx}" value="${esc(field.value)}" placeholder="Value or {{variable}}">`;
             }
-            case 'array':
-                widget = `<textarea class="form-control form-control-sm sf-val" data-idx="${idx}" rows="2" placeholder='["a","b"] or comma-separated'>${esc(Array.isArray(field.value) ? JSON.stringify(field.value) : field.value)}</textarea>`;
-                break;
-            default:
-                widget = `<div class="input-group input-group-sm">
-                    <input type="text" class="form-control sf-val" data-idx="${idx}" value="${esc(field.value)}" placeholder="Value or {{variable}}">
-                    <button class="btn btn-outline-secondary sf-var-insert" type="button" data-idx="${idx}" title="Insert {{variable}}"><i class="bi bi-braces"></i></button>
-                </div>`;
         }
 
-        return `<div class="d-flex gap-1 align-items-start">
-            ${modeBtn}
-            <div class="flex-fill">${widget}</div>
+        // ── Toolbar below the input ──
+        const modeTitle = isExpr ? 'Expression (JSONata) \u2013 click for Text' : 'Text (literal) \u2013 click for Expression';
+        const modeIcon  = isExpr ? '<i class="bi bi-lightning-charge-fill"></i>' : '<i class="bi bi-fonts"></i>';
+        const varBtnHtml = showVarBtn
+            ? `<button class="btn btn-sm btn-outline-secondary sf-var-insert" type="button" data-idx="${idx}" title="Insert variable"><i class="bi bi-braces"></i> Variables</button>`
+            : '';
+        const exprBuilderHtml = isExpr
+            ? `<button class="btn btn-sm btn-outline-warning sf-expr-builder" type="button" data-idx="${idx}" title="Expression Builder"><i class="bi bi-tools"></i></button>`
+            : '';
+
+        return `<div class="sf-field-wrap">
+            ${inputHtml}
+            <div class="sf-field-toolbar">
+                <button class="btn btn-sm sf-mode-toggle ${isExpr ? 'sf-mode-expr' : 'sf-mode-text'}" type="button" data-idx="${idx}" title="${modeTitle}">${modeIcon}</button>
+                ${varBtnHtml}${exprBuilderHtml}
+            </div>
         </div>`;
     }
 
@@ -1662,8 +1653,8 @@
             document.querySelectorAll('#sfFieldsList .sf-var-insert').forEach(btn => {
                 btn.addEventListener('click', e => {
                     e.stopPropagation();
-                    const isExprRow = !!btn.closest('.d-flex')?.querySelector('.sf-expr-input');
-                    const valInput = btn.closest('.input-group, .d-flex')?.querySelector('.sf-val, .sf-expr-input');
+                    const isExprRow = !!btn.closest('.sf-field-wrap')?.querySelector('.sf-expr-input');
+                    const valInput = btn.closest('.sf-field-wrap')?.querySelector('.sf-val, .sf-expr-input');
                     if (valInput) _showVarPickerForButton(btn, valInput, node.id, isExprRow);
                 });
             });

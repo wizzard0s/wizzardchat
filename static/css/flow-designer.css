@@ -512,60 +512,76 @@
 .var-picker {
     position: fixed;
     z-index: 9999;
-    background: #1e2a3a;
+    background: #1b2636;
     border: 1px solid #3a4a6a;
     border-radius: 6px;
-    padding: 8px;
+    padding: 0;
     display: none;
     flex-direction: column;
-    gap: 4px;
-    width: 280px;
-    max-height: 220px;
+    width: 240px;
+    max-height: 260px;
     overflow-y: auto;
-    box-shadow: 0 6px 24px rgba(0,0,0,.6);
+    box-shadow: 0 8px 28px rgba(0,0,0,.65);
 }
 .var-picker-chips {
     display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
+    flex-direction: column;
 }
 .var-picker-label {
-    font-size: 0.68rem;
+    font-size: 0.67rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: .05em;
-    color: #5a7a9a;
-    padding-bottom: 4px;
-    border-bottom: 1px solid #2a3a5a;
-    margin-bottom: 2px;
+    letter-spacing: .06em;
+    color: #4a6a8a;
+    padding: 6px 10px 5px;
+    border-bottom: 1px solid #253040;
+    background: #1b2636;
+    position: sticky;
+    top: 0;
 }
 .var-chip {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: 0.76rem;
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 0.78rem;
     font-family: var(--bs-font-monospace, monospace);
-    background: #0d3a5a;
     color: #7ec8e3;
-    border: 1px solid #1a6b9a;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #1e2d40;
     cursor: pointer;
-    transition: background .12s, border-color .12s;
+    text-align: left;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background .1s;
 }
-.var-chip::before {
-    content: "{{";
-    opacity: .55;
-    font-size: .68rem;
-}
-.var-chip::after {
-    content: "}}";
-    opacity: .55;
-    font-size: .68rem;
-}
+.var-chip:last-child { border-bottom: none; }
 .var-chip:hover {
-    background: #1a6b9a;
-    border-color: #7ec8e3;
+    background: #1a3a5a;
     color: #fff;
 }
+.var-chip-source {
+    margin-left: auto;
+    padding-left: 6px;
+    font-size: 0.65rem;
+    color: #4a6a8a;
+    font-family: sans-serif;
+    flex-shrink: 0;
+}
+
+/* ─── set_variable field toolbar ─── */
+.sf-field-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.sf-field-toolbar {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.sf-field-toolbar .btn { font-size: 0.72rem; padding: 1px 7px; line-height: 1.5; }
+
