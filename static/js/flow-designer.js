@@ -428,6 +428,9 @@
         document.getElementById('btnDeleteNode')?.addEventListener('click', () => {
             deleteNode(node);
         });
+
+        // Attach {{ variable pickers to all text inputs in this panel
+        _attachVariablePickers(node.id);
     }
 
     // ───── Universal Form Rendering (schema-driven with expression toggle) ─────
@@ -749,6 +752,200 @@
                 node.config[key] = obj;
                 showNodeProperties(node);  // Re-render
             });
+        });
+    }
+
+    // ───── Variable Picker ─────
+
+    /**
+     * Return all variables that are available *before* the given node in the flow,
+     * by walking the edge graph backwards (BFS) and inspecting what each ancestor produces.
+     * Returns [{name, source}] sorted alphabetically — only variables declared upstream.
+     */
+    function getAvailableVariables(forNodeId) {
+        // Reverse adjacency: targetId → [sourceId]
+        const incomingTo = {};
+        edges.forEach(e => {
+            if (!incomingTo[e.targetId]) incomingTo[e.targetId] = [];
+            incomingTo[e.targetId].push(e.sourceId);
+        });
+
+        // BFS to collect all ancestor node IDs
+        const visited = new Set();
+        const toVisit = [forNodeId];
+        while (toVisit.length) {
+            const id = toVisit.shift();
+            if (visited.has(id)) continue;
+            visited.add(id);
+            (incomingTo[id] || []).forEach(src => {
+                if (!visited.has(src)) toVisit.push(src);
+            });
+        }
+        visited.delete(forNodeId); // exclude the node itself
+
+        const vars = [];
+        const seen = new Set();
+        const addVar = (name, source) => {
+            if (name && !seen.has(name)) {
+                seen.add(name);
+                vars.push({ name, source });
+            }
+        };
+
+        visited.forEach(id => {
+            const n = nodes.find(nn => nn.id === id);
+            if (!n) return;
+            const lbl = n.label || n.type;
+            switch (n.type) {
+                case 'input':
+                case 'dtmf':
+                    addVar(n.config?.variable, lbl);
+                    break;
+                case 'menu':
+                    addVar(n.config?.variable, lbl);
+                    break;
+                case 'set_variable':
+                    if (Array.isArray(n.config?.fields)) {
+                        n.config.fields.forEach(f => { if (f.name) addVar(f.name, lbl); });
+                    }
+                    break;
+                case 'webhook':
+                    addVar('webhook_status_code', lbl);
+                    addVar('webhook_response', lbl);
+                    break;
+                case 'ai_bot':
+                    addVar(n.config?.output_variable, lbl);
+                    break;
+                case 'sub_flow':
+                    addVar(n.config?.output_variable, `Sub-flow: ${lbl}`);
+                    break;
+            }
+        });
+
+        return vars.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    // Picker DOM + state
+    let _pickerActive = false;
+    let _pickerEl = null;
+    let _pickerInput = null;
+
+    function _getOrCreatePicker() {
+        if (!_pickerEl) {
+            _pickerEl = document.createElement('div');
+            _pickerEl.id = 'varPicker';
+            _pickerEl.className = 'var-picker';
+            document.body.appendChild(_pickerEl);
+            // Close when clicking outside
+            document.addEventListener('mousedown', e => {
+                if (_pickerActive && !_pickerEl.contains(e.target) && e.target !== _pickerInput) {
+                    _hideVariablePicker();
+                }
+            }, true);
+        }
+        return _pickerEl;
+    }
+
+    function _showVariablePicker(inputEl, nodeId, filter) {
+        _pickerInput = inputEl;
+        _pickerActive = true;
+
+        const picker = _getOrCreatePicker();
+        const allVars = getAvailableVariables(nodeId);
+        const lcFilter = (filter || '').toLowerCase();
+        const filtered = lcFilter
+            ? allVars.filter(v => v.name.toLowerCase().includes(lcFilter))
+            : allVars;
+
+        if (filtered.length === 0) { _hideVariablePicker(); return; }
+
+        picker.innerHTML = filtered
+            .map(v => `<button class="var-chip" data-varname="${v.name}" title="Source: ${v.source}">${v.name}</button>`)
+            .join('');
+
+        picker.querySelectorAll('.var-chip').forEach(btn => {
+            btn.addEventListener('mousedown', e => {
+                e.preventDefault();
+                _insertVariable(inputEl, btn.dataset.varname);
+                _hideVariablePicker();
+            });
+        });
+
+        // Position below the input element (fixed, relative to viewport)
+        const rect = inputEl.getBoundingClientRect();
+        picker.style.position = 'fixed';
+        picker.style.left  = rect.left + 'px';
+        picker.style.top   = (rect.bottom + 3) + 'px';
+        picker.style.minWidth = Math.max(rect.width, 160) + 'px';
+        picker.style.display = 'flex';
+    }
+
+    function _hideVariablePicker() {
+        _pickerActive = false;
+        if (_pickerEl) _pickerEl.style.display = 'none';
+        _pickerInput = null;
+    }
+
+    /**
+     * Insert {{varname}} at the cursor, replacing any incomplete {{ prefix already typed.
+     */
+    function _insertVariable(inputEl, varName) {
+        const val = inputEl.value;
+        const pos = inputEl.selectionStart ?? val.length;
+        const before = val.slice(0, pos);
+        const triggerIdx = before.lastIndexOf('{{');
+        let newVal;
+        if (triggerIdx === -1) {
+            newVal = val + '{{' + varName + '}}';
+        } else {
+            newVal = val.slice(0, triggerIdx) + '{{' + varName + '}}' + val.slice(pos);
+        }
+        inputEl.value = newVal;
+        // Move cursor to after the inserted token
+        const newCursor = (triggerIdx === -1 ? val.length : triggerIdx) + varName.length + 4;
+        inputEl.setSelectionRange(newCursor, newCursor);
+        inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    /**
+     * Detect '{{' typed in an input and show the variable picker.
+     * Called from an 'input' event handler.
+     */
+    function _onVarInput(e, nodeId) {
+        const el = e.target;
+        const pos = el.selectionStart ?? el.value.length;
+        const before = el.value.slice(0, pos);
+        const triggerIdx = before.lastIndexOf('{{');
+        // Hide if no open '{{' before cursor, or if it's already closed
+        if (triggerIdx === -1 || before.indexOf('}}', triggerIdx) !== -1) {
+            _hideVariablePicker();
+            return;
+        }
+        const filter = before.slice(triggerIdx + 2);
+        _showVariablePicker(el, nodeId, filter);
+    }
+
+    /**
+     * Attach the {{ picker to all text/textarea inputs in #propBody for the given node.
+     * Call this AFTER rendering the properties panel HTML.
+     */
+    function _attachVariablePickers(nodeId) {
+        const propBody = document.getElementById('propBody');
+        if (!propBody) return;
+        const inputs = propBody.querySelectorAll(
+            'input[data-field-type="string"], ' +
+            'input[data-field-type="url"], ' +
+            'input[data-field-type="expression"], ' +
+            'textarea[data-field-type="textarea"], ' +
+            'textarea.field-input, ' +
+            '.kv-editor .kv-v, ' +
+            '#sfFieldsList input.sf-val[type="text"], ' +
+            '#sfFieldsList input.sf-expr-input'
+        );
+        inputs.forEach(el => {
+            el.addEventListener('input', e => _onVarInput(e, nodeId));
+            el.addEventListener('keydown', e => { if (e.key === 'Escape') _hideVariablePicker(); });
+            el.addEventListener('blur', () => setTimeout(_hideVariablePicker, 160));
         });
     }
 

@@ -337,9 +337,20 @@ async def run_flow(session: Interaction, connector: Connector, db: AsyncSession)
             if call_stack:
                 # End of a sub-flow — pop back to parent and continue
                 frame = call_stack.pop()
-                ctx["_call_stack"] = call_stack
                 parent_flow_id = frame["flow_id"]
-                ctx["_current_flow_id"] = parent_flow_id
+                # Restore parent context snapshot
+                parent_ctx: dict = dict(frame.get("parent_ctx") or {})
+                # Export the sub-flow result back to parent
+                result_var = frame.get("result_variable", "")
+                output_var = frame.get("output_variable", "")
+                if output_var:
+                    # The sub-flow should have set result_variable (or "result" by convention)
+                    lookup_key = result_var or "result"
+                    parent_ctx[output_var] = ctx.get(lookup_key, ctx.get("result", ""))
+                # Reinstate system keys
+                parent_ctx["_call_stack"] = call_stack
+                parent_ctx["_current_flow_id"] = parent_flow_id
+                ctx = parent_ctx
                 _resume_flow_id = parent_flow_id
                 nodes, edges = await _load_flow_graph(parent_flow_id, db)
                 current_id = frame["return_node_id"]
@@ -465,21 +476,39 @@ async def run_flow(session: Interaction, connector: Connector, db: AsyncSession)
                 # No flow configured — skip silently
                 current_id = _next_node_id(edges, current_id)
             else:
-                # Push a return frame so we come back here when the sub-flow ends
                 return_node_id = _next_node_id(edges, current_id)
                 call_stack = list(ctx.get("_call_stack") or [])
+
+                # Build scoped sub-flow context — only mapped variables are passed in
+                input_mapping = config.get("input_mapping") or {}
+                if isinstance(input_mapping, str):
+                    try:
+                        input_mapping = json.loads(input_mapping)
+                    except Exception:
+                        input_mapping = {}
+                sub_ctx: dict = {}
+                for sub_var, parent_val in (input_mapping or {}).items():
+                    if sub_var:
+                        sub_ctx[sub_var] = _resolve_template(str(parent_val), ctx)
+
+                # Push return frame with parent ctx snapshot
                 call_stack.append({
                     "flow_id": str(_resume_flow_id),
                     "return_node_id": return_node_id,
+                    "parent_ctx": {k: v for k, v in ctx.items() if not k.startswith("_")},
+                    "result_variable": config.get("result_variable", ""),
+                    "output_variable": config.get("output_variable", ""),
                 })
-                ctx["_call_stack"] = call_stack
-                ctx["_current_flow_id"] = str(target_flow_id)
+                sub_ctx["_call_stack"] = call_stack
+                sub_ctx["_current_flow_id"] = str(target_flow_id)
+                ctx = sub_ctx
                 _resume_flow_id = str(target_flow_id)
                 nodes, edges = await _load_flow_graph(target_flow_id, db)
                 sub_start = next((n for n in nodes.values() if n.node_type == "start"), None)
                 if not sub_start:
-                    # Sub-flow has no start — pop frame and skip
-                    call_stack.pop()
+                    # Sub-flow has no start — pop frame and restore parent
+                    frame = call_stack.pop()
+                    ctx = dict(frame.get("parent_ctx") or {})
                     ctx["_call_stack"] = call_stack
                     ctx["_current_flow_id"] = call_stack[-1]["flow_id"] if call_stack else str(connector.flow_id)
                     nodes, edges = await _load_flow_graph(ctx["_current_flow_id"], db)

@@ -507,3 +507,50 @@
     background: rgba(56, 139, 253, 0.07) !important;
     border-bottom: 1px solid rgba(56, 139, 253, 0.4) !important;
 }
+
+/* ─── Variable Picker ─── */
+.var-picker {
+    position: absolute;
+    z-index: 9999;
+    background: #1e2a3a;
+    border: 1px solid #3a4a6a;
+    border-radius: 6px;
+    padding: 6px;
+    display: none;
+    flex-wrap: wrap;
+    gap: 4px;
+    max-width: 340px;
+    max-height: 180px;
+    overflow-y: auto;
+    box-shadow: 0 4px 16px rgba(0,0,0,.5);
+}
+.var-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.76rem;
+    font-family: var(--bs-font-monospace, monospace);
+    background: #0d3a5a;
+    color: #7ec8e3;
+    border: 1px solid #1a6b9a;
+    cursor: pointer;
+    transition: background .12s, border-color .12s;
+    white-space: nowrap;
+}
+.var-chip::before {
+    content: "{{";
+    opacity: .55;
+    font-size: .68rem;
+}
+.var-chip::after {
+    content: "}}";
+    opacity: .55;
+    font-size: .68rem;
+}
+.var-chip:hover {
+    background: #1a6b9a;
+    border-color: #7ec8e3;
+    color: #fff;
+}
