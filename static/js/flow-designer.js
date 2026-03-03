@@ -356,7 +356,10 @@
 
     // ───── Properties Panel ─────
 
+    let _currentNodeId = null; // tracked so expression builder knows which node's vars to show
+
     function showNodeProperties(node) {
+        _currentNodeId = node.id;
         propsPanel.style.display = 'block';
         propTitle.textContent = node.type.replace(/_/g, ' ');
 
@@ -454,8 +457,14 @@
         let html = `<div class="mb-2 form-field-group" data-field-key="${field.key}">`;
 
         // Label row with expression toggle button
+        const showVarLabelBtn = ['textarea','code','json'].includes(field.type) || isExpr;
         html += `<div class="d-flex align-items-center gap-1 mb-1">`;
         html += `<label class="form-label mb-0 flex-grow-1">${field.label || field.key}${field.required ? ' <span class="text-danger">*</span>' : ''}</label>`;
+        if (showVarLabelBtn) {
+            html += `<button class="btn btn-sm btn-outline-secondary btn-var-insert" data-key="${field.key}" title="Insert {{variable}}">
+                        <i class="bi bi-braces"></i>
+                    </button>`;
+        }
         if (exprEnabled) {
             html += `<button class="btn btn-sm field-mode-toggle ${isExpr ? 'field-mode-expr' : 'field-mode-text'}" data-key="${field.key}"
                         title="${isExpr ? 'JSONata expression mode \u2013 click for literal' : 'Literal value \u2013 click for expression'}">
@@ -515,8 +524,11 @@
                             ${(field.options || []).map(opt => `<option value="${esc(opt)}" ${String(val) === String(opt) ? 'selected' : ''}>${opt}</option>`).join('')}
                         </select>`;
             case 'url':
-                return `<input type="url" class="form-control form-control-sm field-input" data-key="${key}" data-field-type="url"
-                            value="${esc(val)}" placeholder="${esc(ph || 'https://')}">`;
+                return `<div class="input-group input-group-sm">
+                    <input type="url" class="form-control field-input" data-key="${key}" data-field-type="url"
+                        value="${esc(val)}" placeholder="${esc(ph || 'https://')}">
+                    <button class="btn btn-outline-secondary btn-var-insert" type="button" data-key="${key}" title="Insert {{variable}}"><i class="bi bi-braces"></i></button>
+                </div>`;
             case 'json': {
                 const jsonVal = typeof val === 'object' && val !== null ? JSON.stringify(val, null, 2) : (val || '');
                 return `<textarea class="form-control form-control-sm field-input font-monospace" data-key="${key}" data-field-type="json"
@@ -562,8 +574,11 @@
                     </a>
                 </div>`;
             default: // string
-                return `<input type="text" class="form-control form-control-sm field-input" data-key="${key}" data-field-type="string"
-                            value="${esc(val)}" placeholder="${esc(ph)}">`;
+                return `<div class="input-group input-group-sm">
+                    <input type="text" class="form-control field-input" data-key="${key}" data-field-type="string"
+                        value="${esc(val)}" placeholder="${esc(ph)}">
+                    <button class="btn btn-outline-secondary btn-var-insert" type="button" data-key="${key}" title="Insert {{variable}}"><i class="bi bi-braces"></i></button>
+                </div>`;
         }
     }
 
@@ -600,8 +615,9 @@
         let html = `<div class="kv-editor" data-key="${key}">`;
         entries.forEach(([k, v], i) => {
             html += `<div class="input-group input-group-sm mb-1 kv-row" data-idx="${i}">
-                <input type="text" class="form-control kv-k" value="${esc(k)}" placeholder="Key">
-                <input type="text" class="form-control kv-v" value="${esc(v)}" placeholder="Value">
+                <input type="text" class="form-control kv-k" value="${esc(k)}" placeholder="Variable name">
+                <input type="text" class="form-control kv-v" value="${esc(v)}" placeholder="Value / {{variable}}">
+                <button class="btn btn-outline-secondary kv-var-insert" type="button" title="Insert {{variable}}"><i class="bi bi-braces"></i></button>
                 <button class="btn btn-outline-danger kv-remove" type="button"><i class="bi bi-x"></i></button>
             </div>`;
         });
@@ -676,6 +692,22 @@
             });
         });
 
+        // Variable insert buttons ({{}} braces)
+        document.querySelectorAll('#propBody .btn-var-insert').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                const key = btn.dataset.key;
+                // Prefer sibling input inside input-group, else search the form-field-group
+                const inputGrp = btn.closest('.input-group');
+                const fieldGrp = btn.closest('.form-field-group');
+                const input = inputGrp?.querySelector('.field-input')
+                    || fieldGrp?.querySelector('.field-input, .field-expr-input');
+                if (!input) return;
+                const isExprMode = input.dataset.fieldType === 'expression';
+                _showVarPickerForButton(btn, input, node.id, isExprMode);
+            });
+        });
+
         // Options list handlers (for menu-type fields)
         bindOptionsListEditors(node);
 
@@ -744,6 +776,14 @@
                 btn.addEventListener('click', () => {
                     btn.closest('.kv-row').remove();
                     readKV();
+                });
+            });
+            // {{}} insert buttons on each value field
+            editor.querySelectorAll('.kv-var-insert').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const valInput = btn.closest('.kv-row')?.querySelector('.kv-v');
+                    if (valInput) _showVarPickerForButton(btn, valInput, node.id, false);
                 });
             });
             editor.querySelector('.kv-add')?.addEventListener('click', () => {
@@ -846,7 +886,7 @@
         return _pickerEl;
     }
 
-    function _showVariablePicker(inputEl, nodeId, filter) {
+    function _showVariablePicker(inputEl, nodeId, filter, exprMode) {
         _pickerInput = inputEl;
         _pickerActive = true;
 
@@ -860,13 +900,14 @@
         if (filtered.length === 0) { _hideVariablePicker(); return; }
 
         picker.innerHTML = filtered
-            .map(v => `<button class="var-chip" data-varname="${v.name}" title="Source: ${v.source}">${v.name}</button>`)
+            .map(v => `<button class="var-chip" data-varname="${v.name}" data-exprmode="${!!exprMode}" title="From: ${v.source}">${v.name}</button>`)
             .join('');
 
         picker.querySelectorAll('.var-chip').forEach(btn => {
             btn.addEventListener('mousedown', e => {
                 e.preventDefault();
-                _insertVariable(inputEl, btn.dataset.varname);
+                const useExpr = btn.dataset.exprmode === 'true';
+                _insertVariable(inputEl, btn.dataset.varname, useExpr);
                 _hideVariablePicker();
             });
         });
@@ -880,6 +921,44 @@
         picker.style.display = 'flex';
     }
 
+    /**
+     * Show the variable picker anchored to a button element (button-click triggered).
+     * Positions below/near the button. Shows ALL available vars without initial filter.
+     */
+    function _showVarPickerForButton(btnEl, inputEl, nodeId, exprMode) {
+        _pickerInput = inputEl;
+        _pickerActive = true;
+
+        const picker = _getOrCreatePicker();
+        const allVars = getAvailableVariables(nodeId);
+
+        if (allVars.length === 0) {
+            picker.innerHTML = '<span class="text-muted small px-2 py-1">No variables declared upstream yet</span>';
+        } else {
+            picker.innerHTML = allVars
+                .map(v => `<button class="var-chip" data-varname="${v.name}" data-exprmode="${!!exprMode}" title="From: ${v.source}">${v.name}</button>`)
+                .join('');
+        }
+
+        picker.querySelectorAll('.var-chip').forEach(chip => {
+            chip.addEventListener('mousedown', e => {
+                e.preventDefault();
+                const useExpr = chip.dataset.exprmode === 'true';
+                _insertVariable(inputEl, chip.dataset.varname, useExpr);
+                _hideVariablePicker();
+                inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        });
+
+        // Position below the button
+        const rect = btnEl.getBoundingClientRect();
+        picker.style.position = 'fixed';
+        picker.style.left  = rect.left + 'px';
+        picker.style.top   = (rect.bottom + 3) + 'px';
+        picker.style.minWidth = '180px';
+        picker.style.display = 'flex';
+    }
+
     function _hideVariablePicker() {
         _pickerActive = false;
         if (_pickerEl) _pickerEl.style.display = 'none';
@@ -887,22 +966,30 @@
     }
 
     /**
-     * Insert {{varname}} at the cursor, replacing any incomplete {{ prefix already typed.
+     * Insert {{varname}} (literal mode) or varname (expr mode) at the cursor.
+     * Replaces any incomplete {{ prefix already typed.
+     * @param {boolean} exprMode - If true, inserts bare name (for JSONata); otherwise wraps in {{}}
      */
-    function _insertVariable(inputEl, varName) {
+    function _insertVariable(inputEl, varName, exprMode) {
         const val = inputEl.value;
         const pos = inputEl.selectionStart ?? val.length;
         const before = val.slice(0, pos);
-        const triggerIdx = before.lastIndexOf('{{');
-        let newVal;
-        if (triggerIdx === -1) {
-            newVal = val + '{{' + varName + '}}';
+        let newVal, newCursor;
+        if (exprMode) {
+            // In expression mode just insert the bare variable name at cursor
+            newVal = before + varName + val.slice(pos);
+            newCursor = before.length + varName.length;
         } else {
-            newVal = val.slice(0, triggerIdx) + '{{' + varName + '}}' + val.slice(pos);
+            const triggerIdx = before.lastIndexOf('{{');
+            if (triggerIdx === -1) {
+                newVal = val.slice(0, pos) + '{{' + varName + '}}' + val.slice(pos);
+                newCursor = pos + varName.length + 4;
+            } else {
+                newVal = val.slice(0, triggerIdx) + '{{' + varName + '}}' + val.slice(pos);
+                newCursor = triggerIdx + varName.length + 4;
+            }
         }
         inputEl.value = newVal;
-        // Move cursor to after the inserted token
-        const newCursor = (triggerIdx === -1 ? val.length : triggerIdx) + varName.length + 4;
         inputEl.setSelectionRange(newCursor, newCursor);
         inputEl.dispatchEvent(new Event('change', { bubbles: true }));
     }
@@ -922,7 +1009,8 @@
             return;
         }
         const filter = before.slice(triggerIdx + 2);
-        _showVariablePicker(el, nodeId, filter);
+        const isExprMode = el.dataset.fieldType === 'expression' || el.classList.contains('sf-expr-input');
+        _showVariablePicker(el, nodeId, filter, isExprMode);
     }
 
     /**
@@ -967,6 +1055,27 @@
         document.getElementById('exprResult').textContent = '';
         document.getElementById('exprResult').className = 'p-2 rounded border border-secondary expr-result-box';
         document.getElementById('exprStatus').textContent = '';
+
+        // Populate flow variables panel in expression builder
+        const varListEl = document.getElementById('exprVarList');
+        if (varListEl) {
+            const vars = _currentNodeId ? getAvailableVariables(_currentNodeId) : [];
+            if (vars.length === 0) {
+                varListEl.innerHTML = '<span class="text-muted" style="font-size:.75rem">No variables declared upstream</span>';
+            } else {
+                varListEl.innerHTML = vars.map(v =>
+                    `<button class="var-chip" data-varname="${v.name}" title="From: ${v.source}">${v.name}</button>`
+                ).join('');
+                varListEl.querySelectorAll('.var-chip').forEach(chip => {
+                    chip.addEventListener('click', () => {
+                        const inp = document.getElementById('exprInput');
+                        _insertVariable(inp, chip.dataset.varname, true);
+                        inp.focus();
+                    });
+                });
+            }
+        }
+
         new bootstrap.Modal(document.getElementById('exprBuilderModal')).show();
     }
 
@@ -1214,7 +1323,10 @@
         if (isExpr) {
             return `<div class="d-flex gap-1 align-items-start">
                 ${modeBtn}
-                <input type="text" class="form-control form-control-sm sf-val sf-expr-input" data-idx="${idx}" value="${esc(field.value)}" placeholder="JSONata expression">
+                <input type="text" class="form-control form-control-sm sf-val sf-expr-input flex-fill" data-idx="${idx}" value="${esc(field.value)}" placeholder="JSONata expression">
+                <button class="btn btn-sm btn-outline-secondary sf-var-insert" data-idx="${idx}" title="Insert variable reference">
+                    <i class="bi bi-braces"></i>
+                </button>
                 <button class="btn btn-sm btn-outline-warning sf-expr-builder" data-idx="${idx}" title="Expression Builder">
                     <i class="bi bi-tools"></i>
                 </button>
@@ -1225,7 +1337,10 @@
         let widget;
         switch (field.type) {
             case 'string':
-                widget = `<input type="text" class="form-control form-control-sm sf-val" data-idx="${idx}" value="${esc(field.value)}">`;
+                widget = `<div class="input-group input-group-sm">
+                    <input type="text" class="form-control sf-val" data-idx="${idx}" value="${esc(field.value)}" placeholder="Value or {{variable}}">
+                    <button class="btn btn-outline-secondary sf-var-insert" type="button" data-idx="${idx}" title="Insert {{variable}}"><i class="bi bi-braces"></i></button>
+                </div>`;
                 break;
             case 'number':
                 widget = `<input type="number" class="form-control form-control-sm sf-val" data-idx="${idx}" step="any" value="${esc(field.value)}">`;
@@ -1260,7 +1375,10 @@
                 widget = `<textarea class="form-control form-control-sm sf-val" data-idx="${idx}" rows="2" placeholder='["a","b"] or comma-separated'>${esc(Array.isArray(field.value) ? JSON.stringify(field.value) : field.value)}</textarea>`;
                 break;
             default:
-                widget = `<input type="text" class="form-control form-control-sm sf-val" data-idx="${idx}" value="${esc(field.value)}">`;
+                widget = `<div class="input-group input-group-sm">
+                    <input type="text" class="form-control sf-val" data-idx="${idx}" value="${esc(field.value)}" placeholder="Value or {{variable}}">
+                    <button class="btn btn-outline-secondary sf-var-insert" type="button" data-idx="${idx}" title="Insert {{variable}}"><i class="bi bi-braces"></i></button>
+                </div>`;
         }
 
         return `<div class="d-flex gap-1 align-items-start">
@@ -1510,6 +1628,16 @@
                             syncAndRedraw();
                         }
                     );
+                });
+            });
+
+            // Variable insert buttons ({{}} braces) — in set_variable rows
+            document.querySelectorAll('#sfFieldsList .sf-var-insert').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const isExprRow = !!btn.closest('.d-flex')?.querySelector('.sf-expr-input');
+                    const valInput = btn.closest('.input-group, .d-flex')?.querySelector('.sf-val, .sf-expr-input');
+                    if (valInput) _showVarPickerForButton(btn, valInput, node.id, isExprRow);
                 });
             });
         }
