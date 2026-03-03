@@ -453,30 +453,13 @@
         const isExpr = node.config._expressions?.[field.key] === true;
         const val = node.config[field.key] ?? field.default ?? '';
         const exprEnabled = field.expression_enabled !== false; // default: true
+        const noVarTypes = ['number', 'boolean', 'date', 'select', 'connector_select', 'queue_select', 'flow_select', 'options_list', 'key_value'];
+        const showVarBtn = isExpr || !noVarTypes.includes(field.type);
 
         let html = `<div class="mb-2 form-field-group" data-field-key="${field.key}">`;
 
-        // Label row with expression toggle button
-        const showVarLabelBtn = ['textarea','code','json'].includes(field.type) || isExpr;
-        html += `<div class="d-flex align-items-center gap-1 mb-1">`;
-        html += `<label class="form-label mb-0 flex-grow-1">${field.label || field.key}${field.required ? ' <span class="text-danger">*</span>' : ''}</label>`;
-        if (showVarLabelBtn) {
-            html += `<button class="btn btn-sm btn-outline-secondary btn-var-insert" data-key="${field.key}" title="Insert {{variable}}">
-                        <i class="bi bi-braces"></i>
-                    </button>`;
-        }
-        if (exprEnabled) {
-            html += `<button class="btn btn-sm field-mode-toggle ${isExpr ? 'field-mode-expr' : 'field-mode-text'}" data-key="${field.key}"
-                        title="${isExpr ? 'JSONata expression mode \u2013 click for literal' : 'Literal value \u2013 click for expression'}">
-                        ${isExpr ? '<i class="bi bi-lightning-charge-fill"></i>' : '<i class="bi bi-fonts"></i>'}
-                    </button>`;
-            if (isExpr) {
-                html += `<button class="btn btn-sm btn-outline-warning field-expr-builder" data-key="${field.key}" title="Open Expression Builder">
-                            <i class="bi bi-tools"></i>
-                        </button>`;
-            }
-        }
-        html += `</div>`;
+        // Label only (no buttons here)
+        html += `<label class="form-label mb-1">${field.label || field.key}${field.required ? ' <span class="text-danger">*</span>' : ''}</label>`;
 
         // Description
         if (field.description) {
@@ -497,6 +480,25 @@
             }
         } else {
             html += renderFieldWidget(field, val, esc);
+        }
+
+        // Toolbar below the widget
+        const hasToolbar = exprEnabled || showVarBtn;
+        if (hasToolbar) {
+            html += `<div class="sf-field-toolbar mt-1">`;
+            if (exprEnabled) {
+                html += `<button class="btn btn-sm field-mode-toggle ${isExpr ? 'field-mode-expr' : 'field-mode-text'}" data-key="${field.key}"
+                    title="${isExpr ? 'JSONata expression mode \u2013 click for literal' : 'Literal value \u2013 click for expression'}">
+                    ${isExpr ? '<i class="bi bi-lightning-charge-fill"></i>' : '<i class="bi bi-fonts"></i>'}
+                </button>`;
+            }
+            if (showVarBtn) {
+                html += `<button class="btn btn-sm btn-outline-secondary btn-var-insert" data-key="${field.key}" title="Insert variable"><i class="bi bi-braces"></i> Variables</button>`;
+            }
+            if (exprEnabled && isExpr) {
+                html += `<button class="btn btn-sm btn-outline-warning field-expr-builder" data-key="${field.key}" title="Open Expression Builder"><i class="bi bi-tools"></i></button>`;
+            }
+            html += `</div>`;
         }
 
         html += `</div>`;
@@ -524,11 +526,8 @@
                             ${(field.options || []).map(opt => `<option value="${esc(opt)}" ${String(val) === String(opt) ? 'selected' : ''}>${opt}</option>`).join('')}
                         </select>`;
             case 'url':
-                return `<div class="input-group input-group-sm">
-                    <input type="url" class="form-control field-input" data-key="${key}" data-field-type="url"
-                        value="${esc(val)}" placeholder="${esc(ph || 'https://')}">
-                    <button class="btn btn-outline-secondary btn-var-insert" type="button" data-key="${key}" title="Insert {{variable}}"><i class="bi bi-braces"></i></button>
-                </div>`;
+                return `<input type="url" class="form-control form-control-sm field-input" data-key="${key}" data-field-type="url"
+                    value="${esc(val)}" placeholder="${esc(ph || 'https://')}">`;
             case 'json': {
                 const jsonVal = typeof val === 'object' && val !== null ? JSON.stringify(val, null, 2) : (val || '');
                 return `<textarea class="form-control form-control-sm field-input font-monospace" data-key="${key}" data-field-type="json"
@@ -574,11 +573,8 @@
                     </a>
                 </div>`;
             default: // string
-                return `<div class="input-group input-group-sm">
-                    <input type="text" class="form-control field-input" data-key="${key}" data-field-type="string"
-                        value="${esc(val)}" placeholder="${esc(ph)}">
-                    <button class="btn btn-outline-secondary btn-var-insert" type="button" data-key="${key}" title="Insert {{variable}}"><i class="bi bi-braces"></i></button>
-                </div>`;
+                return `<input type="text" class="form-control form-control-sm field-input" data-key="${key}" data-field-type="string"
+                    value="${esc(val)}" placeholder="${esc(ph)}">`;
         }
     }
 
