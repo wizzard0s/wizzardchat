@@ -968,7 +968,7 @@ const _CH_ICONS = {
 function updateCapacityBar() {
     if (!myCapacity) return;
     const total = myLoad.total;
-    const omni  = myCapacity.omni_max || 1;
+    const omni  = myCapacity.omni_max ?? 8;
     const pct   = Math.min(100, Math.round(total / omni * 100));
     if (el.capOmniBar) {
         el.capOmniBar.style.width = pct + '%';
@@ -978,8 +978,8 @@ function updateCapacityBar() {
     ['voice', 'chat', 'whatsapp', 'email', 'sms'].forEach(ch => {
         const pill = $('capPill-' + ch);
         if (!pill) return;
-        const load  = myLoad[ch] || 0;
-        const cap   = myCapacity['channel_max_' + ch] || 1;
+        const load  = myLoad[ch] ?? 0;
+        const cap   = myCapacity['channel_max_' + ch] ?? 1;
         const ratio = cap > 0 ? load / cap : 0;
         pill.className = 'cap-pill' +
             (ratio >= 1 ? ' full' : ratio >= 0.8 ? ' near' : load > 0 ? ' active' : '');
