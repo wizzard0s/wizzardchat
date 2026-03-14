@@ -935,13 +935,29 @@ function flashSessionCard(key) {
 }
 
 // ─── Capacity bar ────────────────────────────────────────────────────────────
+// Hard-coded fallback shown when the API is unreachable (e.g. server restarting).
+const _CAP_DEFAULTS = {
+    omni_max: 8, channel_max_voice: 1, channel_max_chat: 5,
+    channel_max_whatsapp: 3, channel_max_email: 5, channel_max_sms: 5,
+    capacity_override_active: false,
+    omni_max_is_custom: false, channel_max_voice_is_custom: false,
+    channel_max_chat_is_custom: false, channel_max_whatsapp_is_custom: false,
+    channel_max_email_is_custom: false, channel_max_sms_is_custom: false,
+};
+
 async function loadCapacity() {
     try {
         const r = await apiFetch('/api/v1/agents/me/capacity');
-        if (!r.ok) return;
-        myCapacity = await r.json();
-        updateCapacityBar();
-    } catch { /* ignore */ }
+        if (r.ok) {
+            myCapacity = await r.json();
+        } else {
+            // API unavailable — show defaults so the toolbar is never blank
+            myCapacity = { ...myCapacity, ..._CAP_DEFAULTS };
+        }
+    } catch {
+        myCapacity = { ...myCapacity, ..._CAP_DEFAULTS };
+    }
+    updateCapacityBar();
 }
 
 const _CH_ICONS = {

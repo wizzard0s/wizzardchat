@@ -893,6 +893,41 @@ async def lifespan(app: FastAPI):
         await seed_settings(session)
         print("[WizzardChat] Global settings ready")
 
+    # Back-fill capacity columns for agents created before the capacity feature.
+    # Any user with NULL capacity columns gets the current global defaults written
+    # to their row so every agent has an explicit, visible configuration.
+    from sqlalchemy import or_ as _or
+    from app.models import GlobalSettings as _GS
+    _CAP_KEYS = [
+        ("omni_max",             "default_omni_max",             8),
+        ("channel_max_voice",    "default_channel_max_voice",    1),
+        ("channel_max_chat",     "default_channel_max_chat",     5),
+        ("channel_max_whatsapp", "default_channel_max_whatsapp", 3),
+        ("channel_max_email",    "default_channel_max_email",    5),
+        ("channel_max_sms",      "default_channel_max_sms",      5),
+    ]
+    async with async_session() as session:
+        # Load live global defaults from DB (may differ from code defaults if admin changed them)
+        settings_rows = (await session.execute(
+            select(_GS).where(_GS.key.in_([k for _, k, _ in _CAP_KEYS]))
+        )).scalars().all()
+        _live_defaults = {r.key: int(r.value) for r in settings_rows}
+        _effective_defaults = {
+            col: _live_defaults.get(sk, fb) for col, sk, fb in _CAP_KEYS
+        }
+        # Find all users with any NULL capacity column
+        null_filter = _or(*[getattr(User, col).is_(None) for col, _, _ in _CAP_KEYS])
+        users_to_fix = (await session.execute(select(User).where(null_filter))).scalars().all()
+        for _u in users_to_fix:
+            for col, _, _ in _CAP_KEYS:
+                if getattr(_u, col) is None:
+                    setattr(_u, col, _effective_defaults[col])
+        if users_to_fix:
+            await session.commit()
+            print(f"[WizzardChat] Capacity defaults applied to {len(users_to_fix)} agent(s)")
+        else:
+            print("[WizzardChat] All agents already have capacity config")
+
     # Seed default interaction tags for A/B split testing (and general use)
     from app.models import Tag, TagType
     import re as _re

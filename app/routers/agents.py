@@ -42,12 +42,32 @@ def _effective(agent_val: Optional[int], global_default: int) -> tuple[int, bool
     return global_default, False
 
 
-async def get_capacity_for_user(user: User) -> CapacityOut:
-    """Compute effective capacity for any User instance, merging global defaults."""
+async def get_capacity_for_user(user: User, db: AsyncSession | None = None) -> CapacityOut:
+    """Compute effective capacity for any User instance.
+
+    After startup back-fill all capacity columns are non-NULL, so this is
+    normally a straight read from the user row.  The db param allows live
+    global-settings reads for callers that have a session available.
+    """
     from app.routers.settings import SETTINGS_DEFAULTS
 
+    # Prefer live DB settings when a session is available; fall back to the
+    # hardcoded schema defaults (guaranteed non-None after startup back-fill).
+    if db is not None:
+        from app.models import GlobalSettings
+        _keys = [
+            "default_omni_max", "default_channel_max_voice", "default_channel_max_chat",
+            "default_channel_max_whatsapp", "default_channel_max_email", "default_channel_max_sms",
+        ]
+        rows = (await db.execute(
+            select(GlobalSettings).where(GlobalSettings.key.in_(_keys))
+        )).scalars().all()
+        _live = {r.key: int(r.value) for r in rows}
+    else:
+        _live = {}
+
     def _g(key: str, fallback: int) -> int:
-        return int(SETTINGS_DEFAULTS.get(key, fallback))
+        return _live.get(key, int(SETTINGS_DEFAULTS.get(key, fallback)))
 
     omni,  omni_c  = _effective(user.omni_max,            _g("default_omni_max", 8))
     voice, voice_c = _effective(user.channel_max_voice,   _g("default_channel_max_voice", 1))
@@ -91,7 +111,7 @@ async def get_my_capacity(
     current_user: User = Depends(get_current_user),
 ):
     """Return the effective capacity limits for the authenticated agent."""
-    return await get_capacity_for_user(current_user)
+    return await get_capacity_for_user(current_user, db=db)
 
 
 @router.post("/me/pick-next", status_code=204)
