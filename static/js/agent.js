@@ -195,7 +195,7 @@ function setAvailabilityUI(status) {
 async function loadCampaigns() {
     try {
         const r = await apiFetch('/api/v1/campaigns');
-        if (!r.ok) return;
+        if (!r.ok) { console.error('loadCampaigns: API returned', r.status); return; }
         const camps = await r.json();
         el.campaignSel.innerHTML = '<option value="">\u2014 All campaigns \u2014</option>';
         camps.forEach(c => {
@@ -208,7 +208,7 @@ async function loadCampaigns() {
         if (camps.length === 1) {
             el.campaignSel.value = camps[0].id;
         }
-    } catch { /* ignore */ }
+    } catch (err) { console.error('loadCampaigns error:', err); }
 }
 
 // \u2500\u2500\u2500 WebSocket \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
