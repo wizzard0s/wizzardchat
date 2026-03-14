@@ -1470,6 +1470,7 @@
 </div>
 
 <script>
+{% raw %}
 
 // ── Outbound compose drawer ───────────────────────────────────────────────────
 let _odChannel = null;
@@ -1627,6 +1628,7 @@ async function contactHistoryLoad(days) {
     } catch { list.innerHTML = '<div class="text-muted small text-center py-4">Failed to load history.</div>'; }
 }
 
+{% endraw %}
 </script>
 
 </body>
