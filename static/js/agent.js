@@ -35,6 +35,12 @@ let diallerProgress = null;  // GET /dialler/progress response
 let diallerPollTimer = null; // setInterval handle for progress polling
 let diallerOutcomeCode = null; // selected outcome code
 
+// Voice device (dialler softphone)
+let _vzDevice        = null;   // WzVoiceDevice instance
+let _vzTimerInterval = null;   // setInterval handle for call timer
+let _vzMuted         = false;  // current mute state
+let _vzConnectedAt   = null;   // Date when call connected
+
 let typingTimer = null;
 let sessionOutcomes = {};   // session_key \u2192 [{id, code, label, action_type, ...}]
 let wrapTimers = {};         // session_key \u2192 { intervalId, secondsLeft }
@@ -156,6 +162,14 @@ const el = {
     viBtnHold:           $('viBtnHold'),
     viBtnHangup:         $('viBtnHangup'),
     chatInputRow:        $('chatInputRow'),
+    // dialler softphone strip
+    dpSoftphone:         $('dpSoftphone'),
+    dpSoftphoneStatus:   $('dpSoftphoneStatus'),
+    dpSoftphoneTimer:    $('dpSoftphoneTimer'),
+    dpBtnSoftMute:       $('dpBtnSoftMute'),
+    dpBtnSoftHangup:     $('dpBtnSoftHangup'),
+    dpSoftphoneFallback: $('dpSoftphoneFallback'),
+    dpFallbackMsg:       $('dpFallbackMsg'),
 };
 
 // \u2500\u2500\u2500 Init \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -1061,8 +1075,72 @@ async function diallerOpen() {
     diallerStartPoll();
 }
 
+// ── Voice-device helpers (dialler softphone) ────────────────────────────────
+
+async function diallerVoiceInit(connectorId) {
+    // Destroy any previous device before creating a new one
+    if (_vzDevice) { try { _vzDevice.hangup(); } catch (_) {} }
+    _vzDevice = new WzVoiceDevice(apiFetch);
+    _vzDevice.on('state', _onVzState);
+    await _vzDevice.init(connectorId);
+}
+
+function _onVzState(state, detail) {
+    const strip    = el.dpSoftphone;
+    const statusEl = el.dpSoftphoneStatus;
+    if (!strip) return;
+
+    if (state === 'connected') {
+        _vzConnectedAt = Date.now();
+        diallerVoiceStartTimer();
+        if (statusEl) statusEl.textContent = 'Connected';
+        strip.classList.add('active');
+    } else if (state === 'ringing') {
+        if (statusEl) statusEl.textContent = 'Ringing…';
+    } else if (state === 'ready') {
+        // call ended cleanly
+        if (_vzConnectedAt) {
+            // Leave strip visible until outcome submitted
+            if (statusEl) statusEl.textContent = 'Call ended';
+            strip.classList.remove('active');
+        }
+    } else if (state === 'error') {
+        if (statusEl) statusEl.textContent = 'Error: ' + (detail || 'unknown');
+        strip.classList.remove('active');
+    } else if (state === 'unsupported') {
+        strip.style.display = 'none';
+        if (el.dpSoftphoneFallback) el.dpSoftphoneFallback.style.display = 'flex';
+    }
+}
+
+function diallerVoiceStartTimer() {
+    clearInterval(_vzTimerInterval);
+    _vzTimerInterval = setInterval(() => {
+        if (!_vzConnectedAt || !el.dpSoftphoneTimer) return;
+        const secs = Math.floor((Date.now() - _vzConnectedAt) / 1000);
+        const m = Math.floor(secs / 60);
+        const s = String(secs % 60).padStart(2, '0');
+        el.dpSoftphoneTimer.textContent = m + ':' + s;
+    }, 1000);
+}
+
+function diallerVoiceStop() {
+    clearInterval(_vzTimerInterval);
+    _vzTimerInterval = null;
+    _vzConnectedAt   = null;
+    _vzMuted         = false;
+    if (_vzDevice) { try { _vzDevice.hangup(); } catch (_) {} }
+    if (el.dpSoftphone) {
+        el.dpSoftphone.style.display = 'none';
+        el.dpSoftphone.classList.remove('active');
+    }
+    if (el.dpSoftphoneFallback) el.dpSoftphoneFallback.style.display = 'none';
+    if (el.dpSoftphoneTimer) el.dpSoftphoneTimer.textContent = '0:00';
+}
+
 function diallerClose() {
     diallerStopPoll();
+    diallerVoiceStop();
     diallerContact = null;
     diallerAttempt = null;
     diallerCampaign = null;
@@ -1078,6 +1156,13 @@ async function diallerFetchCampaign() {
         if (r.ok) {
             diallerCampaign = await r.json();
             diallerRenderHeader();
+            // Initialise WebRTC device for voice campaigns
+            const connectorId = diallerCampaign.settings?.voice_connector_id;
+            if (diallerCampaign.campaign_type === 'outbound_voice' && connectorId) {
+                diallerVoiceInit(connectorId).catch(e =>
+                    console.error('diallerVoiceInit failed:', e)
+                );
+            }
         }
     } catch { /* ignore */ }
 }
@@ -1260,6 +1345,23 @@ async function diallerDial() {
         if (el.dpOutcomeSection) el.dpOutcomeSection.style.display = 'flex';
         if (el.dpActionRow)      el.dpActionRow.style.display      = 'none';
         if (el.dpOutcomeNotes)   el.dpOutcomeNotes.value           = '';
+
+        // Start WebRTC call for voice campaigns
+        if (diallerCampaign?.campaign_type === 'outbound_voice') {
+            const room = `outbound-${diallerAttempt.id}`;
+            if (_vzDevice && _vzDevice.supported) {
+                if (el.dpSoftphone) el.dpSoftphone.style.display = 'flex';
+                if (el.dpSoftphoneStatus) el.dpSoftphoneStatus.textContent = 'Connecting…';
+                await _vzDevice.dial(room);
+            } else {
+                // Non-WebRTC provider: server will initiate the call via API
+                const fallbackMsg = _vzDevice?.supported === false
+                    ? 'Call initiated — answer on your desk phone.'
+                    : 'WebRTC not ready. Dial manually.';
+                if (el.dpSoftphoneFallback)  el.dpSoftphoneFallback.style.display = 'flex';
+                if (el.dpFallbackMsg)        el.dpFallbackMsg.textContent = fallbackMsg;
+            }
+        }
     } catch {
         if (el.dpBtnDial) el.dpBtnDial.disabled = false;
         if (el.dpBtnNext) el.dpBtnNext.disabled = false;
@@ -1524,6 +1626,18 @@ function bindUI() {
     el.dpBtnDial?.addEventListener('click', diallerDial);
     el.dpBtnNext?.addEventListener('click', () => diallerFetchNext());
     el.dpBtnSkip?.addEventListener('click', diallerSkip);
+    el.dpBtnSoftMute?.addEventListener('click', () => {
+        if (!_vzDevice) return;
+        _vzMuted = !_vzMuted;
+        _vzDevice.mute(_vzMuted);
+        const icon = el.dpBtnSoftMute?.querySelector('i');
+        if (icon) icon.className = _vzMuted ? 'bi bi-mic-mute-fill' : 'bi bi-mic-fill';
+        el.dpBtnSoftMute?.classList.toggle('active', _vzMuted);
+    });
+    el.dpBtnSoftHangup?.addEventListener('click', () => {
+        if (_vzDevice) _vzDevice.hangup();
+        diallerVoiceStop();
+    });
     el.dpBtnSubmitOutcome?.addEventListener('click', diallerSubmitOutcome);
     el.dpBtnCancelOutcome?.addEventListener('click', () => {
         if (el.dpOutcomeSection) el.dpOutcomeSection.style.display = 'none';

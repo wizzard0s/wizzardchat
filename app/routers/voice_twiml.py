@@ -506,21 +506,35 @@ async def agent_twiml_connect(attempt_id: str = Form(...)):
     return _xml(xml)
 
 
-# ─── Agent access token (Twilio Voice SDK) ────────────────────────────────────
+# ─── Agent WebRTC credentials (provider-agnostic) ─────────────────────────────
+#
+# Returns a standard shape that the front-end voice_device.js interprets:
+#   { provider, webrtc_supported, sdk_url, credentials, identity, ttl }
+#
+# webrtc_supported=True  → browser SDK available; credentials contains opaque blob
+# webrtc_supported=False → provider requires desk/softphone; show fallback banner
+#
+# Provider matrix:
+#   twilio            → Twilio.Device (twilio/voice-sdk CDN)
+#   telnyx            → TelnyxRTC (@telnyx/webrtc CDN, SIP credentials)
+#   3cx | asterisk | freeswitch | generic
+#                     → SIP/desk phone fallback (no browser SDK)
+#   vonage | africastalking
+#                     → REST-only; no browser SDK
 
-@router.get("/agent-token", summary="Get Twilio access token for agent WebRTC softphone")
-async def get_agent_token(
+_TWILIO_SDK_URL  = "https://sdk.twilio.com/js/voice/2.10/twilio.min.js"
+_TELNYX_SDK_URL  = "https://cdn.jsdelivr.net/npm/@telnyx/webrtc@latest/lib/bundle/index.js"
+
+@router.get("/agent-credentials", summary="Agent WebRTC credentials (provider-agnostic)")
+async def get_agent_credentials(
     connector_id: uuid.UUID = Query(..., description="Voice connector ID"),
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    """Return a short-lived Twilio Access Token so an agent's browser can join
-    a conference via the Twilio Voice JavaScript SDK.
+    """Return provider-specific credentials for the agent's in-browser softphone.
 
-    Requires the connector to have ``account_sid``, ``api_key`` (API Key SID),
-    ``api_secret`` (API Key Secret), and ``twiml_app_sid`` set.
-    The TwiML App's Voice URL must point to
-    ``POST /api/v1/voice/twiml/agent-connect``.
+    The response shape is identical regardless of provider so the frontend
+    ``WzVoiceDevice`` wrapper can pick the right SDK at runtime.
     """
     vc_row = await db.execute(
         select(VoiceConnector).where(VoiceConnector.id == connector_id)
@@ -528,39 +542,95 @@ async def get_agent_token(
     vc = vc_row.scalar_one_or_none()
     if not vc:
         raise HTTPException(status_code=404, detail="Voice connector not found")
-    if vc.provider != "twilio":
-        raise HTTPException(
-            status_code=400, detail="Agent token is only supported for Twilio connectors"
-        )
-    missing = [
-        f for f in ("account_sid", "api_key", "api_secret", "twiml_app_sid")
-        if not getattr(vc, f, None)
-    ]
-    if missing:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Connector is missing required fields for agent token: {', '.join(missing)}",
-        )
-    try:
-        from twilio.jwt.access_token import AccessToken
-        from twilio.jwt.access_token.grants import VoiceGrant
 
-        identity = f"agent-{current_user.id}"
-        token = AccessToken(
-            vc.account_sid,
-            vc.api_key,      # API Key SID (SKxxx)
-            vc.api_secret,   # API Key Secret
-            identity=identity,
-            ttl=3600,
-        )
-        grant = VoiceGrant(
-            outgoing_application_sid=vc.twiml_app_sid,
-            incoming_allow=False,
-        )
-        token.add_grant(grant)
-        return {"token": token.to_jwt(), "identity": identity, "ttl": 3600}
-    except ImportError:
-        raise HTTPException(status_code=503, detail="twilio package not installed")
+    provider = (vc.provider or "generic").lower()
+    identity = f"agent-{current_user.id}"
+
+    # ── Twilio ──────────────────────────────────────────────────────────────
+    if provider == "twilio":
+        missing = [f for f in ("account_sid", "api_key", "api_secret", "twiml_app_sid")
+                   if not getattr(vc, f, None)]
+        if missing:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Connector missing fields for Twilio WebRTC: {', '.join(missing)}",
+            )
+        try:
+            from twilio.jwt.access_token import AccessToken
+            from twilio.jwt.access_token.grants import VoiceGrant
+            token = AccessToken(vc.account_sid, vc.api_key, vc.api_secret,
+                                identity=identity, ttl=3600)
+            token.add_grant(VoiceGrant(
+                outgoing_application_sid=vc.twiml_app_sid,
+                incoming_allow=False,
+            ))
+            return {
+                "provider": "twilio",
+                "webrtc_supported": True,
+                "sdk_url": _TWILIO_SDK_URL,
+                "credentials": {"token": token.to_jwt()},
+                "identity": identity,
+                "ttl": 3600,
+            }
+        except ImportError:
+            raise HTTPException(status_code=503, detail="twilio package not installed")
+
+    # ── Telnyx ──────────────────────────────────────────────────────────────
+    if provider == "telnyx":
+        # Telnyx WebRTC uses SIP credentials: login = sip_domain username, password = api_secret
+        # Set api_key = SIP username (e.g. "+15555550100@sip.telnyx.com")
+        # Set api_secret = SIP password
+        missing = [f for f in ("api_key", "api_secret") if not getattr(vc, f, None)]
+        if missing:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Connector missing fields for Telnyx WebRTC: {', '.join(missing)}",
+            )
+        return {
+            "provider": "telnyx",
+            "webrtc_supported": True,
+            "sdk_url": _TELNYX_SDK_URL,
+            "credentials": {
+                "login": vc.api_key,
+                "password": vc.api_secret,
+            },
+            "identity": identity,
+            "ttl": 3600,
+        }
+
+    # ── All other providers — no browser WebRTC SDK available ───────────────
+    # Agents answer on desk phone / softphone; platform places the call via API.
+    _PROVIDER_LABELS = {
+        "vonage":         "Vonage",
+        "africastalking": "Africa's Talking",
+        "3cx":            "3CX",
+        "asterisk":       "Asterisk",
+        "freeswitch":     "FreeSWITCH",
+        "generic":        "Generic SIP",
+    }
+    return {
+        "provider": provider,
+        "webrtc_supported": False,
+        "sdk_url": None,
+        "credentials": None,
+        "identity": identity,
+        "ttl": 0,
+        "message": (
+            f"{_PROVIDER_LABELS.get(provider, provider)} does not support in-browser calling. "
+            "The system will place the call via the API and connect your desk phone."
+        ),
+    }
+
+
+# ── Legacy alias — keep old path working ──────────────────────────────────────
+@router.get("/agent-token", include_in_schema=False)
+async def get_agent_token_legacy(
+    connector_id: uuid.UUID = Query(...),
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Deprecated — use /agent-credentials instead."""
+    return await get_agent_credentials(connector_id=connector_id, db=db, current_user=current_user)
 
 
 # ─── 3CX call event webhook ────────────────────────────────────────────────────

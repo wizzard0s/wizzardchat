@@ -180,6 +180,10 @@
         .dp-outcome-pill.neutral  { border-left: 3px solid #6c757d; }
         .dp-notes { background: #12141a; border: 1px solid #3a3000; color: #ccc; border-radius: 6px; padding: 8px 10px; font-size: .84rem; resize: vertical; min-height: 52px; width: 100%; }
         .dp-notes:focus { outline: none; border-color: #fd7e14; }
+        /* -- Softphone strip -- */
+        .dp-softphone { display: flex; align-items: center; gap: 10px; background: #0d1f0d; border: 1px solid #198754; border-radius: 8px; padding: 8px 12px; margin-top: 10px; }
+        .dp-softphone.active { border-color: #22c55e; background: #0a2010; }
+        .dp-softphone-fallback { display: flex; align-items: center; background: #1a1a0a; border: 1px solid #fd7e14; border-radius: 8px; padding: 8px 12px; margin-top: 10px; font-size: .85rem; color: #ffc107; }
 
 
 
@@ -938,6 +942,26 @@
                 </div>
             </div>
 
+            <!-- WebRTC softphone strip (shown while a voice call is live) -->
+            <div id="dpSoftphone" class="dp-softphone" style="display:none;">
+                <div class="d-flex align-items-center gap-3 w-100">
+                    <span id="dpSoftphoneStatus" class="small text-muted flex-fill">Connecting…</span>
+                    <span id="dpSoftphoneTimer" class="fw-semibold" style="font-variant-numeric:tabular-nums;">0:00</span>
+                    <button class="btn btn-sm btn-outline-secondary" id="dpBtnSoftMute" title="Mute">
+                        <i class="bi bi-mic-fill"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" id="dpBtnSoftHangup" title="Hang up">
+                        <i class="bi bi-telephone-x-fill"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Fallback: non-WebRTC providers — call placed server-side -->
+            <div id="dpSoftphoneFallback" class="dp-softphone-fallback" style="display:none;">
+                <i class="bi bi-telephone-fill me-2 text-success"></i>
+                <span id="dpFallbackMsg">Dialling via desk phone…</span>
+            </div>
+
             <!-- Outcome wrap-up (shown after dialling attempt started) -->
             <div class="dp-outcome-section" id="dpOutcomeSection" style="display:none;">
                 <div class="dp-section-label">RECORD OUTCOME</div>
@@ -1252,7 +1276,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/sidebar.js"></script>
 
-<script src="/static/js/agent.js?v=18"></script>
+<script src="/static/js/voice_device.js?v=1"></script>
+<script src="/static/js/agent.js?v=19"></script>
 
 
 
