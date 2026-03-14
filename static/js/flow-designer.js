@@ -1,5 +1,5 @@
-﻿/**
- * WizzardChat Flow Designer – Visual drag-and-drop flow editor
+/**
+ * WizzardChat Flow Designer \u2013 Visual drag-and-drop flow editor
  * Canvas with pan/zoom, node drag, edge drawing, properties panel, API save/load.
  */
 (function () {
@@ -12,7 +12,7 @@
         'Content-Type': 'application/json',
     });
 
-    // ───── Utilities ─────
+    // \u2500\u2500\u2500\u2500\u2500 Utilities \u2500\u2500\u2500\u2500\u2500
     function escapeHtml(str) {
         if (str == null) return '';
         return String(str)
@@ -23,7 +23,7 @@
             .replace(/'/g, '&#39;');
     }
 
-    // ───── State ─────
+    // \u2500\u2500\u2500\u2500\u2500 State \u2500\u2500\u2500\u2500\u2500
     let flowId = null;
     let flowData = null;
     let nodes = [];       // { id, type, label, x, y, config, el }
@@ -55,30 +55,30 @@
     const propBody = document.getElementById('propBody');
     const propTitle = document.getElementById('propTitle');
 
-    // ── Analytics overlay state ──
+    // \u2500\u2500 Analytics overlay state \u2500\u2500
     let _analyticsActive = false;      // toggle flag
-    let _analyticsMap = new Map();     // nodeId → {visit_count, node_label}
-    let _analyticsEdgeMap = new Map(); // "sourceId→targetId" → {count}
+    let _analyticsMap = new Map();     // nodeId \u2192 {visit_count, node_label}
+    let _analyticsEdgeMap = new Map(); // "sourceId\u2192targetId" \u2192 {count}
     let _analyticsMax = 1;             // max visit_count for normalisation
     let _analyticsWindow = 60;         // time window in minutes (0 = all-time)
 
-    // Node type metadata — populated from registry API at init, with fallback defaults
+    // Node type metadata \u2014 populated from registry API at init, with fallback defaults
     const NODE_ICONS = {
-        // Entry Points — Inbound channels
+        // Entry Points \u2014 Inbound channels
         start_chat:      'bi-chat-dots-fill',
         start_whatsapp:  'bi-whatsapp',
         start_api:       'bi-braces-asterisk',
         start_voice:     'bi-telephone-inbound-fill',
         start_email:     'bi-envelope-fill',
         start_sms:       'bi-chat-square-text-fill',
-        // Entry Points — Event / Lifecycle
+        // Entry Points \u2014 Event / Lifecycle
         start_chat_ended:             'bi-chat-x-fill',
         start_call_ended:             'bi-telephone-x-fill',
         start_internal_call:          'bi-telephone-forward-fill',
         start_sla_breached:           'bi-alarm-fill',
         start_contact_imported:       'bi-person-plus-fill',
         start_contact_status_changed: 'bi-person-fill-gear',
-        // Entry Points — Third-party placeholders
+        // Entry Points \u2014 Third-party placeholders
         start_messenger:       'bi-messenger',
         start_instagram_dm:    'bi-instagram',
         start_instagram_post:  'bi-instagram',
@@ -97,17 +97,17 @@
         ab_split: 'bi-intersect', loop: 'bi-arrow-repeat', time_gate: 'bi-clock',
     };
 
-    // Entry node type keys — kept in sync with ENTRY_NODE_KEYS on the server
+    // Entry node type keys \u2014 kept in sync with ENTRY_NODE_KEYS on the server
     const ENTRY_NODE_TYPES = new Set([
         'start', 'start_chat', 'start_whatsapp', 'start_api', 'start_voice', 'start_email', 'start_sms',
         'start_chat_ended', 'start_call_ended', 'start_internal_call',
         'start_sla_breached', 'start_contact_imported', 'start_contact_status_changed',
     ]);
 
-    // Full registry: key → { key, label, icon, category, color, has_input, has_output, config_schema, is_builtin }
+    // Full registry: key \u2192 { key, label, icon, category, color, has_input, has_output, config_schema, is_builtin }
     const NODE_REGISTRY = {};
 
-    // ───── API helpers ─────
+    // \u2500\u2500\u2500\u2500\u2500 API helpers \u2500\u2500\u2500\u2500\u2500
 
     async function apiFetch(url, opts = {}) {
         opts.headers = { ...headers(), ...(opts.headers || {}) };
@@ -122,11 +122,11 @@
         return res;
     }
 
-    // ───── Canvas Transform ─────
+    // \u2500\u2500\u2500\u2500\u2500 Canvas Transform \u2500\u2500\u2500\u2500\u2500
 
     function updateTransform() {
         canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
-        // SVGs use viewBox only (no CSS transform) – avoids double-transform misalignment
+        // SVGs use viewBox only (no CSS transform) \u2013 avoids double-transform misalignment
         const vb = `${-panX / zoom} ${-panY / zoom} ${container.clientWidth / zoom} ${container.clientHeight / zoom}`;
         edgeSvg.setAttribute('viewBox', vb);
         tempEdgeSvg.setAttribute('viewBox', vb);
@@ -210,7 +210,7 @@
         updateTransform();
     }
 
-    // ───── Node Rendering ─────
+    // \u2500\u2500\u2500\u2500\u2500 Node Rendering \u2500\u2500\u2500\u2500\u2500
 
     function createNodeElement(node) {
         const el = document.createElement('div');
@@ -230,7 +230,7 @@
         const isHttpRequest = node.type === 'http_request';
         const isInputNode   = node.type === 'input';
 
-        // Build output port markup — switch ports are dynamic (one per case + default)
+        // Build output port markup \u2014 switch ports are dynamic (one per case + default)
         let outPortHtml = '';
         if (isCondition) {
             outPortHtml = '<div class="node-port port-out-true" data-port="true" title="True"></div>' +
@@ -251,7 +251,7 @@
             const pct = node.config?.split_percent ?? 50;
             const tagA = node.config?.tag_a || 'Branch A';
             const tagB = node.config?.tag_b || 'Branch B';
-            outPortHtml = `<div class="node-port port-out-a" data-port="branch_a" title="${pct}% → ${tagA}"></div>` +
+            outPortHtml = `<div class="node-port port-out-a" data-port="branch_a" title="${pct}% \u2192 ${tagA}"></div>` +
                           `<div class="node-port port-out-b" data-port="branch_b" title="${100 - pct}% \u2192 ${tagB}"></div>`;
         } else if (isLoopNode) {
             outPortHtml = '<div class="node-port port-out-loop" data-port="loop" title="Loop (iterate body)"></div>' +
@@ -287,7 +287,7 @@
             dragOffsetY = e.clientY - rect.top;
         });
 
-        // Port mousedown → start edge drawing
+        // Port mousedown \u2192 start edge drawing
         el.querySelectorAll('.node-port[data-port]:not([data-port="in"])').forEach(port => {
             port.addEventListener('mousedown', (e) => {
                 e.stopPropagation();
@@ -297,7 +297,7 @@
             });
         });
 
-        // Port mouseup → complete edge
+        // Port mouseup \u2192 complete edge
         const inPort = el.querySelector('.node-port[data-port="in"]');
         if (inPort) {
             inPort.addEventListener('mouseup', (e) => {
@@ -324,7 +324,7 @@
         }
     }
 
-    // ───── Edge Rendering ─────
+    // \u2500\u2500\u2500\u2500\u2500 Edge Rendering \u2500\u2500\u2500\u2500\u2500
 
     function getPortPosition(node, handle) {
         if (!node.el) return { x: node.x, y: node.y };
@@ -416,7 +416,7 @@
                 edgeSvg.appendChild(text);
             }
 
-            // Analytics overlay — colour edge by per-edge transition count + show count pill
+            // Analytics overlay \u2014 colour edge by per-edge transition count + show count pill
             if (_analyticsActive && (_analyticsMap.size > 0 || _analyticsEdgeMap.size > 0)) {
                 const edgeKey = `${edge.sourceId}\u2192${edge.targetId}`;
                 const edgeStat = _analyticsEdgeMap.get(edgeKey);
@@ -499,7 +499,7 @@
         tempEdgeSvg.innerHTML = '';
     }
 
-    // ───── Selection ─────
+    // \u2500\u2500\u2500\u2500\u2500 Selection \u2500\u2500\u2500\u2500\u2500
 
     function deselectAll() {
         nodes.forEach(n => n.el?.classList.remove('selected'));
@@ -541,7 +541,7 @@
         });
     }
 
-    // ───── Properties Panel ─────
+    // \u2500\u2500\u2500\u2500\u2500 Properties Panel \u2500\u2500\u2500\u2500\u2500
 
     let _currentNodeId = null; // tracked so expression builder knows which node's vars to show
 
@@ -573,7 +573,7 @@
         if (node.type === 'set_variable') {
             html += renderSetFieldsPanel(node);
         } else if (node.type === 'switch') {
-            html += '<label class="form-label fw-semibold">Cases <small class="text-muted fw-normal ms-1">(each row = one output port — all conditions in a row must match)</small></label>';
+            html += '<label class="form-label fw-semibold">Cases <small class="text-muted fw-normal ms-1">(each row = one output port \u2014 all conditions in a row must match)</small></label>';
             html += renderSwitchCasesPanel(node);
         } else if (schema.length > 0) {
             // Universal schema-driven form rendering with expression toggles
@@ -591,7 +591,7 @@
 
         propBody.innerHTML = html;
 
-        // ─── Bind events ───
+        // \u2500\u2500\u2500 Bind events \u2500\u2500\u2500
 
         // Label
         document.getElementById('propLabel')?.addEventListener('change', (e) => {
@@ -628,7 +628,7 @@
         _attachVariablePickers(node.id);
     }
 
-    // ───── Universal Form Rendering (schema-driven with expression toggle) ─────
+    // \u2500\u2500\u2500\u2500\u2500 Universal Form Rendering (schema-driven with expression toggle) \u2500\u2500\u2500\u2500\u2500
 
     /** Render all form fields from a config_schema array */
     function renderFormFields(schema, node) {
@@ -899,7 +899,7 @@
             });
         });
 
-        // Mode toggles (literal ↔ expression)
+        // Mode toggles (literal \u2194 expression)
         document.querySelectorAll('#propBody .field-mode-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
                 const key = btn.dataset.key;
@@ -1062,18 +1062,18 @@
         });
     }
 
-    // ───── Switch / Multi-branch Cases Editor ─────
+    // \u2500\u2500\u2500\u2500\u2500 Switch / Multi-branch Cases Editor \u2500\u2500\u2500\u2500\u2500
 
     function renderSwitchCasesPanel(node) {
         const cases = node.config.cases || [];
         let html = '<div class="switch-cases-editor" id="switchCasesEditor">';
-        html += '<div class="mb-2"><small class="text-muted">Evaluated top-to-bottom — first case where <strong>all</strong> conditions match wins.</small></div>';
+        html += '<div class="mb-2"><small class="text-muted">Evaluated top-to-bottom \u2014 first case where <strong>all</strong> conditions match wins.</small></div>';
         html += '<div id="switchCasesList">';
         cases.forEach((c, i) => { html += renderSwitchCaseRow(c, i); });
         html += '</div>';
         html += '<button class="btn btn-sm btn-outline-secondary mt-2 w-100" id="btnAddCase"><i class="bi bi-plus me-1"></i>Add Case</button>';
         html += '<div class="mt-3 p-2 rounded" style="background:#1a2035;border:1px solid #2e3a5b;">';
-        html += '<div class="d-flex align-items-center gap-2"><span class="badge bg-secondary me-1">&#9670;</span><span class="small text-muted">Default (fallthrough) — always present as last port</span></div>';
+        html += '<div class="d-flex align-items-center gap-2"><span class="badge bg-secondary me-1">&#9670;</span><span class="small text-muted">Default (fallthrough) \u2014 always present as last port</span></div>';
         html += '</div></div>';
         return html;
     }
@@ -1084,7 +1084,7 @@
                      'is_array','is_not_array','is_object','is_not_object',
                      'is_true','is_false','regex'];
         const esc = v => String(v ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-        // New format: c.conditions[] — legacy: single op/value with global variable
+        // New format: c.conditions[] \u2014 legacy: single op/value with global variable
         const conditions = c.conditions || (c.operator ? [{ variable: '', operator: c.operator, value: c.value || '' }] : [{ variable: '', operator: 'equals', value: '' }]);
         let html = `<div class="switch-case-row border rounded p-2 mb-2" data-case-idx="${i}" style="background:#1a2035;border-color:#2e3a5b!important;">`;
         // Case header: number badge + label + remove
@@ -1138,7 +1138,7 @@
         // Condition variable / value changes
         editor.querySelectorAll('.sc-var, .sc-val').forEach(el => el.addEventListener('change', readCases));
 
-        // Operator changes — disable value input for no-value operators
+        // Operator changes \u2014 disable value input for no-value operators
         editor.querySelectorAll('.sc-op').forEach(sel => sel.addEventListener('change', () => {
             const valInput = sel.closest('.sc-cond-row')?.querySelector('.sc-val');
             const noVal = ['is_empty','is_not_empty','is_array','is_not_array','is_object','is_not_object','is_true','is_false'].includes(sel.value);
@@ -1230,15 +1230,15 @@
         renderEdges();
     }
 
-    // ───── Variable Picker ─────
+    // \u2500\u2500\u2500\u2500\u2500 Variable Picker \u2500\u2500\u2500\u2500\u2500
 
     /**
      * Return all variables that are available *before* the given node in the flow,
      * by walking the edge graph backwards (BFS) and inspecting what each ancestor produces.
-     * Returns [{name, source}] sorted alphabetically — only variables declared upstream.
+     * Returns [{name, source}] sorted alphabetically \u2014 only variables declared upstream.
      */
     function getAvailableVariables(forNodeId, sameNodeFieldIndex = -1) {
-        // Reverse adjacency: targetId → [sourceId]
+        // Reverse adjacency: targetId \u2192 [sourceId]
         const incomingTo = {};
         edges.forEach(e => {
             if (!incomingTo[e.targetId]) incomingTo[e.targetId] = [];
@@ -1297,11 +1297,11 @@
             }
         });
 
-        // ── Same-node earlier fields — so field N can reference field N-1 set above it ──
+        // \u2500\u2500 Same-node earlier fields \u2014 so field N can reference field N-1 set above it \u2500\u2500
         if (sameNodeFieldIndex > 0) {
             const ownNode = nodes.find(nn => nn.id === forNodeId);
             if (ownNode && Array.isArray(ownNode.config?.fields)) {
-                const lbl = (ownNode.config?.label || ownNode.label || ownNode.type) + ' ↑';
+                const lbl = (ownNode.config?.label || ownNode.label || ownNode.type) + ' \u2191';
                 ownNode.config.fields.slice(0, sameNodeFieldIndex).forEach(f => {
                     if (f.name) addVar(f.name, lbl);
                 });
@@ -1424,7 +1424,7 @@
         } else if (rect.top - gap - ph >= 0) {
             top = rect.top - gap - ph;
         } else {
-            // Not enough room either way — just clamp below inside viewport
+            // Not enough room either way \u2014 just clamp below inside viewport
             top = Math.max(8, vh - ph - 8);
         }
 
@@ -1449,7 +1449,7 @@
         const before = val.slice(0, pos);
         let newVal, newCursor;
         if (exprMode) {
-            // In expression mode insert $varName — matches Python _substitute_context_vars
+            // In expression mode insert $varName \u2014 matches Python _substitute_context_vars
             const exprInsert = '$' + varName;
             newVal = before + exprInsert + val.slice(pos);
             newCursor = before.length + exprInsert.length;
@@ -1511,7 +1511,7 @@
         });
     }
 
-    // ───── JSONata Expression Builder ─────
+    // \u2500\u2500\u2500\u2500\u2500 JSONata Expression Builder \u2500\u2500\u2500\u2500\u2500
 
     let _exprApplyCallback = null;
 
@@ -1540,7 +1540,7 @@
         document.getElementById('exprResult').className = 'p-2 rounded border border-secondary expr-result-box';
         document.getElementById('exprStatus').textContent = '';
 
-        // Populate flow variables panel — includes same-node earlier fields
+        // Populate flow variables panel \u2014 includes same-node earlier fields
         const varListEl = document.getElementById('exprVarList');
         if (varListEl) {
             const effectiveId = nodeId || _currentNodeId;
@@ -1593,7 +1593,7 @@
                         if (q?.campaign_id) {
                             hint.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Auto-dispatch enabled via campaign</span>';
                         } else {
-                            hint.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>No campaign linked – broadcast to all agents</span>';
+                            hint.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>No campaign linked \u2013 broadcast to all agents</span>';
                         }
                         parent.appendChild(hint);
                     }
@@ -1605,7 +1605,7 @@
     }
 
     /** Populate all flow_select dropdowns in the open properties panel.
-     *  Only published flows are offered — you can only link to a published version. */
+     *  Only published flows are offered \u2014 you can only link to a published version. */
     async function _populateFlowSelects(node) {
         const selects = document.querySelectorAll('#propBody .field-input[data-field-type="flow_select"]');
         if (!selects.length) return;
@@ -1619,7 +1619,7 @@
                 if (flows.length === 0) {
                     const opt = document.createElement('option');
                     opt.value = ''; opt.disabled = true;
-                    opt.textContent = 'No published flows yet — publish a flow first';
+                    opt.textContent = 'No published flows yet \u2014 publish a flow first';
                     sel.appendChild(opt);
                 }
                 flows.forEach(f => {
@@ -1777,7 +1777,7 @@
      * @param {number} fieldIndex - Field index: only include same-node fields 0..fieldIndex-1
      */
     function buildSampleContext(nodeId = null, fieldIndex = -1) {
-        // FLAT context — matches what Python runtime passes to JSONata / _resolve_template
+        // FLAT context \u2014 matches what Python runtime passes to JSONata / _resolve_template
         const ctx = {};
         nodes.forEach(n => {
             if (n.type === 'set_variable' && Array.isArray(n.config?.fields)) {
@@ -1806,7 +1806,7 @@
      */
     function _jsSubstContextVars(expr, ctx) {
         return expr.replace(/\$([a-zA-Z_][a-zA-Z0-9_]*)(?!\s*\()/g, (match, name) => {
-            if (!(name in ctx)) return match;   // not in context — leave for JSONata
+            if (!(name in ctx)) return match;   // not in context \u2014 leave for JSONata
             const val = ctx[name];
             if (val === null || val === undefined) return 'null';
             if (typeof val === 'boolean') return val ? 'true' : 'false';
@@ -1836,7 +1836,7 @@
 
         try {
             if (typeof jsonata === 'function') {
-                // Pre-substitute $varName → literal value, matching Python runtime behaviour
+                // Pre-substitute $varName \u2192 literal value, matching Python runtime behaviour
                 const substituted = _jsSubstContextVars(expr, testData);
                 const expression = jsonata(substituted);
                 const result = await expression.evaluate(testData);
@@ -1864,7 +1864,7 @@
         bootstrap.Modal.getInstance(document.getElementById('exprBuilderModal'))?.hide();
     });
 
-    // ───── Set Fields (set_variable) – Rich typed-field system ─────
+    // \u2500\u2500\u2500\u2500\u2500 Set Fields (set_variable) \u2013 Rich typed-field system \u2500\u2500\u2500\u2500\u2500
 
     const FIELD_TYPES = [
         { value: 'string',        label: 'String' },
@@ -1875,7 +1875,7 @@
         { value: 'array',         label: 'Array' },
     ];
 
-    /** Migrate legacy set_variable config (single variable/value) → fields[] */
+    /** Migrate legacy set_variable config (single variable/value) \u2192 fields[] */
     function ensureFieldsArray(node) {
         if (!Array.isArray(node.config.fields)) {
             const legacy = [];
@@ -1884,7 +1884,7 @@
             }
             node.config.fields = legacy.length ? legacy : [{ name: '', type: 'string', value: '', input_mode: 'text' }];
         }
-        // Ensure every field has input_mode; migrate old json_parse → string+expression
+        // Ensure every field has input_mode; migrate old json_parse \u2192 string+expression
         node.config.fields.forEach(f => {
             if (!f.input_mode) f.input_mode = 'text';
             if (f.type === 'json_parse') {
@@ -1906,7 +1906,7 @@
 
     /** Produce a safe display string for a field value */
     function fieldValueDisplay(field) {
-        const prefix = field.input_mode === 'expression' ? '⚡' : '';
+        const prefix = field.input_mode === 'expression' ? '\u26A1' : '';
         if (field.type === 'boolean') return prefix + (field.value ? 'true' : 'false');
         if (field.type === 'relative_date') {
             const v = field.value || {};
@@ -1926,7 +1926,7 @@
         const noVarTypes = ['number', 'boolean', 'date', 'relative_date', 'array'];
         const showVarBtn = isExpr || !noVarTypes.includes(field.type);
 
-        // ── Value input widget ──
+        // \u2500\u2500 Value input widget \u2500\u2500
         let inputHtml;
         if (isExpr) {
             inputHtml = `<input type="text" class="form-control form-control-sm sf-val sf-expr-input" data-idx="${idx}" value="${esc(field.value)}" placeholder="JSONata expression">`;
@@ -1949,7 +1949,7 @@
                     inputHtml = `<div class="d-flex gap-1 align-items-center sf-reldate" data-idx="${idx}">
                         <select class="form-select form-select-sm sf-rd-dir" style="width:60px">
                             <option value="+" ${v.direction === '+' ? 'selected' : ''}>+</option>
-                            <option value="-" ${v.direction === '-' ? 'selected' : ''}>−</option>
+                            <option value="-" ${v.direction === '-' ? 'selected' : ''}>\u2212</option>
                         </select>
                         <input type="number" class="form-control form-control-sm sf-rd-amt" style="width:70px" value="${v.amount || 0}" min="0">
                         <select class="form-select form-select-sm sf-rd-unit">
@@ -1969,7 +1969,7 @@
             }
         }
 
-        // ── Toolbar below the input ──
+        // \u2500\u2500 Toolbar below the input \u2500\u2500
         const modeTitle = isExpr ? 'Expression (JSONata) \u2013 click for Text' : 'Text (literal) \u2013 click for Expression';
         const modeIcon  = isExpr ? '<i class="bi bi-lightning-charge-fill"></i>' : '<i class="bi bi-fonts"></i>';
         const varBtnHtml = showVarBtn
@@ -1994,7 +1994,7 @@
         const isEditing = f._editing;
 
         if (isEditing) {
-            // ─── Expanded edit form ───
+            // \u2500\u2500\u2500 Expanded edit form \u2500\u2500\u2500
             const typeOpts = FIELD_TYPES.map(t =>
                 `<option value="${t.value}" ${f.type === t.value ? 'selected' : ''}>${t.label}</option>`
             ).join('');
@@ -2022,11 +2022,11 @@
             `;
         }
 
-        // ─── Collapsed summary ───
+        // \u2500\u2500\u2500 Collapsed summary \u2500\u2500\u2500
         const typeBadge = `<span class="badge bg-secondary sf-type-badge">${f.type}</span>`;
         const modeIcon = f.input_mode === 'expression' ? '<i class="bi bi-lightning-charge-fill text-warning me-1" title="Expression"></i>' : '';
-        const valDisplay = fieldValueDisplay(f).replace(/^⚡/, '');  // strip prefix; we show icon instead
-        const valSummary = valDisplay.length > 28 ? valDisplay.substring(0, 28) + '…' : valDisplay;
+        const valDisplay = fieldValueDisplay(f).replace(/^\u26A1/, '');  // strip prefix; we show icon instead
+        const valSummary = valDisplay.length > 28 ? valDisplay.substring(0, 28) + '\u2026' : valDisplay;
         return `
             <div class="sf-row sf-row-summary border rounded px-2 py-1 mb-1 d-flex align-items-center gap-1" data-idx="${idx}">
                 <span class="sf-summary-name text-truncate" title="${esc(f.name)}">${f.name || '<em class="text-muted">unnamed</em>'}</span>
@@ -2081,14 +2081,14 @@
             const field = node.config.fields[idx];
             if (!field) return;
 
-            // Expression mode – always store raw string (JSONata expression)
+            // Expression mode \u2013 always store raw string (JSONata expression)
             if (field.input_mode === 'expression') {
                 const el = document.querySelector(`.sf-val[data-idx="${idx}"]`);
                 if (el) field.value = el.value;
                 return;
             }
 
-            // Relative date – composite widget
+            // Relative date \u2013 composite widget
             if (field.type === 'relative_date') {
                 const wrap = document.querySelector(`.sf-reldate[data-idx="${idx}"]`);
                 if (wrap) {
@@ -2127,7 +2127,7 @@
         }
 
         function attachRowListeners() {
-            // ─── Summary row: Edit buttons ───
+            // \u2500\u2500\u2500 Summary row: Edit buttons \u2500\u2500\u2500
             document.querySelectorAll('#sfFieldsList .sf-edit').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const idx = parseInt(btn.dataset.idx, 10);
@@ -2136,7 +2136,7 @@
                 });
             });
 
-            // ─── Edit row: Done buttons ───
+            // \u2500\u2500\u2500 Edit row: Done buttons \u2500\u2500\u2500
             document.querySelectorAll('#sfFieldsList .sf-done').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const idx = parseInt(btn.dataset.idx, 10);
@@ -2155,7 +2155,7 @@
                 });
             });
 
-            // Type selectors — when type changes, reset value and redraw the value input
+            // Type selectors \u2014 when type changes, reset value and redraw the value input
             document.querySelectorAll('#sfFieldsList .sf-type').forEach(el => {
                 el.addEventListener('change', () => {
                     const idx = parseInt(el.dataset.idx, 10);
@@ -2175,13 +2175,13 @@
                 });
             });
 
-            // Value inputs — save on both change and input events
+            // Value inputs \u2014 save on both change and input events
             document.querySelectorAll('#sfFieldsList .sf-val').forEach(el => {
                 el.addEventListener('change', () => readValue(parseInt(el.dataset.idx, 10)));
                 el.addEventListener('input', () => readValue(parseInt(el.dataset.idx, 10)));
             });
 
-            // Mode toggle buttons (text ↔ expression)
+            // Mode toggle buttons (text \u2194 expression)
             document.querySelectorAll('#sfFieldsList .sf-mode-toggle').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const idx = parseInt(btn.dataset.idx, 10);
@@ -2235,7 +2235,7 @@
                 });
             });
 
-            // Variable insert buttons ({{}} braces) — in set_variable rows
+            // Variable insert buttons ({{}} braces) \u2014 in set_variable rows
             document.querySelectorAll('#sfFieldsList .sf-var-insert').forEach(btn => {
                 btn.addEventListener('click', e => {
                     e.stopPropagation();
@@ -2246,7 +2246,7 @@
             });
         }
 
-        // Add field button – new fields start in edit mode
+        // Add field button \u2013 new fields start in edit mode
         document.getElementById('sfAddField')?.addEventListener('click', () => {
             node.config.fields.push({ name: '', type: 'string', value: '', input_mode: 'text', _editing: true });
             syncAndRedraw();
@@ -2272,7 +2272,7 @@
         }
     }
 
-    // ───── CRUD helpers ─────
+    // \u2500\u2500\u2500\u2500\u2500 CRUD helpers \u2500\u2500\u2500\u2500\u2500
 
     function addNode(type, x, y, label = '', config = {}, dbId = null) {
         const id = dbId || ('temp_' + nextTempId++);
@@ -2293,7 +2293,7 @@
     function addEdge(sourceId, targetId, sourceHandle = 'default', label = '', condition = null, dbId = null) {
         // Prevent duplicates
         if (edges.find(e => e.sourceId === sourceId && e.targetId === targetId && e.sourceHandle === sourceHandle)) return;
-        // Enforce one edge per output port – remove any existing edge from same source+handle
+        // Enforce one edge per output port \u2013 remove any existing edge from same source+handle
         const existing = edges.find(e => e.sourceId === sourceId && e.sourceHandle === sourceHandle);
         if (existing) {
             edges = edges.filter(e => e !== existing);
@@ -2304,7 +2304,7 @@
         renderEdges();
     }
 
-    // ───── Drag from palette ─────
+    // \u2500\u2500\u2500\u2500\u2500 Drag from palette \u2500\u2500\u2500\u2500\u2500
 
     let paletteDropType = null;
 
@@ -2332,7 +2332,7 @@
         paletteDropType = null;
     });
 
-    // ───── Keyboard ─────
+    // \u2500\u2500\u2500\u2500\u2500 Keyboard \u2500\u2500\u2500\u2500\u2500
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -2352,7 +2352,7 @@
         }
     });
 
-    // ───── Save / Load ─────
+    // \u2500\u2500\u2500\u2500\u2500 Save / Load \u2500\u2500\u2500\u2500\u2500
 
     async function saveFlow() {
         if (!flowId) return;
@@ -2405,18 +2405,18 @@
             document.getElementById('flowName').textContent = data.name;
             document.getElementById('flowVersion').textContent = 'v' + data.version;
 
-            // ── Restored indicator ────────────────────────────────────────────
+            // \u2500\u2500 Restored indicator \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
             const restBadge = document.getElementById('flowRestoredBadge');
             if (restBadge) {
                 if (data.is_restored) {
-                    restBadge.textContent = `↺ Restored from v${data.restored_from_version || '?'}`;
+                    restBadge.textContent = `\u21BA Restored from v${data.restored_from_version || '?'}`;
                     restBadge.classList.remove('d-none');
                 } else {
                     restBadge.classList.add('d-none');
                 }
             }
 
-            // ── Publish button colour ─────────────────────────────────────────
+            // \u2500\u2500 Publish button colour \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
             const pubBtn = document.getElementById('btnPublish');
             if (pubBtn) {
                 pubBtn.className = data.is_published
@@ -2453,7 +2453,7 @@
         }
     }
 
-    // ───── Publish ─────
+    // \u2500\u2500\u2500\u2500\u2500 Publish \u2500\u2500\u2500\u2500\u2500
 
     document.getElementById('btnPublish').addEventListener('click', async () => {
         if (!flowId) return;
@@ -2474,7 +2474,7 @@
 
     document.getElementById('btnSave').addEventListener('click', () => saveFlow());
 
-    // ───── Clone (top-bar button) ─────
+    // \u2500\u2500\u2500\u2500\u2500 Clone (top-bar button) \u2500\u2500\u2500\u2500\u2500
 
     document.getElementById('btnCloneFlow')?.addEventListener('click', async () => {
         if (!flowId) { showToast('Open a flow first', 'warning'); return; }
@@ -2484,7 +2484,7 @@
             if (!resp || !resp.ok) { const e = await resp.text(); throw new Error(e); }
             const data = await resp.json();
             showToast(
-                `Cloned as "${escapeHtml(data.name)}" — <a href="/flow-designer/${data.id}" class="text-white fw-bold">Open copy</a>`,
+                `Cloned as "${escapeHtml(data.name)}" \u2014 <a href="/flow-designer/${data.id}" class="text-white fw-bold">Open copy</a>`,
                 'success'
             );
         } catch (err) {
@@ -2492,7 +2492,7 @@
         }
     });
 
-    // ───── Flow Settings ─────
+    // \u2500\u2500\u2500\u2500\u2500 Flow Settings \u2500\u2500\u2500\u2500\u2500
 
     document.getElementById('btnFlowSettings')?.addEventListener('click', async () => {
         if (!flowId) { showToast('Save the flow first', 'warning'); return; }
@@ -2663,7 +2663,7 @@
         }
     }
 
-    // ───── Toast ─────
+    // \u2500\u2500\u2500\u2500\u2500 Toast \u2500\u2500\u2500\u2500\u2500
 
     function showToast(msg, type = 'info') {
         let container = document.querySelector('.toast-container');
@@ -2681,7 +2681,7 @@
         toast.addEventListener('hidden.bs.toast', () => toast.remove());
     }
 
-    // ───── Node Type Registry ─────
+    // \u2500\u2500\u2500\u2500\u2500 Node Type Registry \u2500\u2500\u2500\u2500\u2500
 
     async function loadNodeTypeRegistry() {
         try {
@@ -2731,11 +2731,11 @@
             }
         } catch (err) {
             console.warn('Failed to load node type registry:', err);
-            // Fall back — palette stays with whatever HTML was there
+            // Fall back \u2014 palette stays with whatever HTML was there
         }
     }
 
-    // ───── Version History ─────
+    // \u2500\u2500\u2500\u2500\u2500 Version History \u2500\u2500\u2500\u2500\u2500
 
     async function loadVersionHistory() {
         if (!flowId) return;
@@ -2799,7 +2799,7 @@
             // Refresh the list so the copy appears, but do NOT navigate away from the current flow
             _allFlows = [];
             showToast(
-                `Cloned as "${escapeHtml(data.name)}" — <a href="/flow-designer/${data.id}" class="text-white fw-bold">Open copy</a>`,
+                `Cloned as "${escapeHtml(data.name)}" \u2014 <a href="/flow-designer/${data.id}" class="text-white fw-bold">Open copy</a>`,
                 'success'
             );
             // Re-fetch the list silently so the copy shows next time the modal opens
@@ -2897,16 +2897,16 @@
     document.getElementById('flowDeleteModal')?.addEventListener('hidden.bs.modal', function() {
         const btn = document.getElementById('btnFlowDeleteConfirm');
         if (btn.dataset.flowId) {
-            // Cancel path: id still set → user did not confirm → reopen list
+            // Cancel path: id still set \u2192 user did not confirm \u2192 reopen list
             btn.dataset.flowId = '';
             showFlowList();
         }
     });
 
-    // ───── Flow Diff engine ─────
+    // \u2500\u2500\u2500\u2500\u2500 Flow Diff engine \u2500\u2500\u2500\u2500\u2500
 
     // Normalise a snapshot node to a comparable shape.
-    // Uses node_type+label as the identity key — robust to ID churn.
+    // Uses node_type+label as the identity key \u2014 robust to ID churn.
     function _normNode(n) {
         return {
             type: n.node_type || n.type || '',
@@ -2919,7 +2919,7 @@
         return `${(n.node_type || n.type || '').toLowerCase()}::${(n.label || '').trim().toLowerCase()}`;
     }
     function _edgeKey(nodes, e) {
-        // Key by (source node key → handle → target node key)
+        // Key by (source node key \u2192 handle \u2192 target node key)
         const src = nodes.find(n => String(n.id || n.node_id) === String(e.source_node_id || e.sourceId));
         const tgt = nodes.find(n => String(n.id || n.node_id) === String(e.target_node_id || e.targetId));
         const sk = src ? _nodeKey(src) : String(e.source_node_id || e.sourceId || '');
@@ -3015,7 +3015,7 @@
         if (!added.length && !removed.length && !modified.length && !edgesAdded.length && !edgesRemoved.length) {
             body.innerHTML = `<div class="text-center text-success py-5">
                 <i class="bi bi-check-circle-fill display-4 mb-3"></i>
-                <p class="fw-semibold">No differences — these two versions are identical.</p>
+                <p class="fw-semibold">No differences \u2014 these two versions are identical.</p>
             </div>`;
             return;
         }
@@ -3169,7 +3169,7 @@
         }
     }
 
-    // ───── Flow Simulator UI ─────
+    // \u2500\u2500\u2500\u2500\u2500 Flow Simulator UI \u2500\u2500\u2500\u2500\u2500
 
     let _simVarRawMode = false;
 
@@ -3228,7 +3228,7 @@
         const sampleCtx = buildSampleContext();
         buildSimVarRows(sampleCtx);
 
-        // ── Entry-point selector ─────────────────────────────────────────
+        // \u2500\u2500 Entry-point selector \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
         const entrySection = document.getElementById('simEntrySection');
         const entrySelect  = document.getElementById('simEntrySelect');
         const entryNodes   = nodes.filter(n => ENTRY_NODE_TYPES.has(n.type));
@@ -3236,12 +3236,12 @@
             entrySelect.innerHTML = '';
             entryNodes.forEach(n => {
                 const icon = {
-                    start_chat: '💬', start_whatsapp: '📱', start_api: '⚡',
-                    start_voice: '📞', start_email: '📧', start_sms: '💬',
-                    start_chat_ended: '❌', start_call_ended: '📵', start_internal_call: '🔁',
-                    start_sla_breached: '⏰', start_contact_imported: '👤', start_contact_status_changed: '🔄',
-                    start: '▶',
-                }[n.type] || '▶';
+                    start_chat: '\uD83D\uDCAC', start_whatsapp: '\uD83D\uDCF1', start_api: '\u26A1',
+                    start_voice: '\uD83D\uDCDE', start_email: '\uD83D\uDCE7', start_sms: '\uD83D\uDCAC',
+                    start_chat_ended: '\u274C', start_call_ended: '\uD83D\uDCF5', start_internal_call: '\uD83D\uDD01',
+                    start_sla_breached: '\u23F0', start_contact_imported: '\uD83D\uDC64', start_contact_status_changed: '\uD83D\uDD04',
+                    start: '\u25B6',
+                }[n.type] || '\u25B6';
                 const lbl = n.config?.entry_label || n.config?.trigger_key || n.label || n.type.replace(/_/g, ' ');
                 const opt = document.createElement('option');
                 opt.value = n.id;
@@ -3331,13 +3331,13 @@
                 const colorMap = { completed: 'success', blocked: 'warning', max_steps: 'info', error: 'danger' };
                 const color = colorMap[data.status] || 'secondary';
                 banner.className = `alert alert-${color} py-2 mb-2 small`;
-                banner.innerHTML = `<strong>${(data.status || 'unknown').toUpperCase()}</strong>${data.message ? ' — ' + escapeHtml(data.message) : ''}`;
+                banner.innerHTML = `<strong>${(data.status || 'unknown').toUpperCase()}</strong>${data.message ? ' \u2014 ' + escapeHtml(data.message) : ''}`;
                 banner.classList.remove('d-none');
             }
         } catch (err) {
             alert('Simulation failed: ' + err.message);
         } finally {
-            if (btn) { btn.disabled = false; btn.innerHTML = '▶ Run'; }
+            if (btn) { btn.disabled = false; btn.innerHTML = '\u25B6 Run'; }
         }
     }
 
@@ -3410,7 +3410,7 @@
                 <td class="align-top pt-2">${edgePill}</td>
             `;
 
-            // Click row → show context at this step + highlight node on canvas
+            // Click row \u2192 show context at this step + highlight node on canvas
             tr.addEventListener('click', () => {
                 // Deselect all rows
                 tbody.querySelectorAll('tr.sim-row-selected').forEach(r => r.classList.remove('sim-row-selected'));
@@ -3418,7 +3418,7 @@
 
                 // Show context_after for this step in the inspector panel
                 const label = document.getElementById('testFinalVarsLabel');
-                if (label) label.textContent = `Context after Step ${step.step} — ${step.label || step.node_type}`;
+                if (label) label.textContent = `Context after Step ${step.step} \u2014 ${step.label || step.node_type}`;
                 renderFinalContext(step.context_after || {});
 
                 // Focus canvas node
@@ -3431,7 +3431,7 @@
             });
             tbody.appendChild(tr);
 
-            // Inline diff row — always shown when there are changes
+            // Inline diff row \u2014 always shown when there are changes
             if (changedVars.length > 0) {
                 const diffTr = document.createElement('tr');
                 diffTr.className = 'sim-diff-inline-row';
@@ -3439,7 +3439,7 @@
                     const cls = cv.isNew ? 'sim-diff-added' : 'sim-diff-changed';
                     const beforeStr = cv.isNew ? '<em class="text-muted">(new)</em>' : escapeHtml(JSON.stringify(cv.before));
                     const afterStr = `<strong class="text-success">${escapeHtml(JSON.stringify(cv.after))}</strong>`;
-                    return `<tr class="${cls}"><td class="var-diff-key ps-2">${escapeHtml(cv.key)}</td><td>${beforeStr}</td><td>→</td><td>${afterStr}</td></tr>`;
+                    return `<tr class="${cls}"><td class="var-diff-key ps-2">${escapeHtml(cv.key)}</td><td>${beforeStr}</td><td>\u2192</td><td>${afterStr}</td></tr>`;
                 }).join('');
                 diffTr.innerHTML = `<td colspan="4" class="p-0 pb-1">
                     <table class="table table-sm table-borderless mb-0 ms-4 sim-inline-diff-table">
@@ -3481,7 +3481,7 @@
             if (idx < trace.length - 1) {
                 n.el.classList.add('sim-visited');
             } else {
-                // Last step — differentiate by status
+                // Last step \u2014 differentiate by status
                 const cls = step.status === 'end' ? 'sim-end'
                     : step.status === 'error' ? 'sim-error'
                     : step.status === 'needs_input' ? 'sim-blocked'
@@ -3537,11 +3537,11 @@
         modal.show();
     }
 
-    // ───── Flow Analytics Overlay ─────
+    // \u2500\u2500\u2500\u2500\u2500 Flow Analytics Overlay \u2500\u2500\u2500\u2500\u2500
 
     /**
      * Lerp between two [r,g,b] colours.
-     * t = 0 → a, t = 1 → b
+     * t = 0 \u2192 a, t = 1 \u2192 b
      */
     function _lerpRgb(a, b, t) {
         return [
@@ -3552,7 +3552,7 @@
     }
 
     /**
-     * Map 0–1 heat value to an rgb() string.
+     * Map 0\u20131 heat value to an rgb() string.
      * 0  = cool grey-blue,  0.5 = amber,  1 = hot red.
      */
     function _heatColor(t) {
@@ -3581,7 +3581,7 @@
         _analyticsMap.clear();
         _analyticsEdgeMap.clear();
         stats.forEach(s => _analyticsMap.set(s.node_id, s));
-        eStats.forEach(e => _analyticsEdgeMap.set(`${e.source_id}→${e.target_id}`, e));
+        eStats.forEach(e => _analyticsEdgeMap.set(`${e.source_id}\u2192${e.target_id}`, e));
         _analyticsMax = Math.max(1, ...stats.map(s => s.visit_count));
 
         _applyAnalyticsToNodes();
@@ -3605,8 +3605,8 @@
             // Remove any existing stats bar, then rebuild
             n.el.querySelectorAll('.analytics-stats-bar, .analytics-node-badge, .analytics-heat-bar, .analytics-error-badge, .analytics-abandon-badge').forEach(x => x.remove());
 
-            // ── 3-part bottom stats strip ────────────────────────────────
-            // Shows: [visits | ✕ abandons | ⚠ errors]
+            // \u2500\u2500 3-part bottom stats strip \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+            // Shows: [visits | \u2715 abandons | \u26A0 errors]
             const bar = document.createElement('div');
             bar.className = 'analytics-stats-bar';
             bar.title = [
@@ -3682,7 +3682,7 @@
         if (_analyticsActive) await loadAnalyticsOverlay();
     }
 
-    // ───── Bulk Variable Editor ─────
+    // \u2500\u2500\u2500\u2500\u2500 Bulk Variable Editor \u2500\u2500\u2500\u2500\u2500
 
     /** HTML-escape a string for safe attribute/text insertion */
     function _esc(s) {
@@ -3850,7 +3850,7 @@
 
         tbody.innerHTML = rows.join('');
 
-        // ── Per-row scoped bindings ──────────────────────────────────────────
+        // \u2500\u2500 Per-row scoped bindings \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
         tbody.querySelectorAll('tr[data-node-id][data-field-idx]').forEach(tr => {
             const nodeId = tr.dataset.nodeId;
             const fi     = +tr.dataset.fieldIdx;
@@ -3859,7 +3859,7 @@
 
             const currentFilter = () => (document.getElementById('varEditorFilter')?.value || '').trim().toLowerCase();
 
-            // ── Variable name ──
+            // \u2500\u2500 Variable name \u2500\u2500
             const nameInput = tr.querySelector('.ve-name');
             if (nameInput) {
                 nameInput.addEventListener('input', () => {
@@ -3867,7 +3867,7 @@
                 });
             }
 
-            // ── Type select — re-render row on change (widget changes with type) ──
+            // \u2500\u2500 Type select \u2014 re-render row on change (widget changes with type) \u2500\u2500
             const typeSelect = tr.querySelector('.ve-type');
             if (typeSelect) {
                 typeSelect.addEventListener('change', () => {
@@ -3883,7 +3883,7 @@
                 });
             }
 
-            // ── Mode toggle (Text ↔ Expression) ──
+            // \u2500\u2500 Mode toggle (Text \u2194 Expression) \u2500\u2500
             tr.querySelector('.sf-mode-toggle')?.addEventListener('click', () => {
                 const f = nd.config.fields[fi];
                 f.input_mode = f.input_mode === 'expression' ? 'text' : 'expression';
@@ -3891,7 +3891,7 @@
                 _renderVarEditor(currentFilter());
             });
 
-            // ── Variable picker ──
+            // \u2500\u2500 Variable picker \u2500\u2500
             tr.querySelector('.sf-var-insert')?.addEventListener('click', (e) => {
                 const f = nd.config.fields[fi];
                 const inp = tr.querySelector('.sf-val');
@@ -3899,7 +3899,7 @@
                 if (inp) _showVarPickerForButton(e.currentTarget, inp, nodeId, f.input_mode === 'expression', fi);
             });
 
-            // ── Expression builder ──
+            // \u2500\u2500 Expression builder \u2500\u2500
             tr.querySelector('.sf-expr-builder')?.addEventListener('click', () => {
                 const f = nd.config.fields[fi];
                 // Use openExpressionBuilder so context + var panel are populated correctly
@@ -3916,10 +3916,10 @@
                 );
             });
 
-            // ── Value read-back + {{ trigger for variable picker ──
+            // \u2500\u2500 Value read-back + {{ trigger for variable picker \u2500\u2500
             tr.querySelectorAll('.sf-val').forEach(el => {
                 el.addEventListener('input', e => {
-                    _onVarInput(e, nodeId);          // {{ typed → show picker
+                    _onVarInput(e, nodeId);          // {{ typed \u2192 show picker
                     _readVarEditorValue(tr, nd.config.fields[fi]);
                 });
                 el.addEventListener('change', () => _readVarEditorValue(tr, nd.config.fields[fi]));
@@ -3927,7 +3927,7 @@
                 el.addEventListener('blur', () => setTimeout(_hideVariablePicker, 160));
             });
 
-            // ── Relative-date sub-widgets ──
+            // \u2500\u2500 Relative-date sub-widgets \u2500\u2500
             const rdWrap = tr.querySelector('.sf-reldate');
             if (rdWrap) {
                 rdWrap.querySelectorAll('select, input').forEach(el => {
@@ -4112,13 +4112,13 @@
             const addBtn = document.getElementById('btnAddSimVar');
             const rawBtn = document.getElementById('btnToggleRawCtx');
             if (_simVarRawMode) {
-                // Sync rows → textarea
+                // Sync rows \u2192 textarea
                 if (ta) { ta.value = JSON.stringify(getSimContext(), null, 2); ta.classList.remove('d-none'); }
                 if (container) container.classList.add('d-none');
                 if (addBtn) addBtn.classList.add('d-none');
                 if (rawBtn) rawBtn.textContent = 'Rows';
             } else {
-                // Sync textarea → rows
+                // Sync textarea \u2192 rows
                 let ctx = {};
                 try { ctx = JSON.parse(ta?.value || '{}'); } catch { ctx = {}; }
                 if (ta) ta.classList.add('d-none');
@@ -4130,7 +4130,7 @@
         });
     });
 
-    // ───── Properties Panel Drag-to-Resize ─────
+    // \u2500\u2500\u2500\u2500\u2500 Properties Panel Drag-to-Resize \u2500\u2500\u2500\u2500\u2500
 
     (function initPanelResize() {
         const handle = document.getElementById('panelResizeHandle');
@@ -4149,7 +4149,7 @@
 
         document.addEventListener('mousemove', e => {
             if (!resizing) return;
-            // Panel is on the right — dragging left (smaller clientX) increases width
+            // Panel is on the right \u2014 dragging left (smaller clientX) increases width
             const dx = startX - e.clientX;
             const newW = Math.max(260, Math.min(800, startW + dx));
             propsPanel.style.width = newW + 'px';
@@ -4164,7 +4164,7 @@
         });
     })();
 
-    // ───── AI Flow Builder ─────
+    // \u2500\u2500\u2500\u2500\u2500 AI Flow Builder \u2500\u2500\u2500\u2500\u2500
 
     const _AI_SYSTEM_PROMPT = `You are an expert WizzardChat flow designer assistant. You help users design contact-centre flows through conversation, then build them automatically.
 
@@ -4176,7 +4176,7 @@ CONVERSATION RULES:
 - If the flow contains sub-flows, confirm their names and logic before the main flow.
 - When you have enough information, summarise ALL flows (sub-flows + main flow) in plain English and ask the user to confirm.
 - Only produce JSON when the user confirms ("yes", "looks good", "build it", "create it", etc.).
-- IMPORTANT: When you produce the JSON block the system builds everything automatically — say "Building your flows now…" immediately before the JSON block.
+- IMPORTANT: When you produce the JSON block the system builds everything automatically \u2014 say "Building your flows now\u2026" immediately before the JSON block.
 
 JSON OUTPUT FORMAT (only when confirmed):
 Respond with a single fenced \`\`\`json block containing:
@@ -4187,7 +4187,7 @@ Respond with a single fenced \`\`\`json block containing:
       "is_subflow": true,
       "channel": "chat",
       "description": "one-line description",
-      "nodes": [ { "id": "n1", "type": "<nodeType>", "label": "…", "x": 100, "y": 300, "config": {} } ],
+      "nodes": [ { "id": "n1", "type": "<nodeType>", "label": "\u2026", "x": 100, "y": 300, "config": {} } ],
       "edges": [ { "id": "e1", "sourceId": "n1", "targetId": "n2", "sourceHandle": "default", "label": "" } ]
     },
     {
@@ -4205,60 +4205,60 @@ RULES:
 - Sub-flows MUST appear first in the "flows" array (before the main flow that references them).
 - If there are no sub-flows, the "flows" array still has exactly one entry (the main flow).
 - Every flow MUST start with a "start" node and end with at least one "end" node.
-- Node "id" values must be unique strings within each flow (e.g. "n1", "n2" …).
+- Node "id" values must be unique strings within each flow (e.g. "n1", "n2" \u2026).
 - Each edge "sourceHandle" must match exactly the handle the source node emits (see node list below).
-- Layout: start node at x:100 y:300; space nodes ~220px apart horizontally; branch arms offset ±160px vertically.
+- Layout: start node at x:100 y:300; space nodes ~220px apart horizontally; branch arms offset \u00B1160px vertically.
 
-AVAILABLE NODE TYPES (exact keys — use no others):
+AVAILABLE NODE TYPES (exact keys \u2014 use no others):
 
 FLOW CONTROL:
-  start        — Entry point. config: { trigger: "inbound_call|inbound_chat|api|scheduled|manual" }. Outputs: "default".
-  end          — Terminates the flow. config: { status: "completed|failed|abandoned" }. No output.
-  condition    — Two-way branch. config: { variable: "varName", operator: "equals|not_equals|contains|greater_than|less_than|is_true|is_false|is_empty|is_not_empty|starts_with|ends_with|regex", value: "..." }. Outputs: "true" / "false".
-  switch       — Multi-branch routing. config: (cases defined in designer). Outputs: one handle per case key + "default".
-  ab_split     — Random A/B split. config: { split_percent: 50, tag_a: "Professional", tag_b: "Casual" }. split_percent = % sent to Branch A. Outputs: "branch_a" / "branch_b". Use this — NOT condition — when splitting traffic randomly.
-  loop         — Iterate over an array. config: { array_variable: "varName", item_variable: "item", index_variable: "loop_index", max_iterations: 50 }. Outputs: "loop" (each iteration) / "done".
-  time_gate    — Office-hours routing. config: { days: "Mon,Tue,Wed,Thu,Fri", start_time: "08:00", end_time: "17:00", timezone: "Africa/Johannesburg" }. Outputs: "open" / "closed".
-  goto         — Jump to another node. config: { target_node: "nodeLabel" }. No output.
-  sub_flow     — Execute another flow as a sub-routine. config: { sub_flow_ref: "Exact Sub-Flow Name", input_mapping: {}, result_variable: "sub_result_var", output_variable: "parent_var" }. Use "sub_flow_ref" with the exact name you gave the sub-flow — the system resolves it to the real ID. Outputs: "default". IMPORTANT: A sub_flow node is NOT terminal — you MUST add an edge from the sub_flow node (sourceHandle "default") to the next node in the parent flow (e.g. a condition node that reads the variable the sub-flow set).
+  start        \u2014 Entry point. config: { trigger: "inbound_call|inbound_chat|api|scheduled|manual" }. Outputs: "default".
+  end          \u2014 Terminates the flow. config: { status: "completed|failed|abandoned" }. No output.
+  condition    \u2014 Two-way branch. config: { variable: "varName", operator: "equals|not_equals|contains|greater_than|less_than|is_true|is_false|is_empty|is_not_empty|starts_with|ends_with|regex", value: "..." }. Outputs: "true" / "false".
+  switch       \u2014 Multi-branch routing. config: (cases defined in designer). Outputs: one handle per case key + "default".
+  ab_split     \u2014 Random A/B split. config: { split_percent: 50, tag_a: "Professional", tag_b: "Casual" }. split_percent = % sent to Branch A. Outputs: "branch_a" / "branch_b". Use this \u2014 NOT condition \u2014 when splitting traffic randomly.
+  loop         \u2014 Iterate over an array. config: { array_variable: "varName", item_variable: "item", index_variable: "loop_index", max_iterations: 50 }. Outputs: "loop" (each iteration) / "done".
+  time_gate    \u2014 Office-hours routing. config: { days: "Mon,Tue,Wed,Thu,Fri", start_time: "08:00", end_time: "17:00", timezone: "Africa/Johannesburg" }. Outputs: "open" / "closed".
+  goto         \u2014 Jump to another node. config: { target_node: "nodeLabel" }. No output.
+  sub_flow     \u2014 Execute another flow as a sub-routine. config: { sub_flow_ref: "Exact Sub-Flow Name", input_mapping: {}, result_variable: "sub_result_var", output_variable: "parent_var" }. Use "sub_flow_ref" with the exact name you gave the sub-flow \u2014 the system resolves it to the real ID. Outputs: "default". IMPORTANT: A sub_flow node is NOT terminal \u2014 you MUST add an edge from the sub_flow node (sourceHandle "default") to the next node in the parent flow (e.g. a condition node that reads the variable the sub-flow set).
 
 INTERACTION:
-  message      — Send ANY text to the contact: greetings, instructions, confirmations, error messages, or any other spoken/written output. This is the ONLY node that delivers text to the user. ALWAYS use a message node whenever the flow needs to say something (e.g. "Good morning!", "Please verify your OTP", "Authentication failed"). config: { text: "Hello {{name}}", delay_ms: 0 }. Outputs: "default".
-  input        — Collect user input. config: { prompt: "Please enter…", variable: "varName", validation: "any|number|email|phone|date|regex", error_message: "…", max_retries: 3 }. Outputs: "default" (valid input received) / "timeout" (max retries exhausted — ALWAYS wire timeout to a message + end or queue node).
-  menu         — Present numbered options. config: { prompt: "Choose:", options: [{ key: "1", text: "Option A" }, { key: "2", text: "Option B" }] }. Outputs: one handle per option key (e.g. "1", "2").
-  wait         — Pause. config: { duration: 5 }. Outputs: "default".
+  message      \u2014 Send ANY text to the contact: greetings, instructions, confirmations, error messages, or any other spoken/written output. This is the ONLY node that delivers text to the user. ALWAYS use a message node whenever the flow needs to say something (e.g. "Good morning!", "Please verify your OTP", "Authentication failed"). config: { text: "Hello {{name}}", delay_ms: 0 }. Outputs: "default".
+  input        \u2014 Collect user input. config: { prompt: "Please enter\u2026", variable: "varName", validation: "any|number|email|phone|date|regex", error_message: "\u2026", max_retries: 3 }. Outputs: "default" (valid input received) / "timeout" (max retries exhausted \u2014 ALWAYS wire timeout to a message + end or queue node).
+  menu         \u2014 Present numbered options. config: { prompt: "Choose:", options: [{ key: "1", text: "Option A" }, { key: "2", text: "Option B" }] }. Outputs: one handle per option key (e.g. "1", "2").
+  wait         \u2014 Pause. config: { duration: 5 }. Outputs: "default".
 
 TELEPHONY (voice channels only):
-  play_audio   — Play audio file. config: { audio_url: "https://…" }. Outputs: "default".
-  record       — Record caller audio. config: { variable: "recording_url", max_duration: 60, beep: true, silence_timeout: 5 }. Outputs: "default".
-  dtmf         — Collect keypad input. config: { variable: "dtmf_input", max_digits: 1, timeout: 10, finish_on_key: "#" }. Outputs: "default".
+  play_audio   \u2014 Play audio file. config: { audio_url: "https://\u2026" }. Outputs: "default".
+  record       \u2014 Record caller audio. config: { variable: "recording_url", max_duration: 60, beep: true, silence_timeout: 5 }. Outputs: "default".
+  dtmf         \u2014 Collect keypad input. config: { variable: "dtmf_input", max_digits: 1, timeout: 10, finish_on_key: "#" }. Outputs: "default".
 
 ROUTING:
-  queue        — Place contact in agent queue. config: { queue_id: "", queue_message: "Please wait…", priority: 0, timeout: 300 }. No output (terminal node).
-  transfer     — Transfer to extension/number. config: { target: "extension or number", transfer_type: "blind|warm" }. No output (terminal node).
+  queue        \u2014 Place contact in agent queue. config: { queue_id: "", queue_message: "Please wait\u2026", priority: 0, timeout: 300 }. No output (terminal node).
+  transfer     \u2014 Transfer to extension/number. config: { target: "extension or number", transfer_type: "blind|warm" }. No output (terminal node).
 
 INTEGRATION:
-  http_request — HTTP API call. config: { url: "https://…", method: "GET|POST|PUT|PATCH|DELETE", headers: {}, body: {}, response_var: "api_response", error_variable: "api_error", timeout_ms: 30000 }. Outputs: "success" (2xx response) / "error" (non-2xx, network failure, or timeout). ALWAYS wire BOTH outputs — connect "success" to the next processing step, connect "error" to a message node describing the failure followed by an end or queue node.
-  webhook      — Send webhook notification. config: { url: "https://…", method: "POST", headers: {}, payload: {} }. Outputs: "default".
-  set_variable — Set flow variables. config MUST use the fields[] format: { "fields": [ { "name": "varName", "type": "string", "value": "theValue", "input_mode": "text" } ] }. Each entry in fields sets one variable. type is one of: string, number, boolean. input_mode is "text" for literal values or "expression" for JSONata. Outputs: "default".
-  ai_bot       — Hand off to AI agent. config: { system_prompt: "…", model: "gpt-4o", max_turns: 10, exit_keywords: "done,exit", output_variable: "ai_result" }. Outputs: "default".
+  http_request \u2014 HTTP API call. config: { url: "https://\u2026", method: "GET|POST|PUT|PATCH|DELETE", headers: {}, body: {}, response_var: "api_response", error_variable: "api_error", timeout_ms: 30000 }. Outputs: "success" (2xx response) / "error" (non-2xx, network failure, or timeout). ALWAYS wire BOTH outputs \u2014 connect "success" to the next processing step, connect "error" to a message node describing the failure followed by an end or queue node.
+  webhook      \u2014 Send webhook notification. config: { url: "https://\u2026", method: "POST", headers: {}, payload: {} }. Outputs: "default".
+  set_variable \u2014 Set flow variables. config MUST use the fields[] format: { "fields": [ { "name": "varName", "type": "string", "value": "theValue", "input_mode": "text" } ] }. Each entry in fields sets one variable. type is one of: string, number, boolean. input_mode is "text" for literal values or "expression" for JSONata. Outputs: "default".
+  ai_bot       \u2014 Hand off to AI agent. config: { system_prompt: "\u2026", model: "gpt-4o", max_turns: 10, exit_keywords: "done,exit", output_variable: "ai_result" }. Outputs: "default".
 
 MANDATORY WIRING RULES:
-- Every node with an output MUST have at least one outgoing edge — no orphaned (unconnected) nodes.
-- sub_flow nodes have a "default" output — ALWAYS wire them to the next step (usually a condition that checks a variable the sub-flow set).
-- queue and transfer are terminal nodes (no output) — they do not need outgoing edges.
-- end is terminal — it does not need outgoing edges.
+- Every node with an output MUST have at least one outgoing edge \u2014 no orphaned (unconnected) nodes.
+- sub_flow nodes have a "default" output \u2014 ALWAYS wire them to the next step (usually a condition that checks a variable the sub-flow set).
+- queue and transfer are terminal nodes (no output) \u2014 they do not need outgoing edges.
+- end is terminal \u2014 it does not need outgoing edges.
 - Use the exact sourceHandle string listed above for each node type.
 - For condition: use "true" or "false". For ab_split: use "branch_a" or "branch_b". For time_gate: use "open" or "closed".
 - For menu: use the option key string (e.g. "1", "2"). For loop: use "loop" or "done".
 - All other nodes: use "default".
 
 GREETING / MESSAGE RULE:
-- ANY time the flow communicates with the contact (welcome message, greeting, prompt, error, confirmation) — use a message node. There is no other node that sends text. Do not skip the message node.
-- Example greeting sequence: start → message ("Good morning! Welcome to…") → [next logic node]
+- ANY time the flow communicates with the contact (welcome message, greeting, prompt, error, confirmation) \u2014 use a message node. There is no other node that sends text. Do not skip the message node.
+- Example greeting sequence: start \u2192 message ("Good morning! Welcome to\u2026") \u2192 [next logic node]
 
 ---
-COMPLETE EXAMPLE — Study this carefully and follow the same structure:
+COMPLETE EXAMPLE \u2014 Study this carefully and follow the same structure:
 
 User asked: "Create a flow that does an A/B split for tone (professional vs casual), greets by time of day, then calls an auth API. If auth passes route to Authenticated queue, else Unauthenticated queue. Also create a sub-flow called ID Check that asks for an ID number, validates it via API, sets id_check=true/false and ends. The main flow must call the ID Check sub-flow after auth and route to two queues based on the result."
 
@@ -4309,7 +4309,7 @@ User asked: "Create a flow that does an A/B split for tone (professional vs casu
         { "id": "n4",   "type": "message",      "label": "Good morning (pro)",        "x": 760,  "y": 80,  "config": { "text": "Good morning! How can I assist you today?" } },
         { "id": "n5",   "type": "message",      "label": "Good afternoon (pro)",      "x": 760,  "y": 240, "config": { "text": "Good afternoon! How can I help?" } },
         { "id": "n6",   "type": "time_gate",    "label": "Time of Day B",             "x": 540,  "y": 440, "config": { "start_time": "12:00", "end_time": "17:00", "days": "Mon,Tue,Wed,Thu,Fri" } },
-        { "id": "n7",   "type": "message",      "label": "Hey morning (casual)",      "x": 760,  "y": 370, "config": { "text": "Hey! Morning! What can I do for you? 😊" } },
+        { "id": "n7",   "type": "message",      "label": "Hey morning (casual)",      "x": 760,  "y": 370, "config": { "text": "Hey! Morning! What can I do for you? \uD83D\uDE0A" } },
         { "id": "n8",   "type": "message",      "label": "Hey afternoon (casual)",    "x": 760,  "y": 510, "config": { "text": "Hey! Good afternoon, what's up?" } },
         { "id": "n9",   "type": "input",        "label": "Collect Mobile",            "x": 980,  "y": 300, "config": { "prompt": "Please enter your mobile number:", "variable": "mobile_number", "validation": "phone", "max_retries": 3 } },
         { "id": "n9t",  "type": "message",      "label": "Mobile Timeout",            "x": 980,  "y": 500, "config": { "text": "Too many invalid attempts. Ending session." } },
@@ -4417,13 +4417,13 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
                     max_tokens: 6000,
                 },
             });
-            if (!res || !res.ok) throw new Error('AI request failed — make sure WizzardAI is running on port 8080.');
+            if (!res || !res.ok) throw new Error('AI request failed \u2014 make sure WizzardAI is running on port 8080.');
             const data = await res.json();
             const reply = data.response || '(no response)';
             _aiChatHistory.push({ role: 'assistant', content: reply });
             _aiAppendMessage('assistant', reply);
 
-            // Check for JSON flow definition in the reply — auto-build immediately
+            // Check for JSON flow definition in the reply \u2014 auto-build immediately
             const flowJson = _extractFlowJson(reply);
             if (flowJson) {
                 _aiFoundFlowJson = flowJson;
@@ -4432,11 +4432,11 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
                 if (btnBuild) { btnBuild.classList.remove('d-none'); btnBuild.disabled = false; }
                 document.getElementById('aiChatInput').disabled = true;
                 document.getElementById('btnAiSend').disabled = true;
-                // Auto-build — errors are handled inside _aiCreateDraftFromJson
+                // Auto-build \u2014 errors are handled inside _aiCreateDraftFromJson
                 _aiCreateDraftFromJson();
             }
         } catch (err) {
-            _aiAppendMessage('assistant', '⚠ ' + err.message);
+            _aiAppendMessage('assistant', '\u26A0 ' + err.message);
         } finally {
             document.getElementById('aiTypingIndicator')?.classList.add('d-none');
             document.getElementById('btnAiSend').disabled = false;
@@ -4451,18 +4451,18 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
         if (btnBuild) btnBuild.disabled = true;  // prevent double-click during build
         if (draftArea) {
             draftArea.classList.remove('d-none');
-            draftArea.innerHTML = '<span class="text-info"><span class="spinner-border spinner-border-sm me-2"></span>Building your flows…</span>';
+            draftArea.innerHTML = '<span class="text-info"><span class="spinner-border spinner-border-sm me-2"></span>Building your flows\u2026</span>';
         }
 
-        // ── Helper: transform one AI flow def into API nodes + edges ──
+        // \u2500\u2500 Helper: transform one AI flow def into API nodes + edges \u2500\u2500
         function _transformFlowDef(flowDef, subflowMap) {
             const aiNodes = flowDef.nodes || [];
             const aiEdges = flowDef.edges || [];
 
-            // Nodes: AI { id, type, label, x, y, config } → API { node_type, label, position_x, position_y, position, config:{_clientId} }
+            // Nodes: AI { id, type, label, x, y, config } \u2192 API { node_type, label, position_x, position_y, position, config:{_clientId} }
             const apiNodes = aiNodes.map((n, idx) => {
                 const cfg = { ...(n.config || {}), _clientId: String(n.id || idx) };
-                // Normalise set_variable: convert any plain key:value pairs → fields[] format
+                // Normalise set_variable: convert any plain key:value pairs \u2192 fields[] format
                 if ((n.type || n.node_type) === 'set_variable' && !Array.isArray(cfg.fields)) {
                     const reserved = new Set(['_clientId', '_expressions', 'fields', 'variable', 'value']);
                     const pairs = Object.entries(cfg).filter(([k]) => !reserved.has(k));
@@ -4477,7 +4477,7 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
                         cfg.fields = [];
                     }
                 }
-                // Resolve sub_flow_ref → real UUID
+                // Resolve sub_flow_ref \u2192 real UUID
                 if ((n.type || n.node_type) === 'sub_flow' && cfg.sub_flow_ref) {
                     cfg.flow_id = subflowMap[cfg.sub_flow_ref] || cfg.flow_id || '';
                     delete cfg.sub_flow_ref;
@@ -4492,7 +4492,7 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
                 };
             });
 
-            // Edges: AI { id, sourceId, targetId, sourceHandle, label } → API { source_node_id, target_node_id, source_handle, label, condition, priority }
+            // Edges: AI { id, sourceId, targetId, sourceHandle, label } \u2192 API { source_node_id, target_node_id, source_handle, label, condition, priority }
             const apiEdges = aiEdges.map(e => {
                 let handle = e.sourceHandle || e.source_handle || 'default';
                 // Normalise common AI mis-namings to canonical handle values
@@ -4515,7 +4515,7 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
         }
 
         try {
-            // ── 1. Normalise to flows array ──
+            // \u2500\u2500 1. Normalise to flows array \u2500\u2500
             let flowList = _aiFoundFlowJson.flows
                 ? [..._aiFoundFlowJson.flows]
                 : [_aiFoundFlowJson];   // legacy single-flow format
@@ -4527,8 +4527,8 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
                 return aS - bS;
             });
 
-            // ── 2. Create flows sequentially, sub-flows first ──
-            const subflowMap = {};  // name → UUID
+            // \u2500\u2500 2. Create flows sequentially, sub-flows first \u2500\u2500
+            const subflowMap = {};  // name \u2192 UUID
             let lastMainId = null;
             let lastMainName = null;
             let totalNodes = 0;
@@ -4538,8 +4538,8 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
 
             if (draftArea) {
                 const info = subflowCount > 0
-                    ? `Building ${subflowCount} sub-flow(s) + ${mainflowCount} main flow(s)…`
-                    : `Building ${mainflowCount} flow(s)…`;
+                    ? `Building ${subflowCount} sub-flow(s) + ${mainflowCount} main flow(s)\u2026`
+                    : `Building ${mainflowCount} flow(s)\u2026`;
                 draftArea.innerHTML = `<span class="text-info"><span class="spinner-border spinner-border-sm me-2"></span>${escapeHtml(info)}</span>`;
             }
 
@@ -4560,7 +4560,7 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
                 });
                 if (!createRes || !createRes.ok) {
                     const errBody = await createRes?.text?.() || 'no response';
-                    throw new Error(`Flow create failed for "${flowName}": ${createRes?.status} — ${errBody}`);
+                    throw new Error(`Flow create failed for "${flowName}": ${createRes?.status} \u2014 ${errBody}`);
                 }
                 const created = await createRes.json();
                 const newId = created.id;
@@ -4572,7 +4572,7 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
                     lastMainName = flowName;
                 }
 
-                // Transform nodes + edges (resolves sub_flow_ref → UUID from subflowMap)
+                // Transform nodes + edges (resolves sub_flow_ref \u2192 UUID from subflowMap)
                 const { apiNodes, apiEdges } = _transformFlowDef(flowDef, subflowMap);
                 totalNodes += apiNodes.length;
 
@@ -4587,16 +4587,16 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
                 }
             }
 
-            // ── 3. Report success and open the main flow ──
+            // \u2500\u2500 3. Report success and open the main flow \u2500\u2500
             const openId = lastMainId || subflowMap[Object.keys(subflowMap)[Object.keys(subflowMap).length - 1]];
             const openName = lastMainName || Object.keys(subflowMap).at(-1);
 
             const summary = subflowCount > 0
-                ? `✅ Done! Created ${subflowCount} sub-flow(s) and ${mainflowCount} main flow(s) (${totalNodes} nodes total). Opening "${openName}" now…`
-                : `✅ Done! "${openName}" has been created with ${totalNodes} node(s). Opening the designer now…`;
+                ? `\u2705 Done! Created ${subflowCount} sub-flow(s) and ${mainflowCount} main flow(s) (${totalNodes} nodes total). Opening "${openName}" now\u2026`
+                : `\u2705 Done! "${openName}" has been created with ${totalNodes} node(s). Opening the designer now\u2026`;
 
             _aiAppendMessage('assistant', summary);
-            if (draftArea) draftArea.innerHTML = `<span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>${escapeHtml(subflowCount > 0 ? `${flowList.length} flow(s) created — opening designer…` : 'Flow created — opening designer…')}</span>`;
+            if (draftArea) draftArea.innerHTML = `<span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>${escapeHtml(subflowCount > 0 ? `${flowList.length} flow(s) created \u2014 opening designer\u2026` : 'Flow created \u2014 opening designer\u2026')}</span>`;
 
             await new Promise(r => setTimeout(r, 1200));
             if (btnBuild) btnBuild.classList.add('d-none');
@@ -4606,7 +4606,7 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
 
         } catch (err) {
             console.error('[AI Build]', err);
-            _aiAppendMessage('assistant', '⚠ Build failed: ' + err.message + '\n\nYou can click "Build Flows" to retry.');
+            _aiAppendMessage('assistant', '\u26A0 Build failed: ' + err.message + '\n\nYou can click "Build Flows" to retry.');
             if (draftArea) draftArea.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>${escapeHtml(err.message)}</span>`;
             document.getElementById('aiChatInput').disabled = false;
             document.getElementById('btnAiSend').disabled = false;
@@ -4685,7 +4685,7 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
         newInput.focus();
     }
 
-    // ───── Init ─────
+    // \u2500\u2500\u2500\u2500\u2500 Init \u2500\u2500\u2500\u2500\u2500
 
     async function init() {
         if (!token()) {
@@ -4693,7 +4693,7 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
             return;
         }
 
-        // Load node type registry → builds palette dynamically
+        // Load node type registry \u2192 builds palette dynamically
         await loadNodeTypeRegistry();
 
         // Palette collapse toggle
@@ -4729,7 +4729,7 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
                 history.replaceState(null, '', '/flow-designer');
                 showAiFlowBuilder();
             } else {
-                // No flow ID and no AI flag — go directly to the flows list
+                // No flow ID and no AI flag \u2014 go directly to the flows list
                 window.location.href = '/flows';
             }
         }

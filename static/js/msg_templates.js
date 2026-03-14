@@ -1,5 +1,5 @@
 /**
- * WizzardChat – Message Templates management page
+ * WizzardChat \u2013 Message Templates management page
  */
 (function () {
     'use strict';
@@ -13,9 +13,9 @@
     let _waConnectors = [];
     let _waMetaTemplates = [];
 
-    // ── Contact fields available for variable binding ────────────────────────
+    // \u2500\u2500 Contact fields available for variable binding \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const CONTACT_FIELDS = [
-        { value: '', label: '— no binding —' },
+        { value: '', label: '\u2014 no binding \u2014' },
         { value: 'first_name', label: 'First name' },
         { value: 'last_name', label: 'Last name' },
         { value: 'company', label: 'Company' },
@@ -37,12 +37,12 @@
         inactive: 'wz-status-inactive',
     };
 
-    // ── Modal helpers ────────────────────────────────────────────────────────
+    // \u2500\u2500 Modal helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _modal() {
         return bootstrap.Modal.getOrCreateInstance(document.getElementById('templateModal'));
     }
 
-    // ── Load + render ────────────────────────────────────────────────────────
+    // \u2500\u2500 Load + render \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadTemplates() {
         const r = await fetch(API + '/api/v1/templates', { headers: _headers() });
         if (!r.ok) { console.error('templates fetch failed', r.status); return; }
@@ -89,7 +89,7 @@
         const sb = STATUS_BADGE[t.status] || 'wz-status-inactive';
         const varCount = (t.variables || []).length;
         const waExtra = t.channel === 'whatsapp' && t.wa_template_name
-            ? `<div class="small text-muted mt-1"><i class="bi bi-check2-circle me-1"></i><code>${esc(t.wa_template_name)}</code> · ${esc(t.wa_approval_status || '–')}</div>`
+            ? `<div class="small text-muted mt-1"><i class="bi bi-check2-circle me-1"></i><code>${esc(t.wa_template_name)}</code> \u00B7 ${esc(t.wa_approval_status || '\u2013')}</div>`
             : '';
         col.innerHTML = `
 <div class="template-card-item h-100" onclick="openTemplateModal('${t.id}')">
@@ -101,7 +101,7 @@
         ${varCount ? `<span class="badge bg-dark border" title="${varCount} variable(s)"><i class="bi bi-braces me-1"></i>${varCount}</span>` : ''}
     </div>
     <div class="fw-semibold mb-1" style="font-size:14px">${esc(t.name)}</div>
-    <div class="template-body-preview">${esc(t.body || '–')}</div>
+    <div class="template-body-preview">${esc(t.body || '\u2013')}</div>
     ${waExtra}
 </div>`;
         return col;
@@ -112,7 +112,7 @@
         return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    // ── Variable scanning ────────────────────────────────────────────────────
+    // \u2500\u2500 Variable scanning \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const VAR_RE = /\{\{(\d+)\}\}/g;
 
     window.tmplScanVars = function () {
@@ -167,9 +167,9 @@
             ).join('');
             row.innerHTML = `
 <div class="col-1 fw-bold text-warning d-flex align-items-center justify-content-center" style="font-size:14px;">{{${pos}}}</div>
-<div class="col-3"><input type="text" class="form-control form-control-sm var-label-input" placeholder="Label…" value="${esc(prev.label || '')}"></div>
+<div class="col-3"><input type="text" class="form-control form-control-sm var-label-input" placeholder="Label\u2026" value="${esc(prev.label || '')}"></div>
 <div class="col-4"><select class="form-select form-select-sm var-field-select">${fieldSel}</select></div>
-<div class="col-4"><input type="text" class="form-control form-control-sm var-default-input" placeholder="Default…" value="${esc(prev.def || '')}"></div>`;
+<div class="col-4"><input type="text" class="form-control form-control-sm var-default-input" placeholder="Default\u2026" value="${esc(prev.def || '')}"></div>`;
             wrap.appendChild(row);
         });
     }
@@ -183,14 +183,14 @@
         }));
     }
 
-    // ── Channel change handler ────────────────────────────────────────────────
+    // \u2500\u2500 Channel change handler \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.tmplChannelChange = function () {
         const ch = document.getElementById('tmplChannel').value;
         document.getElementById('tmplTabWaLi').style.display    = ch === 'whatsapp' ? '' : 'none';
         document.getElementById('tmplTabEmailLi').style.display = ch === 'email'    ? '' : 'none';
     };
 
-    // ── Open modal ───────────────────────────────────────────────────────────
+    // \u2500\u2500 Open modal \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.openTemplateModal = function (id) {
         _editId = id || null;
         const deleteBtn = document.getElementById('btnDeleteTemplate');
@@ -268,7 +268,7 @@
         countEl.textContent = positions.length ? `${positions.length} variable(s): ${positions.map(p => `{{${p}}}`).join(', ')}` : '';
     }
 
-    // ── Save ─────────────────────────────────────────────────────────────────
+    // \u2500\u2500 Save \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.saveTemplate = async function () {
         const name = document.getElementById('tmplName').value.trim();
         if (!name) { alert('Template name is required.'); return; }
@@ -307,7 +307,7 @@
         await loadTemplates();
     };
 
-    // ── Delete ───────────────────────────────────────────────────────────────
+    // \u2500\u2500 Delete \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.deleteTemplate = async function () {
         if (!_editId) return;
         if (!confirm('Delete this template? This action cannot be undone.')) return;
@@ -317,7 +317,7 @@
         await loadTemplates();
     };
 
-    // ── WhatsApp Meta browser ─────────────────────────────────────────────────
+    // \u2500\u2500 WhatsApp Meta browser \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function _loadWaConnectors() {
         const r = await fetch(API + '/api/v1/connectors', { headers: _headers() });
         if (!r.ok) return;
@@ -395,14 +395,14 @@
         });
     };
 
-    // ── Logout ───────────────────────────────────────────────────────────────
+    // \u2500\u2500 Logout \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     document.getElementById('btnLogout').addEventListener('click', e => {
         e.preventDefault();
         localStorage.removeItem('wizzardchat_token');
         window.location.href = '/login';
     });
 
-    // ── Boot ─────────────────────────────────────────────────────────────────
+    // \u2500\u2500 Boot \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     if (typeof _guard === 'function') _guard();
     loadTemplates();
     _loadWaConnectors();

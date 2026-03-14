@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,12 +8,12 @@
     <script src="/static/js/wz-theme.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
-    <title>WizzardChat – Dialler</title>
+    <title>WizzardChat &ndash; Dialler</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="/static/css/wizzardchat.css" rel="stylesheet">
     <style>
-        /* ── Layout ────────────────────────────────────────────────────── */
+        /* -- Layout ------------------------------------------------------ */
         html, body { height: 100%; overflow: hidden; }
         .d-topbar {
             height: 56px;
@@ -53,13 +53,13 @@
             gap: 16px;
         }
 
-        /* ── Progress bar ──────────────────────────────────────────────── */
+        /* -- Progress bar ------------------------------------------------ */
         .d-progress-wrap { flex: 1; max-width: 280px; }
         .d-progress-bar { height: 6px; border-radius: 3px; background: var(--bs-border-color); }
         .d-progress-fill { height: 100%; border-radius: 3px; background: #0d6efd; transition: width .4s; }
         .d-progress-label { font-size: 11px; color: var(--bs-secondary-color); margin-top: 2px; }
 
-        /* ── Contact card ──────────────────────────────────────────────── */
+        /* -- Contact card ------------------------------------------------ */
         .contact-avatar {
             width: 56px; height: 56px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
@@ -74,7 +74,7 @@
             background: var(--bs-tertiary-bg); border: 1px solid var(--bs-border-color);
         }
 
-        /* ── History list ──────────────────────────────────────────────── */
+        /* -- History list ------------------------------------------------ */
         .hist-item {
             padding: 10px 12px;
             border: 1px solid var(--bs-border-color);
@@ -84,7 +84,7 @@
         }
         .hist-status { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
 
-        /* ── WA window banner ──────────────────────────────────────────── */
+        /* -- WA window banner -------------------------------------------- */
         .wa-banner {
             border-radius: 10px; padding: 12px 16px;
             display: flex; align-items: flex-start; gap: 10px;
@@ -96,7 +96,7 @@
         .wa-banner.open   .bi { color: #22c55e; }
         .wa-banner.closed .bi { color: #f59e0b; }
 
-        /* ── Template card ─────────────────────────────────────────────── */
+        /* -- Template card ----------------------------------------------- */
         .template-card {
             border: 1px dashed rgba(245,158,11,.5);
             border-radius: 10px;
@@ -110,7 +110,7 @@
             border: 1px solid var(--bs-border-color); min-height: 48px;
         }
 
-        /* ── Dial state panel ──────────────────────────────────────────── */
+        /* -- Dial state panel -------------------------------------------- */
         .state-idle     .panel-idle    { display: flex !important; }
         .state-dialling .panel-dialling{ display: flex !important; }
         .state-connected .panel-connected { display: flex !important; }
@@ -129,7 +129,7 @@
         /* connected timer */
         .conn-timer { font-size: 36px; font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: .04em; }
 
-        /* ── Outcome buttons ───────────────────────────────────────────── */
+        /* -- Outcome buttons --------------------------------------------- */
         .outcome-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
         .outcome-btn {
             padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 500;
@@ -144,11 +144,11 @@
             color: #60a5fa;
         }
 
-        /* ── Ring timeout bar (progressive) ───────────────────────────── */
+        /* -- Ring timeout bar (progressive) ----------------------------- */
         .ring-timeout-bar { height: 4px; border-radius: 2px; background: var(--bs-border-color); overflow: hidden; }
         .ring-timeout-fill { height: 100%; background: #22c55e; transition: width .5s linear; }
 
-        /* ── Auto-advance strip (progressive) ─────────────────────────── */
+        /* -- Auto-advance strip (progressive) --------------------------- */
         .auto-advance-strip {
             position: fixed; bottom: 0; left: 0; right: 0; height: 48px;
             background: #1e3a2f; border-top: 1px solid rgba(34,197,94,.3);
@@ -157,10 +157,10 @@
         }
         .auto-advance-strip.hidden { display: none; }
 
-        /* ── No contact ────────────────────────────────────────────────── */
+        /* -- No contact -------------------------------------------------- */
         .no-contact { color: var(--bs-secondary-color); font-size: 13px; font-style: italic; }
 
-        /* ── Multi-channel action buttons ─────────────────────────────── */
+        /* -- Multi-channel action buttons ------------------------------- */
         .ch-action-primary {
             min-width: 160px; font-size: 15px; font-weight: 600;
             padding: 10px 28px; border-radius: 8px;
@@ -175,7 +175,7 @@
         }
         .var-resolved-row code { font-size: 11px; }
 
-        /* ── Cross-campaign history panel ─────────────────────────────── */
+        /* -- Cross-campaign history panel ------------------------------- */
         .x-hist-channel { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
         .x-hist-item { font-size: 12px; padding: 8px 10px; border-radius: 6px;
             border: 1px solid var(--bs-border-color); background: var(--bs-tertiary-bg); }
@@ -183,20 +183,20 @@
 </head>
 <body class="state-idle" id="diallerBody">
 
-<!-- ═══════════════════ TOP BAR ═══════════════════════════════════════════ -->
+<!-- =================== TOP BAR =========================================== -->
 <div class="d-topbar">
     <a href="/campaigns" class="btn btn-sm btn-outline-secondary" title="Back to Campaigns">
         <i class="bi bi-arrow-left me-1"></i>Campaigns
     </a>
     <div class="vr"></div>
-    <span id="tbCampaignName" class="fw-semibold text-truncate" style="max-width:220px">Loading…</span>
+    <span id="tbCampaignName" class="fw-semibold text-truncate" style="max-width:220px">Loading&hellip;</span>
     <span id="tbChannelBadge" class="wz-badge wz-badge-muted"></span>
     <span id="tbModeBadge" class="wz-badge wz-badge-muted"></span>
     <div class="d-progress-wrap ms-2">
         <div class="d-progress-bar">
             <div class="d-progress-fill" id="hdrProgress" style="width:0%"></div>
         </div>
-        <div class="d-progress-label" id="hdrProgressLabel">Loading…</div>
+        <div class="d-progress-label" id="hdrProgressLabel">Loading&hellip;</div>
     </div>
     <div class="ms-auto d-flex align-items-center gap-2">
         <span id="tbStatusBadge" class="badge"></span>
@@ -206,10 +206,10 @@
     </div>
 </div>
 
-<!-- ═══════════════════ BODY ══════════════════════════════════════════════ -->
+<!-- =================== BODY ============================================== -->
 <div class="d-body" id="diallerBody">
 
-    <!-- ── Left: contact info ── -->
+    <!-- -- Left: contact info -- -->
     <div class="d-left">
 
         <!-- Contact identity -->
@@ -221,8 +221,8 @@
                 <div class="d-flex align-items-center gap-12 mb-3" style="gap:12px">
                     <div class="contact-avatar" id="contactAvatar">?</div>
                     <div>
-                        <div class="contact-name" id="contactName">–</div>
-                        <div class="contact-sub" id="contactCompany">–</div>
+                        <div class="contact-name" id="contactName">&ndash;</div>
+                        <div class="contact-sub" id="contactCompany">&ndash;</div>
                     </div>
                 </div>
 
@@ -264,7 +264,7 @@
 
     </div>
 
-    <!-- ── Right: action panel ── -->
+    <!-- -- Right: action panel -- -->
     <div class="d-right" id="actionPanel">
 
         <!-- WA window banner (only visible on WA campaigns) -->
@@ -294,7 +294,7 @@
                     <span class="text-muted" style="font-size:11px">Subject:</span>
                     <span id="templateSubject" class="ms-1 fw-semibold" style="font-size:12px"></span>
                 </div>
-                <pre id="templateText" class="template-body">–</pre>
+                <pre id="templateText" class="template-body">&ndash;</pre>
                 <!-- Resolved variable bindings -->
                 <div id="templateVarsWrap" style="display:none" class="mt-2">
                     <p class="text-muted mb-1 fw-semibold text-uppercase" style="font-size:10px;letter-spacing:.06em;">Template variables</p>
@@ -306,7 +306,7 @@
             </div>
         </div>
 
-        <!-- ── IDLE STATE ── -->
+        <!-- -- IDLE STATE -- -->
         <div class="panel-idle flex-column align-items-center justify-content-center text-center py-5" style="gap:20px">
             <i class="bi bi-telephone-outbound fs-1 text-muted" id="idleChannelIcon"></i>
             <div>
@@ -326,20 +326,20 @@
             </button>
         </div>
 
-        <!-- ── DIALLING STATE ── -->
+        <!-- -- DIALLING STATE -- -->
         <div class="panel-dialling flex-column align-items-center justify-content-center text-center py-5" style="gap:16px">
             <div class="phone-ring">
                 <i class="bi bi-telephone-fill"></i>
             </div>
-            <div class="fw-semibold mt-2" id="diallingName">Dialling…</div>
+            <div class="fw-semibold mt-2" id="diallingName">Dialling&hellip;</div>
             <div class="text-muted small" id="diallingPhone"></div>
 
-            <!-- Ring timeout bar — progressive only -->
+            <!-- Ring timeout bar &mdash; progressive only -->
             <div id="ringTimeoutWrap" style="display:none;width:200px">
                 <div class="ring-timeout-bar mt-3">
                     <div class="ring-timeout-fill" id="ringTimeoutFill" style="width:100%"></div>
                 </div>
-                <div class="text-muted mt-1" style="font-size:11px" id="ringTimeoutLabel">Ringing…</div>
+                <div class="text-muted mt-1" style="font-size:11px" id="ringTimeoutLabel">Ringing&hellip;</div>
             </div>
 
             <div class="d-flex gap-2 mt-3 flex-wrap justify-content-center">
@@ -358,17 +358,17 @@
             </div>
         </div>
 
-        <!-- ── CONNECTED STATE ── -->
+        <!-- -- CONNECTED STATE -- -->
         <div class="panel-connected flex-column align-items-center justify-content-center text-center py-5" style="gap:12px">
             <i class="bi bi-headset fs-1 text-success"></i>
             <div class="conn-timer text-success" id="connTimer">0:00</div>
-            <div class="text-muted small">Connected · <span id="connectedName"></span></div>
+            <div class="text-muted small">Connected &middot; <span id="connectedName"></span></div>
             <button class="btn btn-warning text-dark btn-lg mt-3 px-5" onclick="enterWrapUp()">
                 <i class="bi bi-clipboard-check me-2"></i>Wrap Up
             </button>
         </div>
 
-        <!-- ── WRAP-UP STATE ── -->
+        <!-- -- WRAP-UP STATE -- -->
         <div class="panel-wrapup flex-column" style="gap:16px">
             <div>
                 <h6 class="fw-semibold mb-0">Log outcome</h6>
@@ -390,7 +390,7 @@
             <!-- Notes -->
             <div>
                 <label class="form-label fw-semibold" style="font-size:13px">Notes</label>
-                <textarea id="wrapNotes" class="form-control" rows="3" placeholder="Optional call notes…"></textarea>
+                <textarea id="wrapNotes" class="form-control" rows="3" placeholder="Optional call notes&hellip;"></textarea>
             </div>
 
             <div class="d-flex gap-2">
@@ -403,7 +403,7 @@
             </div>
         </div>
 
-        <!-- ── EXHAUSTED STATE ── -->
+        <!-- -- EXHAUSTED STATE -- -->
         <div class="panel-exhausted flex-column align-items-center justify-content-center text-center py-5" style="gap:16px">
             <i class="bi bi-check-circle-fill fs-1 text-success"></i>
             <div class="fw-semibold fs-5">Campaign list exhausted</div>
@@ -416,7 +416,7 @@
     </div><!-- d-right -->
 </div><!-- d-body -->
 
-<!-- ═══════════════════ VOICE SOFTPHONE PANEL (progressive Twilio campaigns) ═ -->
+<!-- =================== VOICE SOFTPHONE PANEL (progressive Twilio campaigns) = -->
 <div id="voiceSoftphonePanel" class="d-none d-flex align-items-center gap-3 px-3 py-2 border-bottom bg-body-secondary" style="font-size:13px">
     <i class="bi bi-headset text-primary"></i>
     <div class="flex-fill">
@@ -429,15 +429,15 @@
     <span class="badge rounded-pill bg-secondary" id="vspBadge">&#9679;</span>
 </div>
 
-<!-- ═══════════════════ AUTO-ADVANCE STRIP (progressive only) ════════════ -->
+<!-- =================== AUTO-ADVANCE STRIP (progressive only) ============ -->
 <div class="auto-advance-strip hidden" id="autoAdvanceStrip">
     <i class="bi bi-arrow-right-circle text-success"></i>
-    <span>Auto-advancing to next contact in <strong id="autoCountdown">5</strong>s…</span>
+    <span>Auto-advancing to next contact in <strong id="autoCountdown">5</strong>s&hellip;</span>
     <button class="btn btn-sm btn-outline-light" onclick="cancelAutoAdvance()">Cancel</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Twilio Voice SDK — loaded only when needed (progressive voice campaigns) -->
+<!-- Twilio Voice SDK &mdash; loaded only when needed (progressive voice campaigns) -->
 <script src="https://sdk.twilio.com/js/voice/releases/2.12.1/twilio.min.js"></script>
 <script src="/static/js/dialler.js?v=1"></script>
 <script>
@@ -445,7 +445,7 @@
     window.DIALLER_CAMPAIGN_ID = "{{ campaign_id }}";
 </script>
 <script>
-// ── Voice Softphone (progressive Twilio campaigns only) ─────────────────────
+// \u2500\u2500 Voice Softphone (progressive Twilio campaigns only) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 (function () {
     let _device = null;
 
@@ -515,7 +515,7 @@
                     }
                 }
             }
-        } catch (_e) { /* non-voice campaign — ignore */ }
+        } catch (_e) { /* non-voice campaign \u2014 ignore */ }
     });
 })();
 </script>

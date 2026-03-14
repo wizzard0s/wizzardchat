@@ -1,6 +1,6 @@
-/* WizzardChat – shared sidebar logic (loaded on every page) */
+/* WizzardChat \u2013 shared sidebar logic (loaded on every page) */
 
-// ─── Accordion toggle ─────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Accordion toggle \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 var WC_NAV_STATE_KEY = 'wc_nav_state_v3';
 
 function _saveNavState() {
@@ -21,7 +21,7 @@ function navToggle(id, hdr) {
     _saveNavState();
 }
 
-// ─── Theme management ─────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Theme management \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 var WC_THEME_KEY = 'wc_theme';
 
 function applyTheme(theme) {
@@ -32,7 +32,7 @@ function applyTheme(theme) {
     if (toggle) toggle.checked = (theme === 'light');
 }
 
-// ─── Profile dropdown injection ───────────────────────────────────────────────
+// \u2500\u2500\u2500 Profile dropdown injection \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function injectProfileDropdown() {
     var nameEl = document.getElementById('agentName');
     if (!nameEl) return;
@@ -51,11 +51,11 @@ function injectProfileDropdown() {
                     ' data-bs-toggle="dropdown" aria-expanded="false">' +
                 '<i class="bi bi-person-circle opacity-75"></i>' +
                 wsDotHtml +
-                '<span class="flex-fill text-truncate small" id="agentName">–</span>' +
+                '<span class="flex-fill text-truncate small" id="agentName">\u2013</span>' +
                 '<i class="bi bi-chevron-down" style="font-size:10px;opacity:.5"></i>' +
             '</button>' +
             '<ul class="dropdown-menu dropdown-menu-dark profile-menu">' +
-                '<li><h6 class="dropdown-header text-truncate" id="profileName">–</h6></li>' +
+                '<li><h6 class="dropdown-header text-truncate" id="profileName">\u2013</h6></li>' +
                 '<li><hr class="dropdown-divider m-1"></li>' +
                 '<li>' +
                     '<label class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2"' +
@@ -98,9 +98,9 @@ function injectProfileDropdown() {
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ─── Auto-mark active nav link from current URL ───────────────────────────
+    // \u2500\u2500\u2500 Auto-mark active nav link from current URL \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     var path = window.location.pathname;
-    // Only manage the 'active' class — never touch text-white (CSS handles colour)
+    // Only manage the 'active' class \u2014 never touch text-white (CSS handles colour)
     document.querySelectorAll('#sidebar .nav-link').forEach(function (a) {
         a.classList.remove('active');
     });
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ─── Accordion init: only open section with active link (restore user toggles) ──
+    // \u2500\u2500\u2500 Accordion init: only open section with active link (restore user toggles) \u2500\u2500
     // All sections collapsed by default; user-toggled state persists across pages
     var _savedNav = localStorage.getItem(WC_NAV_STATE_KEY);
     var _navState = _savedNav ? JSON.parse(_savedNav) : {};
@@ -125,10 +125,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ─── Profile dropdown + availability ─────────────────────────────────────
+    // \u2500\u2500\u2500 Profile dropdown + availability \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     injectProfileDropdown();
 
-    // ─── Availability selector ────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Availability selector \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const AV_KEY = 'wizzardchat_availability';
     const sel = document.getElementById('availabilitySelect');
     if (sel) {
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ─── Display logged-in agent name ─────────────────────────────────────────
+    // \u2500\u2500\u2500 Display logged-in agent name \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const nameEl = document.getElementById('agentName');
     if (nameEl) {
         const token = localStorage.getItem('wizzardchat_token');
@@ -161,6 +161,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 const profileName = document.getElementById('profileName');
                 if (profileName) profileName.textContent = displayName;
             }
-        }).catch(function () { /* ignore – page JS will handle 401 redirect */ });
+        }).catch(function () { /* ignore \u2013 page JS will handle 401 redirect */ });
     }
 });

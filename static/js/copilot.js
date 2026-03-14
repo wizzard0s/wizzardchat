@@ -1,15 +1,15 @@
 /**
- * WizzardChat – Agent Copilot JS
+ * WizzardChat \u2013 Agent Copilot JS
  * Sidebar chat panel that searches WizzardAI KB and answers via LLM.
  * Depends on: _token() and apiFetch() from agent.js
  */
 'use strict';
 
-// ─── State ────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 State \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const _cpHistory = [];   // [{role, content}]
 let _cpPanelOpen = false;
 
-// ─── Panel toggle ─────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Panel toggle \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function copilotToggle() {
     const panel = document.getElementById('copilotPanel');
     _cpPanelOpen = !_cpPanelOpen;
@@ -17,7 +17,7 @@ function copilotToggle() {
     document.body.classList.toggle('copilot-open', _cpPanelOpen);
 }
 
-// ─── Reset conversation ───────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Reset conversation \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function copilotReset() {
     _cpHistory.length = 0;
     const list = document.getElementById('copMsgList');
@@ -29,7 +29,7 @@ function copilotReset() {
         </div>`;
 }
 
-// ─── Append a bubble ──────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Append a bubble \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 /**
  * role: 'user' | 'assistant' | 'thinking'
  * html: sanitised HTML string
@@ -64,7 +64,7 @@ function _cpAppend(role, html, sources) {
     return div;
 }
 
-// ─── Ask the copilot ──────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Ask the copilot \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 async function copilotAsk() {
     const input  = document.getElementById('copInput');
     const sendBtn = document.getElementById('copSendBtn');
@@ -81,7 +81,7 @@ async function copilotAsk() {
     _cpHistory.push({ role: 'user', content: question });
 
     // Thinking indicator
-    const thinkEl = _cpAppend('thinking', '<i class="bi bi-hourglass-split me-1"></i>Searching knowledge base…');
+    const thinkEl = _cpAppend('thinking', '<i class="bi bi-hourglass-split me-1"></i>Searching knowledge base\u2026');
 
     // Optional: capture last few visible chat messages as session context
     let sessionCtx = '';
@@ -130,7 +130,7 @@ async function copilotAsk() {
     }
 }
 
-// ─── Keyboard handler (Enter sends, Shift+Enter newline) ─────────────────────
+// \u2500\u2500\u2500 Keyboard handler (Enter sends, Shift+Enter newline) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function copilotKeydown(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -138,7 +138,7 @@ function copilotKeydown(e) {
     }
 }
 
-// ─── Config modal ─────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Config modal \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 async function copilotOpenConfig() {
     const [cfgRes, srcRes] = await Promise.all([
         apiFetch('/api/v1/copilot/config'),
@@ -156,7 +156,7 @@ async function copilotOpenConfig() {
     // Build KB source checkboxes
     const container = document.getElementById('copCfgSources');
     if (!sources.length) {
-        container.innerHTML = '<span class="text-muted small">No KB sources found — check WizzardAI connection.</span>';
+        container.innerHTML = '<span class="text-muted small">No KB sources found \u2014 check WizzardAI connection.</span>';
     } else {
         container.innerHTML = sources.map(s => {
             const activeIds = cfg.source_ids || [];
@@ -206,7 +206,7 @@ async function copilotSaveConfig() {
     }
 }
 
-// ─── Utility: HTML escape ─────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Utility: HTML escape \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function _cpEsc(str) {
     return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

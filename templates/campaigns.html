@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 
 <html lang="en">
 
@@ -14,7 +14,7 @@
 
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 
-    <title>WizzardChat – Campaigns</title>
+    <title>WizzardChat &ndash; Campaigns</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -64,17 +64,17 @@
 
     </a>
     <div class="d-flex align-items-center gap-2 mb-1">
-        <span class="flex-fill text-truncate small" id="agentName">–</span>
+        <span class="flex-fill text-truncate small" id="agentName">&ndash;</span>
         <button class="btn btn-sm btn-outline-secondary" id="btnLogout" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
     </div>
     <select class="form-select form-select-sm av-offline mb-2" id="availabilitySelect" title="Set your availability">
-        <option value="available">🟢 Available</option>
-        <option value="admin">🔵 Admin</option>
-        <option value="lunch">🟡 Lunch</option>
-        <option value="break">🟠 Break</option>
-        <option value="training">🟣 Training</option>
-        <option value="meeting">🔵 Meeting</option>
-        <option value="offline" selected>⚫ Offline</option>
+        <option value="available">&#x1F7E2; Available</option>
+        <option value="admin">&#x1F535; Admin</option>
+        <option value="lunch">&#x1F7E1; Lunch</option>
+        <option value="break">&#x1F7E0; Break</option>
+        <option value="training">&#x1F7E3; Training</option>
+        <option value="meeting">&#x1F535; Meeting</option>
+        <option value="offline" selected>&#x26AB; Offline</option>
     </select>
     <hr class="border-secondary">
 
@@ -238,7 +238,7 @@
 
                                 <label class="form-label">Description</label>
 
-                                <textarea id="cDescription" class="form-control" rows="2" placeholder="Campaign purpose…"></textarea>
+                                <textarea id="cDescription" class="form-control" rows="2" placeholder="Campaign purpose&hellip;"></textarea>
 
                             </div>
 
@@ -344,9 +344,9 @@
 
                                         <select id="cDiallerMode" class="form-select">
 
-                                            <option value="preview">Preview — agent dials manually on each contact</option>
+                                            <option value="preview">Preview &mdash; agent dials manually on each contact</option>
 
-                                            <option value="progressive">Progressive — auto-advance after wrap-up</option>
+                                            <option value="progressive">Progressive &mdash; auto-advance after wrap-up</option>
 
                                         </select>
 
@@ -562,7 +562,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label small">Voice connector</label>
                                     <select id="ocVoiceConnector" class="form-select form-select-sm">
-                                        <option value="">— none —</option>
+                                        <option value="">&mdash; none &mdash;</option>
                                     </select>
                                 </div>
                             </div>
@@ -575,7 +575,7 @@
                                         <label class="form-label small">WhatsApp connector</label>
                                         <select id="ocWaConnector" class="form-select form-select-sm"
                                                 onchange="loadWaMetaTemplates(this.value)">
-                                            <option value="">— none —</option>
+                                            <option value="">&mdash; none &mdash;</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
@@ -583,7 +583,7 @@
                                             HSM template <span class="badge bg-success ms-1" style="font-size:9px"><i class="bi bi-whatsapp me-1"></i>from Meta</span>
                                         </label>
                                         <select id="ocWaTemplate" class="form-select form-select-sm">
-                                            <option value="">— select connector first —</option>
+                                            <option value="">&mdash; select connector first &mdash;</option>
                                         </select>
                                     </div>
                                     <div class="col-12" id="ocWaVarWrap" style="display:none">
@@ -600,7 +600,7 @@
                                     <div class="col-md-6">
                                         <label class="form-label small">SMS connector</label>
                                         <select id="ocSmsConnector" class="form-select form-select-sm">
-                                            <option value="">— none —</option>
+                                            <option value="">&mdash; none &mdash;</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
@@ -609,7 +609,7 @@
                                             <a href="/msg-templates" target="_blank" class="ms-1 text-muted small"><i class="bi bi-box-arrow-up-right"></i></a>
                                         </label>
                                         <select id="ocSmsTemplate" class="form-select form-select-sm">
-                                            <option value="">— none —</option>
+                                            <option value="">&mdash; none &mdash;</option>
                                         </select>
                                     </div>
                                     <div class="col-12" id="ocSmsVarWrap" style="display:none">
@@ -626,7 +626,7 @@
                                     <div class="col-md-6">
                                         <label class="form-label small">Email connector</label>
                                         <select id="ocEmailConnector" class="form-select form-select-sm">
-                                            <option value="">— none —</option>
+                                            <option value="">&mdash; none &mdash;</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
@@ -635,7 +635,7 @@
                                             <a href="/msg-templates" target="_blank" class="ms-1 text-muted small"><i class="bi bi-box-arrow-up-right"></i></a>
                                         </label>
                                         <select id="ocEmailTemplate" class="form-select form-select-sm">
-                                            <option value="">— none —</option>
+                                            <option value="">&mdash; none &mdash;</option>
                                         </select>
                                     </div>
                                     <div class="col-12" id="ocEmailVarWrap" style="display:none">

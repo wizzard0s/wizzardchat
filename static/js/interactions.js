@@ -1,4 +1,4 @@
-/* interactions.js — Interaction History page logic */
+/* interactions.js \u2014 Interaction History page logic */
 'use strict';
 
 const Interactions = (() => {
@@ -7,12 +7,12 @@ const Interactions = (() => {
     let _total  = 0;
     let _pageSize = 40;
 
-    // ── Auth header ─────────────────────────────────────────────────────────
+    // \u2500\u2500 Auth header \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _h() {
         return { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('wizzardchat_token')}` };
     }
 
-    // ── Init ────────────────────────────────────────────────────────────────
+    // \u2500\u2500 Init \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function init() {
         await _loadFilters();
         await load(1);
@@ -28,7 +28,7 @@ const Interactions = (() => {
         data.agents.forEach(a     => ca.insertAdjacentHTML('beforeend', `<option value="${a.id}">${_esc(a.name)}</option>`));
     }
 
-    // ── Load list ────────────────────────────────────────────────────────────
+    // \u2500\u2500 Load list \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function load(page) {
         _page = page || 1;
         const params = new URLSearchParams({ page: _page, page_size: _pageSize });
@@ -59,7 +59,7 @@ const Interactions = (() => {
         load(1);
     }
 
-    // ── Status badge map ──────────────────────────────────────────────────────
+    // \u2500\u2500 Status badge map \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const _statusClass = {
         active:        'wz-status-in-flow',
         closed:        'wz-status-closed',
@@ -67,7 +67,7 @@ const Interactions = (() => {
         waiting_agent: 'wz-status-waiting',
     };
 
-    // ── Table ────────────────────────────────────────────────────────────────
+    // \u2500\u2500 Table \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _renderTable(items) {
         const tbody = document.getElementById('ixTableBody');
         document.getElementById('totalLabel').textContent = `${_total.toLocaleString()} interactions`;
@@ -76,14 +76,14 @@ const Interactions = (() => {
             return;
         }
         tbody.innerHTML = items.map(ix => {
-            const started = ix.created_at ? _fmtDate(ix.created_at) : '—';
+            const started = ix.created_at ? _fmtDate(ix.created_at) : '\u2014';
             const statusBadge = `<span class="wz-badge ${_statusClass[ix.status] ?? 'wz-status-closed'}">${_statusLabel(ix.status)}</span>`;
-            const outcome  = ix.disconnect_outcome ? `<span class="wz-badge wz-badge-muted">${_esc(ix.disconnect_outcome)}</span>` : '<span class="text-muted">—</span>';
-            const csat     = ix.csat_score   ? _renderStarsMini(ix.csat_score, 5)   : '<span class="text-muted">—</span>';
-            const nps      = ix.nps_score !== null && ix.nps_score !== undefined ? `<span class="wz-badge wz-badge-muted">${ix.nps_score}</span>` : '<span class="text-muted">—</span>';
-            const agentTxt = _esc(ix.agent_name || '—');
-            const connTxt  = _esc(ix.connector_name || '—');
-            const session  = _esc(ix.session_key.slice(0, 18) + (ix.session_key.length > 18 ? '…' : ''));
+            const outcome  = ix.disconnect_outcome ? `<span class="wz-badge wz-badge-muted">${_esc(ix.disconnect_outcome)}</span>` : '<span class="text-muted">\u2014</span>';
+            const csat     = ix.csat_score   ? _renderStarsMini(ix.csat_score, 5)   : '<span class="text-muted">\u2014</span>';
+            const nps      = ix.nps_score !== null && ix.nps_score !== undefined ? `<span class="wz-badge wz-badge-muted">${ix.nps_score}</span>` : '<span class="text-muted">\u2014</span>';
+            const agentTxt = _esc(ix.agent_name || '\u2014');
+            const connTxt  = _esc(ix.connector_name || '\u2014');
+            const session  = _esc(ix.session_key.slice(0, 18) + (ix.session_key.length > 18 ? '\u2026' : ''));
             const tagChips = (ix.tags || []).map(t => `<span class="wz-badge wz-badge-muted ms-1">${_esc(t)}</span>`).join('');
             return `<tr class="ix-row" onclick="Interactions.openDetail('${ix.id}')">
                 <td class="text-secondary">${started}</td>
@@ -104,11 +104,11 @@ const Interactions = (() => {
             '<tr><td colspan="9" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle me-1"></i>Failed to load interactions.</td></tr>';
     }
 
-    // ── Pagination ────────────────────────────────────────────────────────────
+    // \u2500\u2500 Pagination \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _renderPagination(total, page, pageSize) {
         const totalPages = Math.ceil(total / pageSize);
         document.getElementById('pageInfo').textContent =
-            `Page ${page} of ${totalPages} — ${total.toLocaleString()} records`;
+            `Page ${page} of ${totalPages} \u2014 ${total.toLocaleString()} records`;
         const bar = document.getElementById('paginationBar');
         bar.innerHTML = '';
         if (totalPages <= 1) return;
@@ -117,20 +117,20 @@ const Interactions = (() => {
                 `<button class="btn btn-sm ${p === page ? 'btn-info' : 'btn-outline-secondary'}" ${disabled ? 'disabled' : ''} onclick="Interactions.load(${p})">${label}</button>`
             );
         };
-        add('‹', page - 1, page === 1);
+        add('\u2039', page - 1, page === 1);
         const start = Math.max(1, page - 2);
         const end   = Math.min(totalPages, page + 2);
-        if (start > 1) { add('1', 1, false); if (start > 2) bar.insertAdjacentHTML('beforeend', '<span class="text-muted px-1">…</span>'); }
+        if (start > 1) { add('1', 1, false); if (start > 2) bar.insertAdjacentHTML('beforeend', '<span class="text-muted px-1">\u2026</span>'); }
         for (let p = start; p <= end; p++) add(p, p, false);
-        if (end < totalPages) { if (end < totalPages - 1) bar.insertAdjacentHTML('beforeend', '<span class="text-muted px-1">…</span>'); add(totalPages, totalPages, false); }
-        add('›', page + 1, page === totalPages);
+        if (end < totalPages) { if (end < totalPages - 1) bar.insertAdjacentHTML('beforeend', '<span class="text-muted px-1">\u2026</span>'); add(totalPages, totalPages, false); }
+        add('\u203A', page + 1, page === totalPages);
     }
 
-    // ── Detail panel ─────────────────────────────────────────────────────────
+    // \u2500\u2500 Detail panel \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function openDetail(id) {
         const panel = document.getElementById('detailPanel');
         const body  = document.getElementById('detailPanelBody');
-        body.innerHTML = '<div class="text-center py-5 text-secondary"><i class="bi bi-hourglass-split me-1"></i>Loading…</div>';
+        body.innerHTML = '<div class="text-center py-5 text-secondary"><i class="bi bi-hourglass-split me-1"></i>Loading\u2026</div>';
         document.getElementById('overlay').classList.add('show');
         panel.classList.add('open');
 
@@ -148,9 +148,9 @@ const Interactions = (() => {
         document.getElementById('overlay').classList.remove('show');
     }
 
-    // ── Build detail HTML ─────────────────────────────────────────────────────
+    // \u2500\u2500 Build detail HTML \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _buildDetail(ix) {
-        const created = ix.created_at ? _fmtDate(ix.created_at) : '—';
+        const created = ix.created_at ? _fmtDate(ix.created_at) : '\u2014';
         const statusBadge = `<span class="wz-badge ${_statusClass[ix.status] ?? 'wz-badge-muted'} fs-6">${_statusLabel(ix.status)}</span>`;
         const session = _esc(ix.session_key);
 
@@ -162,27 +162,27 @@ const Interactions = (() => {
             <span class="text-muted" style="font-size:.78rem;">${created}</span>
         </div>`;
 
-        // ── Meta row ──
+        // \u2500\u2500 Meta row \u2500\u2500
         html += `<div class="row g-2 mb-3" style="font-size:.83rem;">
             <div class="col-6 metric-card">
                 <div class="text-secondary mb-1" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Connector</div>
-                <div>${_esc(ix.connector_name || '—')}</div>
+                <div>${_esc(ix.connector_name || '\u2014')}</div>
             </div>
             <div class="col-6 metric-card">
                 <div class="text-secondary mb-1" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Agent</div>
-                <div>${_esc(ix.agent_name || '—')}</div>
+                <div>${_esc(ix.agent_name || '\u2014')}</div>
             </div>
             <div class="col-6 metric-card">
                 <div class="text-secondary mb-1" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Queue</div>
-                <div>${_esc(ix.queue_name || '—')}</div>
+                <div>${_esc(ix.queue_name || '\u2014')}</div>
             </div>
             <div class="col-6 metric-card">
                 <div class="text-secondary mb-1" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Wrap-up time</div>
-                <div>${ix.wrap_time != null ? ix.wrap_time + 's' : '—'}</div>
+                <div>${ix.wrap_time != null ? ix.wrap_time + 's' : '\u2014'}</div>
             </div>
         </div>`;
 
-        // ── Visitor metadata ──
+        // \u2500\u2500 Visitor metadata \u2500\u2500
         const vm = ix.visitor_metadata || {};
         if (vm.page_url || vm.page_title || vm.trigger_type) {
             html += `<div class="metric-card mb-3" style="font-size:.82rem;">
@@ -193,12 +193,12 @@ const Interactions = (() => {
             </div>`;
         }
 
-        // ── Segment lifecycle bar ──
+        // \u2500\u2500 Segment lifecycle bar \u2500\u2500
         if (ix.segments && ix.segments.length) {
             html += _buildSegmentBar(ix.segments);
         }
 
-        // ── Outcome + CSAT + NPS ──
+        // \u2500\u2500 Outcome + CSAT + NPS \u2500\u2500
         html += `<div class="row g-2 mb-3">`;
         if (ix.disconnect_outcome) {
             html += `<div class="col-12 metric-card">
@@ -223,7 +223,7 @@ const Interactions = (() => {
         }
         html += `</div>`;
 
-        // ── Notes (AI summary) ──
+        // \u2500\u2500 Notes (AI summary) \u2500\u2500
         if (ix.notes) {
             html += `<div class="metric-card mb-3">
                 <div class="text-secondary mb-1 fw-semibold" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;"><i class="bi bi-robot me-1"></i>AI Summary</div>
@@ -231,14 +231,14 @@ const Interactions = (() => {
             </div>`;
         }
 
-        // ── Tags ──
+        // \u2500\u2500 Tags \u2500\u2500
         if (ix.tags && ix.tags.length) {
             html += `<div class="mb-3 d-flex flex-wrap gap-1">
                 ${ix.tags.map(t => `<span class="wz-badge wz-badge-muted"><i class="bi bi-tag me-1"></i>${_esc(t)}</span>`).join('')}
             </div>`;
         }
 
-        // ── Survey submissions ──
+        // \u2500\u2500 Survey submissions \u2500\u2500
         if (ix.survey_submissions && ix.survey_submissions.length) {
             html += `<div class="metric-card mb-3">
                 <div class="text-secondary mb-2 fw-semibold" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;"><i class="bi bi-clipboard-check me-1"></i>Survey Submissions</div>
@@ -252,7 +252,7 @@ const Interactions = (() => {
             </div>`;
         }
 
-        // ── Chat timeline ──
+        // \u2500\u2500 Chat timeline \u2500\u2500
         html += `<div class="mb-2">
             <div class="text-secondary mb-2 fw-semibold" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;"><i class="bi bi-chat-left-dots me-1"></i>Transcript (${(ix.message_log||[]).length} messages)</div>
             ${_buildTimeline(ix.message_log || [])}
@@ -261,7 +261,7 @@ const Interactions = (() => {
         return html;
     }
 
-    // ── Segment lifecycle bar ─────────────────────────────────────────────────
+    // \u2500\u2500 Segment lifecycle bar \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _buildSegmentBar(segments) {
         // Calculate total duration in seconds for proportional sizing
         let totalMs = 0;
@@ -282,20 +282,20 @@ const Interactions = (() => {
             const icon  = SEG_ICONS[s.type]  || 'circle';
             const dur   = s.ms > 0 ? _fmtDur(s.ms / 1000) : '';
             return `<div class="seg-chunk seg-${s.type || 'unknown'}" style="flex:${pct.toFixed(1)};"
-                         title="${label}${dur ? ' · ' + dur : ''}">
-                <i class="bi bi-${icon} me-1"></i>${label}${dur ? ` · ${dur}` : ''}
+                         title="${label}${dur ? ' \u00B7 ' + dur : ''}">
+                <i class="bi bi-${icon} me-1"></i>${label}${dur ? ` \u00B7 ${dur}` : ''}
             </div>`;
         }).join('');
 
         // Detailed segment list
         const details = withDuration.map(s => {
-            const start = s.started_at ? _fmtDate(s.started_at) : '—';
+            const start = s.started_at ? _fmtDate(s.started_at) : '\u2014';
             const end   = s.ended_at   ? _fmtDate(s.ended_at)   : 'ongoing';
-            const dur   = s.ms > 0 ? ' · ' + _fmtDur(s.ms / 1000) : '';
+            const dur   = s.ms > 0 ? ' \u00B7 ' + _fmtDur(s.ms / 1000) : '';
             const label = SEG_LABELS[s.type] || s.type;
             return `<div class="d-flex justify-content-between" style="font-size:.75rem;border-bottom:1px solid #2a2a3e;padding:.25rem 0;">
                 <span class="seg-${s.type || 'unknown'} px-2 rounded">${label}</span>
-                <span class="text-muted">${start} → ${end}${dur}</span>
+                <span class="text-muted">${start} \u2192 ${end}${dur}</span>
             </div>`;
         }).join('');
 
@@ -306,7 +306,7 @@ const Interactions = (() => {
         </div>`;
     }
 
-    // ── Chat timeline bubbles ─────────────────────────────────────────────────
+    // \u2500\u2500 Chat timeline bubbles \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _buildTimeline(messages) {
         if (!messages.length) return '<div class="text-muted" style="font-size:.82rem;">No messages recorded.</div>';
 
@@ -346,7 +346,7 @@ const Interactions = (() => {
             return `<div class="msg-row ${cfg.cls}">
                 ${avatar}
                 <div>
-                    <div class="msg-meta">${cfg.label} · ${ts}</div>
+                    <div class="msg-meta">${cfg.label} \u00B7 ${ts}</div>
                     <div class="msg-bubble">${text}</div>
                 </div>
             </div>`;
@@ -355,7 +355,7 @@ const Interactions = (() => {
         return `<div class="chat-timeline">${bubbles}</div>`;
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // \u2500\u2500 Helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _renderStars(score, max) {
         let out = '';
         for (let i = 1; i <= max; i++) {
@@ -389,7 +389,7 @@ const Interactions = (() => {
     }
 
     function _fmtDate(iso) {
-        if (!iso) return '—';
+        if (!iso) return '\u2014';
         const d = new Date(iso);
         return d.toLocaleDateString('en-ZA', { year:'numeric', month:'short', day:'numeric' })
              + ' ' + d.toLocaleTimeString('en-ZA', { hour:'2-digit', minute:'2-digit' });

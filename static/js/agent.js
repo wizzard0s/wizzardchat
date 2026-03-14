@@ -1,12 +1,12 @@
-﻿/**
- * WizzardChat – Agent Panel JS
+/**
+ * WizzardChat \u2013 Agent Panel JS
  * Connects to /ws/agent, manages session list, chat window, and campaign dispatch.
  * navToggle, accordion init, availability init, and agentName are in sidebar.js
  */
 'use strict';
 
 
-// ─── Auth helpers ────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Auth helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const _token = () => localStorage.getItem('wizzardchat_token') || '';
 
 async function apiFetch(url, opts = {}) {
@@ -19,11 +19,11 @@ async function apiFetch(url, opts = {}) {
     return res;
 }
 
-// ─── State ───────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 State \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 let ws = null;
-let sessions = {};           // session_key → session data
+let sessions = {};           // session_key \u2192 session data
 let activeKey = null;        // currently open session key
-let chatHistory = {};        // session_key → [{from, text, ts}]
+let chatHistory = {};        // session_key \u2192 [{from, text, ts}]
 let currentUserId = null;
 let activeCampaignId = null;
 
@@ -36,14 +36,14 @@ let diallerPollTimer = null; // setInterval handle for progress polling
 let diallerOutcomeCode = null; // selected outcome code
 
 let typingTimer = null;
-let sessionOutcomes = {};   // session_key → [{id, code, label, action_type, ...}]
-let wrapTimers = {};         // session_key → { intervalId, secondsLeft }
+let sessionOutcomes = {};   // session_key \u2192 [{id, code, label, action_type, ...}]
+let wrapTimers = {};         // session_key \u2192 { intervalId, secondsLeft }
 let myCapacity = null;       // CapacityOut from /api/v1/agents/me/capacity
 let myLoad = { total: 0, voice: 0, chat: 0, whatsapp: 0, email: 0, sms: 0 };
 let voiceCall = null;        // { attemptId, contactName, contactPhone, connectedAt, muted, held }
 let voiceTimerInterval = null;
 
-// ─── DOM refs ────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 DOM refs \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const $ = id => document.getElementById(id);
 
 const el = {
@@ -158,7 +158,7 @@ const el = {
     chatInputRow:        $('chatInputRow'),
 };
 
-// ─── Init ────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Init \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 document.addEventListener('DOMContentLoaded', async () => {
     if (!_token()) { window.location.href = '/login'; return; }
 
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     bindUI();
 });
 
-// ─── Availability ─────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Availability \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const AVAILABILITY_COLORS = {
     available: '#198754', admin: '#0d6efd', lunch: '#ffc107',
     break: '#fd7e14', training: '#6f42c1', meeting: '#20c997', offline: '#6c757d'
@@ -191,13 +191,13 @@ function setAvailabilityUI(status) {
     }
 }
 
-// ─── Campaigns ───────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Campaigns \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 async function loadCampaigns() {
     try {
         const r = await apiFetch('/api/v1/campaigns');
         if (!r.ok) return;
         const camps = await r.json();
-        el.campaignSel.innerHTML = '<option value="">— All campaigns —</option>';
+        el.campaignSel.innerHTML = '<option value="">\u2014 All campaigns \u2014</option>';
         camps.forEach(c => {
             const opt = document.createElement('option');
             opt.value = c.id;
@@ -211,7 +211,7 @@ async function loadCampaigns() {
     } catch { /* ignore */ }
 }
 
-// ─── WebSocket ───────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 WebSocket \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function connectWs() {
     const wsBase = window.location.origin.replace(/^http/, 'ws');
     const url = wsBase + '/ws/agent?token=' + encodeURIComponent(_token());
@@ -219,19 +219,19 @@ function connectWs() {
 
     ws.onopen = () => {
         el.wsStatusDot.className = 'status-dot online';
-        el.campaignStatus.textContent = activeCampaignId ? 'Connected – campaign active' : 'Connected – receiving all sessions';
+        el.campaignStatus.textContent = activeCampaignId ? 'Connected \u2013 campaign active' : 'Connected \u2013 receiving all sessions';
         // Re-apply campaign filter after reconnect
         if (activeCampaignId) {
             wsSend({ type: 'set_campaign', campaign_id: activeCampaignId });
         }
-        // Do NOT re-send availability here — the server sends availability_set on every
+        // Do NOT re-send availability here \u2014 the server sends availability_set on every
         // connect with the persisted state. Re-sending from the dropdown would overwrite
         // the server's stored value with the HTML default ("offline") on every page load.
     };
 
     ws.onclose = () => {
         el.wsStatusDot.className = 'status-dot offline';
-        el.campaignStatus.textContent = 'Disconnected – reconnecting…';
+        el.campaignStatus.textContent = 'Disconnected \u2013 reconnecting\u2026';
         setTimeout(connectWs, 3000);
     };
 
@@ -250,7 +250,7 @@ function wsSend(data) {
     }
 }
 
-// ─── Emoji picker ────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Emoji picker \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const AGENT_EMOJIS = [
   '\u{1F600}','\u{1F603}','\u{1F604}','\u{1F601}','\u{1F606}','\u{1F605}','\u{1F923}','\u{1F602}','\u{1F642}','\u{1F609}','\u{1F60A}','\u{1F607}',
   '\u{1F970}','\u{1F60D}','\u{1F618}','\u{1F61B}','\u{1F61C}','\u{1F61D}','\u{1F911}','\u{1F917}','\u{1F914}','\u{1F610}','\u{1F611}','\u{1F636}',
@@ -299,7 +299,7 @@ function closeAgentEmojiPicker() {
     el.emojiPicker?.classList.remove('ep-open');
 }
 
-// ─── File upload (agent) ───────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 File upload (agent) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function agentUpload(file) {
     if (!file || !activeKey) return;
     const fd = new FormData();
@@ -320,7 +320,7 @@ function agentUpload(file) {
     if (el.fileInput) el.fileInput.value = '';
 }
 
-// ─── WS message handler ───────────────────────────────────────────────────────
+// \u2500\u2500\u2500 WS message handler \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function handleWsMsg(msg) {
     switch (msg.type) {
 
@@ -382,7 +382,7 @@ function handleWsMsg(msg) {
             activeCampaignId = msg.campaign_id;
             el.campaignSel.value = msg.campaign_id || '';
             el.campaignStatus.textContent = msg.campaign_id
-                ? (msg.auto_selected ? 'Campaign auto-selected – dispatch on' : 'Campaign active – auto-dispatch on')
+                ? (msg.auto_selected ? 'Campaign auto-selected \u2013 dispatch on' : 'Campaign active \u2013 auto-dispatch on')
                 : 'Serving all campaigns';
             if (msg.campaign_id) {
                 if (el.dpBtnOpenPanel) el.dpBtnOpenPanel.style.display = '';
@@ -443,14 +443,14 @@ function handleWsMsg(msg) {
 
         case 'typing':
             if (msg.session_id === activeKey) {
-                el.typingInd.textContent = 'Visitor is typing…';
+                el.typingInd.textContent = 'Visitor is typing\u2026';
                 clearTimeout(typingTimer);
                 typingTimer = setTimeout(() => { el.typingInd.textContent = ''; }, 3000);
             }
             break;
 
         case 'session_flow_redirected': {
-            // Agent’s outcome sent the visitor into a new flow — update local state
+            // Agent\u2019s outcome sent the visitor into a new flow \u2014 update local state
             const key = msg.session_id;
             if (sessions[key]) {
                 sessions[key].status = 'active';
@@ -462,7 +462,7 @@ function handleWsMsg(msg) {
         }
 
         case 'session_visitor_left': {
-            // Visitor disconnected while agent was assigned — enter wrap-up
+            // Visitor disconnected while agent was assigned \u2014 enter wrap-up
             const key = msg.session_id;
             const secs = msg.wrap_seconds || 120;
             if (sessions[key]) sessions[key].status = 'wrap_up';
@@ -477,7 +477,7 @@ function handleWsMsg(msg) {
             }
             break;
         }
-// ── Wrap-up helpers ──────────────────────────────────────────────────────────
+// \u2500\u2500 Wrap-up helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 function _fmtCountdown(s) {
     const m = Math.floor(s / 60);
@@ -541,7 +541,7 @@ function _renderWrapOutcomes(sessionKey) {
         return `<button class="wrap-outcome-btn ${acls}" data-code="${esc(o.code)}">${esc(o.label)}</button>`;
     }).join('');
     if (outcomes.length > 5) {
-        html += `<button class="wrap-outcome-btn neutral" id="wrapMoreBtn">More…</button>`;
+        html += `<button class="wrap-outcome-btn neutral" id="wrapMoreBtn">More\u2026</button>`;
     }
     el.wrapOutcomeRow.innerHTML = html;
     el.wrapOutcomeRow.querySelectorAll('.wrap-outcome-btn').forEach(btn => {
@@ -553,7 +553,7 @@ function _renderWrapOutcomes(sessionKey) {
         if (o) btn.addEventListener('click', () => selectOutcome(o));
     });
 }
-// ─── Outcome helpers ─────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Outcome helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 async function loadSessionOutcomes(sessionKey) {
     try {
@@ -561,7 +561,7 @@ async function loadSessionOutcomes(sessionKey) {
         if (r.ok) {
             sessionOutcomes[sessionKey] = await r.json();
         }
-    } catch { /* network error — fallback below */ }
+    } catch { /* network error \u2014 fallback below */ }
     // Guarantee at least Resolve if the fetch failed or returned empty
     if (!sessionOutcomes[sessionKey]?.length) {
         sessionOutcomes[sessionKey] = [{
@@ -594,8 +594,8 @@ function renderOutcomeModal(sessionKey) {
     // Only render groups that have at least one outcome
     const nonEmpty = SENTIMENT_ORDER.filter(t => groups[t].length);
 
-    // Up to 4 columns — one per sentiment group present
-    // 4 groups → col-3 (25% each); fewer groups → col-4 (33%)
+    // Up to 4 columns \u2014 one per sentiment group present
+    // 4 groups \u2192 col-3 (25% each); fewer groups \u2192 col-4 (33%)
     const colClass = nonEmpty.length >= 4 ? 'col-12 col-sm-6 col-lg-3' : 'col-12 col-sm-6 col-lg-4';
 
     let html = '<div class="row g-3">';
@@ -665,7 +665,7 @@ function selectOutcome(outcome) {
         outcome_code: outcome.code || 'resolve',
         notes:        wrapNote || undefined,
     });
-    // Optimistic update — backend confirms via session_flow_redirected or session_closed.
+    // Optimistic update \u2014 backend confirms via session_flow_redirected or session_closed.
     // Use the outcome's action_type so the card moves to the right list immediately.
     if (sessions[activeKey]) {
         if (outcome.action_type === 'flow_redirect') {
@@ -685,7 +685,7 @@ function selectOutcome(outcome) {
     closeAgentEmojiPicker();
 }
 
-// ─── Session list rendering ───────────────────────────────────────────────────
+// \u2500\u2500\u2500 Session list rendering \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function renderSessionLists() {
     const waiting = [], mine = [], flow = [], wrap = [];
 
@@ -737,7 +737,7 @@ function sessionCardHTML(s, cssClass) {
     </div>`;
 }
 
-// ─── Open session ─────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Open session \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function openSession(key) {
     activeKey = key;
 
@@ -787,7 +787,7 @@ function openSession(key) {
     el.typingInd.textContent = '';
     _showSummary(s && s.notes ? s.notes : null);
 
-    // Enable input if I'm the agent (not during wrap-up — visitor already left)
+    // Enable input if I'm the agent (not during wrap-up \u2014 visitor already left)
     const canType = s && s.status === 'with_agent' && s.agent_id === currentUserId;
     el.msgInput.disabled = !canType;
     el.btnSend.disabled  = !canType;
@@ -800,10 +800,10 @@ function openSession(key) {
     if (isWrap) {
         const state = wrapTimers[key];
         if (state) {
-            // Timer was already ticking in the background — resume display
+            // Timer was already ticking in the background \u2014 resume display
             startWrapUp(key, state.secondsLeft);
         } else {
-            // No timer running (e.g. page reload) — start fresh with remaining time
+            // No timer running (e.g. page reload) \u2014 start fresh with remaining time
             startWrapUp(key, 120);
         }
     } else {
@@ -817,7 +817,7 @@ function updateChatHeader() {
 
     const meta = s.metadata || {};
     el.chatName.textContent = s.visitor_name || meta.name || 'Visitor';
-    el.chatMeta.textContent = [meta.email, meta.page_url ? '🔗 ' + meta.page_url : ''].filter(Boolean).join(' · ');
+    el.chatMeta.textContent = [meta.email, meta.page_url ? '\uD83D\uDD17 ' + meta.page_url : ''].filter(Boolean).join(' \u00B7 ');
 
     const badgeMap = {
         active:        ['wz-status-in-flow',  'In Flow'],
@@ -830,9 +830,9 @@ function updateChatHeader() {
     el.chatBadge.className = 'wz-badge ' + cls;
     el.chatBadge.textContent = label;
 
-    // ── Channel badge + header border ──────────────────────────────────────
+    // \u2500\u2500 Channel badge + header border \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const channel = s.channel || (meta.channel) || 'chat';
-    const chLabels = { voice: '📞 Voice', chat: '💬 Chat', whatsapp: '🟢 WhatsApp', email: '✉ Email', sms: '📱 SMS' };
+    const chLabels = { voice: '\uD83D\uDCDE Voice', chat: '\uD83D\uDCAC Chat', whatsapp: '\uD83D\uDFE2 WhatsApp', email: '\u2709 Email', sms: '\uD83D\uDCF1 SMS' };
     const chBadgeCls = { voice: 'ch-badge-voice', chat: 'ch-badge-chat', whatsapp: 'ch-badge-whatsapp', email: 'ch-badge-email', sms: 'ch-badge-sms' };
     const chHeaderCls = { voice: 'ch-voice', chat: 'ch-chat', whatsapp: 'ch-whatsapp', email: 'ch-email', sms: 'ch-sms' };
     if (el.chatChannelBadge) {
@@ -844,7 +844,7 @@ function updateChatHeader() {
         if (chHeaderCls[channel]) el.chatHeaderBar.classList.add(chHeaderCls[channel]);
     }
 
-    // ── Context bar ─────────────────────────────────────────────────────────
+    // \u2500\u2500 Context bar \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     if (el.chatContextBar) {
         const ref = s.session_key ? s.session_key.slice(-8).toUpperCase() : '';
         if (el.ctxContactRef) el.ctxContactRef.textContent = ref ? '#' + ref : '';
@@ -862,7 +862,7 @@ function updateChatHeader() {
         el.chatContextBar.classList.toggle('active', s.status !== 'closed');
     }
 
-    // ── Voice input row visibility ───────────────────────────────────────────
+    // \u2500\u2500 Voice input row visibility \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const isVoice = channel === 'voice';
     if (el.voiceInputRow) el.voiceInputRow.classList.toggle('active', isVoice && s.status === 'with_agent');
     if (el.chatInputRow)  el.chatInputRow.style.display = (isVoice && s.status === 'with_agent') ? 'none' : '';
@@ -893,7 +893,7 @@ function updateChatHeader() {
     }
 }
 
-// ─── Chat bubbles ─────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Chat bubbles \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function appendBubble(from, text, ts, doScroll = true, subtype = 'message', filename = '') {
     const div = document.createElement('div');
     div.className = 'bubble ' + (from || 'system');
@@ -934,7 +934,7 @@ function flashSessionCard(key) {
     setTimeout(() => { card.style.background = ''; }, 800);
 }
 
-// ─── Capacity bar ────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Capacity bar \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // Hard-coded fallback shown when the API is unreachable (e.g. server restarting).
 const _CAP_DEFAULTS = {
     omni_max: 8, channel_max_voice: 1, channel_max_chat: 5,
@@ -951,7 +951,7 @@ async function loadCapacity() {
         if (r.ok) {
             myCapacity = await r.json();
         } else {
-            // API unavailable — show defaults so the toolbar is never blank
+            // API unavailable \u2014 show defaults so the toolbar is never blank
             myCapacity = { ...myCapacity, ..._CAP_DEFAULTS };
         }
     } catch {
@@ -990,7 +990,7 @@ function updateCapacityBar() {
     }
 }
 
-// ─── Voice card helpers ───────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Voice card helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function _showVoiceCard(state, stateText) {
     if (!el.voiceCard) return;
     if (el.vcCallerName) el.vcCallerName.textContent = voiceCall?.contactName  || 'Unknown Caller';
@@ -1036,7 +1036,7 @@ function _startVoiceTimer() {
     }, 1000);
 }
 
-// ─── Dialler (Campaign panel) ────────────────────────────────────────────────
+// \u2500\u2500\u2500 Dialler (Campaign panel) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 function diallerShowView() {
     if (!activeCampaignId || activeKey) return;
@@ -1149,7 +1149,7 @@ function diallerRenderHeader() {
     const mode = (diallerProgress?.dialler_mode) || diallerCampaign.settings?.dialler_mode || '';
     if (el.dpDiallerMode) el.dpDiallerMode.textContent = mode ? mode.charAt(0).toUpperCase() + mode.slice(1) + ' mode' : '';
 
-    // ── Toolbar campaign badge ───────────────────────────────────────────────
+    // \u2500\u2500 Toolbar campaign badge \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     if (el.tbarCampaignBadge) {
         el.tbarCampaignBadge.classList.add('active');
         if (el.tbarCampaignName) el.tbarCampaignName.textContent = diallerCampaign.name || '';
@@ -1168,11 +1168,11 @@ function diallerRenderProgress() {
 
     if (el.dpByStatus) {
         const pills = [
-            { key: 'completed', label: '✓ Done',       cls: 'wz-status-completed' },
-            { key: 'no_answer', label: '↩ No Answer',  cls: 'wz-status-no-answer' },
-            { key: 'busy',      label: '☎ Busy',       cls: 'wz-status-busy'      },
-            { key: 'failed',    label: '✗ Failed',     cls: 'wz-status-failed'    },
-            { key: 'skipped',   label: '⟫ Skipped',    cls: 'wz-status-inactive'  },
+            { key: 'completed', label: '\u2713 Done',       cls: 'wz-status-completed' },
+            { key: 'no_answer', label: '\u21A9 No Answer',  cls: 'wz-status-no-answer' },
+            { key: 'busy',      label: '\u260E Busy',       cls: 'wz-status-busy'      },
+            { key: 'failed',    label: '\u2717 Failed',     cls: 'wz-status-failed'    },
+            { key: 'skipped',   label: '\u27EB Skipped',    cls: 'wz-status-inactive'  },
         ].filter(p => (by_status[p.key] || 0) > 0);
         el.dpByStatus.innerHTML = pills.map(p =>
             `<span class="wz-badge ${p.cls} dp-stat-pill">${p.label}: ${by_status[p.key]}</span>`
@@ -1345,7 +1345,7 @@ function diallerStopPoll() {
     if (diallerPollTimer) { clearInterval(diallerPollTimer); diallerPollTimer = null; }
 }
 
-// ─── Action buttons ───────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Action buttons \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function bindUI() {
     // Campaign apply
     el.btnSetCampaign?.addEventListener('click', () => {
@@ -1391,7 +1391,7 @@ function bindUI() {
         closeAgentEmojiPicker();
     });
 
-    // Direct close (waiting / in-flow — no outcome required)
+    // Direct close (waiting / in-flow \u2014 no outcome required)
     el.btnClose?.addEventListener('click', () => {
         if (!activeKey) return;
         if (!confirm('Close this session?')) return;
@@ -1406,7 +1406,7 @@ function bindUI() {
         closeAgentEmojiPicker();
     });
 
-    // Outcome button — opens sentiment-grouped modal
+    // Outcome button \u2014 opens sentiment-grouped modal
     el.btnOutcome?.addEventListener('click', () => {
         if (!activeKey) return;
         openOutcomeModal(activeKey);
@@ -1450,7 +1450,7 @@ function bindUI() {
         if (this.files && this.files[0]) agentUpload(this.files[0]);
     });
 
-    // Pick Next — arm a one-shot +1 capacity override
+    // Pick Next \u2014 arm a one-shot +1 capacity override
     el.btnPickNext?.addEventListener('click', async () => {
         const r = await apiFetch('/api/v1/agents/me/pick-next', { method: 'POST' });
         if (r.ok || r.status === 204) {
@@ -1459,7 +1459,7 @@ function bindUI() {
         }
     });
 
-    // ── Voice card controls (session panel) ──────────────────────────────────
+    // \u2500\u2500 Voice card controls (session panel) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     el.vcBtnMute?.addEventListener('click', () => {
         if (!voiceCall) return;
         wsSend({ type: voiceCall.muted ? 'call_unmute' : 'call_mute', attempt_id: voiceCall.attemptId });
@@ -1476,7 +1476,7 @@ function bindUI() {
         wsSend({ type: 'call_hangup', attempt_id: voiceCall.attemptId });
     });
 
-    // ── Voice input row controls (chat area) ─────────────────────────────────
+    // \u2500\u2500 Voice input row controls (chat area) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     el.viBtnMute?.addEventListener('click', () => {
         if (!voiceCall) return;
         wsSend({ type: voiceCall.muted ? 'call_unmute' : 'call_mute', attempt_id: voiceCall.attemptId });
@@ -1507,7 +1507,7 @@ function bindUI() {
         window.location.href = '/login';
     });
 
-    // ── Dialler panel controls ───────────────────────────────────────────────
+    // \u2500\u2500 Dialler panel controls \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     el.dpBtnOpenPanel?.addEventListener('click', () => {
         if (!activeCampaignId) return;
         if (el.chatView) el.chatView.style.display = 'none';
@@ -1534,7 +1534,7 @@ function bindUI() {
     });
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function esc(v) {
     return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }

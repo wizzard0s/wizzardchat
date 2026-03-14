@@ -1,4 +1,4 @@
-/* WizzardChat – Main dashboard JS */
+/* WizzardChat \u2013 Main dashboard JS */
 /* navToggle, accordion init, availability, and agentName are in sidebar.js */
 
 (function () {
@@ -6,7 +6,7 @@
     let token = localStorage.getItem('wizzardchat_token');
     let currentUserData = null;
 
-    // ──── Auth ────
+    // \u2500\u2500\u2500\u2500 Auth \u2500\u2500\u2500\u2500
     async function apiFetch(url, opts = {}) {
         opts.headers = opts.headers || {};
         if (token) opts.headers['Authorization'] = 'Bearer ' + token;
@@ -42,7 +42,7 @@
         window.location.href = '/login';
     });
 
-    // ──── Availability selector (shared across all non-agent pages) ────
+    // \u2500\u2500\u2500\u2500 Availability selector (shared across all non-agent pages) \u2500\u2500\u2500\u2500
     // Handled by sidebar.js; initAvailability() kept for post-login refresh
     function initAvailability() {
         const sel = document.getElementById('availabilitySelect');
@@ -59,7 +59,7 @@
         }
     }
 
-    // ──── Section navigation ────
+    // \u2500\u2500\u2500\u2500 Section navigation \u2500\u2500\u2500\u2500
     document.querySelectorAll('[data-section]').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -72,7 +72,7 @@
         });
     });
 
-    // ──── Flows Section ────
+    // \u2500\u2500\u2500\u2500 Flows Section \u2500\u2500\u2500\u2500
     let flowFilters = { name: '', status: '', flow_type: '' };
 
     async function loadFlowsSection() {
@@ -104,14 +104,14 @@
             return `<span class="badge bg-${map[t] || 'secondary'}">${(t || 'main_flow').replace(/_/g, ' ')}</span>`;
         };
         const channelBadge = (c) => {
-            if (!c) return '<span class="text-muted">—</span>';
+            if (!c) return '<span class="text-muted">\u2014</span>';
             const map = { voice: 'success', chat: 'primary', whatsapp: 'success', app: 'info', email: 'warning', sms: 'secondary' };
             return `<span class="badge bg-${map[c] || 'secondary'}">${c}</span>`;
         };
         const rows = flows.map(f => `
             <tr>
                 <td><a href="/flow-designer/${f.id}" class="text-decoration-none fw-semibold">${f.name}</a></td>
-                <td class="text-muted small">${f.description || '—'}</td>
+                <td class="text-muted small">${f.description || '\u2014'}</td>
                 <td>${typeBadge(f.flow_type)}</td>
                 <td>${statusBadge(f.status)}</td>
                 <td>${channelBadge(f.channel)}</td>
@@ -124,7 +124,7 @@
             </tr>
         `).join('');
         const emptyMsg = flows.length === 0
-            ? '<tr><td colspan="8" class="text-center text-muted py-4">No flows found — click <strong>New Flow</strong> to create one.</td></tr>'
+            ? '<tr><td colspan="8" class="text-center text-muted py-4">No flows found \u2014 click <strong>New Flow</strong> to create one.</td></tr>'
             : rows;
         main.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -195,7 +195,7 @@
         document.getElementById('btnNewFlow')?.addEventListener('click', () => showNewFlowModal());
     }
 
-    // ── New Flow modal ──
+    // \u2500\u2500 New Flow modal \u2500\u2500
     function showNewFlowModal() {
         let modal = document.getElementById('newFlowModal');
         if (!modal) {
@@ -268,7 +268,7 @@
         new bootstrap.Modal(modal).show();
     }
 
-    // ── Delete flow ──
+    // \u2500\u2500 Delete flow \u2500\u2500
     window._wc_deleteFlow = async function (id, name) {
         if (!confirm('Delete flow "' + name + '"? This cannot be undone.')) return;
         try {
@@ -284,7 +284,7 @@
         }
     };
 
-    // ──── Users Section ────
+    // \u2500\u2500\u2500\u2500 Users Section \u2500\u2500\u2500\u2500
     async function loadUsersSection() {
         const main = document.getElementById('mainContent');
         main.innerHTML = '<h4 class="mb-4"><i class="bi bi-shield-lock me-2"></i>Users</h4><p class="text-muted">Loading...</p>';
@@ -293,7 +293,7 @@
             if (!res.ok) throw new Error('Failed to load users');
             const users = await res.json();
 
-            // Always render the table (even if empty – it shows "Add User" button)
+            // Always render the table (even if empty \u2013 it shows "Add User" button)
             renderUsersTable(users);
         } catch (err) {
             main.innerHTML = '<h4 class="mb-4"><i class="bi bi-shield-lock me-2"></i>Users</h4><div class="alert alert-danger">' + err.message + '</div>';
@@ -315,7 +315,7 @@
                 <td>${u.full_name}</td>
                 <td>${u.username}</td>
                 <td>${u.email}</td>
-                <td>${u.phone_number || '<span class="text-muted">—</span>'}</td>
+                <td>${u.phone_number || '<span class="text-muted">\u2014</span>'}</td>
                 <td>${roleBadge(u.role)}</td>
                 <td>${authBadge(u.auth_type)}</td>
                 <td><span class="badge bg-${u.is_active ? 'success' : 'secondary'}">${u.is_active ? 'Active' : 'Disabled'}</span></td>
@@ -327,7 +327,7 @@
             </tr>
         `).join('');
         const emptyMsg = users.length === 0
-            ? '<tr><td colspan="9" class="text-center text-muted py-4">No users yet — click <strong>Add User</strong> to get started.</td></tr>'
+            ? '<tr><td colspan="9" class="text-center text-muted py-4">No users yet \u2014 click <strong>Add User</strong> to get started.</td></tr>'
             : rows;
         main.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -346,7 +346,7 @@
         document.getElementById('btnAddUser')?.addEventListener('click', () => showAddUserModal());
     }
 
-    // ── Delete user ──
+    // \u2500\u2500 Delete user \u2500\u2500
     window._wc_deleteUser = async function (id, username) {
         if (!confirm('Delete user "' + username + '"?')) return;
         try {
@@ -362,7 +362,7 @@
         }
     };
 
-    // ── Edit user ──
+    // \u2500\u2500 Edit user \u2500\u2500
     window._wc_editUser = async function (id) {
         try {
             const res = await apiFetch('/api/v1/users/' + id);
@@ -457,7 +457,7 @@
         new bootstrap.Modal(modal).show();
     }
 
-    // ── Add user modal ──
+    // \u2500\u2500 Add user modal \u2500\u2500
     function showAddUserModal() {
         let modal = document.getElementById('addUserModal');
         if (!modal) {
@@ -533,7 +533,7 @@
         new bootstrap.Modal(modal).show();
     }
 
-    // ──── Settings Section (admin only) ────
+    // \u2500\u2500\u2500\u2500 Settings Section (admin only) \u2500\u2500\u2500\u2500
     async function loadSettingsSection() {
         const main = document.getElementById('mainContent');
         if (!isAdmin()) {
@@ -607,7 +607,7 @@
         }
     };
 
-    // ──── Dashboard data ────
+    // \u2500\u2500\u2500\u2500 Dashboard data \u2500\u2500\u2500\u2500
     async function loadDashboard() {
         try {
             // Stat cards
@@ -665,7 +665,7 @@
         }
     }
 
-    // ──── Init ────
+    // \u2500\u2500\u2500\u2500 Init \u2500\u2500\u2500\u2500
     async function init() {
         if (!token) {
             showLogin();
@@ -688,7 +688,7 @@
                 showLogin();
             }
         } catch {
-            // Network error (server down/restarting) — token is still in
+            // Network error (server down/restarting) \u2014 token is still in
             // localStorage so only show login if it was cleared by a 401.
             if (!localStorage.getItem('wizzardchat_token')) {
                 showLogin();
@@ -702,7 +702,7 @@
     init();
 })();
 
-// ─── Password visibility toggle ──────────────────────────────────
+// \u2500\u2500\u2500 Password visibility toggle \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function togglePass(id, btn) {
   const inp = document.getElementById(id);
   const icon = btn.querySelector('i');

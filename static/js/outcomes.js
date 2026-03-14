@@ -1,5 +1,5 @@
-﻿/**
- * WizzardChat – Outcomes management page
+/**
+ * WizzardChat \u2013 Outcomes management page
  */
 (function () {
     'use strict';
@@ -31,7 +31,7 @@
     const ACTION_LABELS = { end_interaction: 'End interaction', flow_redirect: 'Redirect to flow' };
     const ACTION_CLASS  = { end_interaction: 'action-badge-end', flow_redirect: 'action-badge-redirect' };
 
-    // ─── Load / Render ──────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Load / Render \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadFlows() {
         const r = await apiFetch('/api/v1/flows?include_sub_flows=true');
         if (r.ok) {
@@ -59,7 +59,7 @@
         document.getElementById('oRedirectFlowRow').style.display = v === 'flow_redirect' ? '' : 'none';
     }
 
-    // ─── CSAT hint ──────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 CSAT hint \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _getCSATTemplateFlow() {
         return _allFlows.find(f => f.name === '__template__csat_survey');
     }
@@ -114,7 +114,7 @@
 <td><code class="text-info">${esc(o.code)}</code></td>
 <td class="fw-semibold">${esc(o.label)}</td>
 <td><span class="wz-badge ${typeCls}">${esc(typeLabel)}</span></td>
-<td class="text-muted small">${esc(o.description || '—')}</td>
+<td class="text-muted small">${esc(o.description || '\u2014')}</td>
 <td class="text-center">
     ${o.is_active
         ? '<span class="wz-badge wz-badge-ok">Active</span>'
@@ -128,7 +128,7 @@
         });
     }
 
-    // ─── Modal open ─────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Modal open \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.openOutcomeModal = function (id) {
         _editId = id || null;
         const title = document.getElementById('outcomeModalTitle');
@@ -169,7 +169,7 @@
             .substring(0, 50);
     });
 
-    // ─── Save ───────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Save \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.saveOutcome = async function () {
         const code  = document.getElementById('oCode').value.trim().toLowerCase().replace(/\s+/g, '_');
         const label = document.getElementById('oLabel').value.trim();
@@ -202,7 +202,7 @@
         await loadOutcomes();
     };
 
-    // ─── Delete ─────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Delete \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.deleteOutcome = function (id, label) {
         _deleteId = id;
         document.getElementById('deleteOName').textContent = label;
@@ -217,14 +217,14 @@
         await loadOutcomes();
     };
 
-    // ─── Logout ─────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Logout \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     document.getElementById('btnLogout').addEventListener('click', e => {
         e.preventDefault();
         localStorage.removeItem('wizzardchat_token');
         window.location.href = '/login';
     });
 
-    // ─── Boot ───────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Boot \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     _guard();
     document.getElementById('oActionType').addEventListener('change', _updateFlowRowVisibility);
     document.getElementById('oType').addEventListener('change', _updateCsatHint);

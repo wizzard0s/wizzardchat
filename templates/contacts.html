@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,7 +7,7 @@
     <script src="/static/js/wz-theme.js"></script>
     <script src="/static/js/wz-theme.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contacts â€“ WizzardChat</title>
+    <title>Contacts &ndash; WizzardChat</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="/static/css/wizzardchat.css" rel="stylesheet">
@@ -34,17 +34,17 @@
         <span class="fs-5 fw-bold">WizzardChat</span>
     </a>
     <div class="d-flex align-items-center gap-2 mb-1">
-        <span class="flex-fill text-truncate small" id="agentName">â€“</span>
+        <span class="flex-fill text-truncate small" id="agentName">&ndash;</span>
         <button class="btn btn-sm btn-outline-secondary" id="btnLogout" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
     </div>
     <select class="form-select form-select-sm av-offline mb-2" id="availabilitySelect" title="Set your availability">
-        <option value="available">ðŸŸ¢ Available</option>
-        <option value="admin">ðŸ”µ Admin</option>
-        <option value="lunch">ðŸŸ¡ Lunch</option>
-        <option value="break">ðŸŸ  Break</option>
-        <option value="training">ðŸŸ£ Training</option>
-        <option value="meeting">ðŸ”µ Meeting</option>
-        <option value="offline" selected>âš« Offline</option>
+        <option value="available">&#x1F7E2; Available</option>
+        <option value="admin">&#x1F535; Admin</option>
+        <option value="lunch">&#x1F7E1; Lunch</option>
+        <option value="break">&#x1F7E0; Break</option>
+        <option value="training">&#x1F7E3; Training</option>
+        <option value="meeting">&#x1F535; Meeting</option>
+        <option value="offline" selected>&#x26AB; Offline</option>
     </select>
     <hr class="border-secondary">
     <ul class="nav nav-pills flex-column flex-nowrap" style="flex:1 1 0;overflow-y:auto;min-height:0;">
@@ -115,13 +115,13 @@
 
 
 
-<!-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Main â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+<!-- --------------------------- Main --------------------------- -->
 <main style="margin-left:220px;padding:24px;min-height:100vh;">
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h4 class="mb-0 fw-bold"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Contacts</h4>
-            <small class="text-muted" id="contactCountLabel">Loadingâ€¦</small>
+            <small class="text-muted" id="contactCountLabel">Loading&hellip;</small>
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-outline-secondary btn-sm" onclick="openImportModal()">
@@ -147,12 +147,12 @@
         </li>
     </ul>
 
-    <!-- â•â•â• CONTACTS TAB â•â•â• -->
+    <!-- -&bull;--&bull;--&bull;- CONTACTS TAB -&bull;--&bull;--&bull;- -->
     <div id="contactsPane">
         <!-- Filters -->
         <div class="d-flex gap-2 mb-3 flex-wrap">
             <input type="text" id="searchInput" class="form-control form-control-sm" style="max-width:260px"
-                   placeholder="Search name, email, phoneâ€¦" oninput="debounceSearch()">
+                   placeholder="Search name, email, phone&hellip;" oninput="debounceSearch()">
             <select id="filterStatus" class="form-select form-select-sm" style="max-width:160px" onchange="loadContacts()">
                 <option value="">All Statuses</option>
                 <option value="active">Active</option>
@@ -173,7 +173,7 @@
              style="background:rgba(13,110,253,.15);border:1px solid rgba(13,110,253,.3);">
             <span id="selectedCount" class="text-primary fw-semibold small me-2">0 selected</span>
             <select id="bulkListSelect" class="form-select form-select-sm" style="max-width:200px">
-                <option value="">Add to listâ€¦</option>
+                <option value="">Add to list&hellip;</option>
             </select>
             <button class="btn btn-sm btn-primary" onclick="bulkAddToList()">Add</button>
             <button class="btn btn-sm btn-outline-danger ms-2" onclick="bulkDelete()">
@@ -199,7 +199,7 @@
                     </tr>
                 </thead>
                 <tbody id="contactsBody">
-                    <tr><td colspan="9" class="text-center text-muted py-4">Loadingâ€¦</td></tr>
+                    <tr><td colspan="9" class="text-center text-muted py-4">Loading&hellip;</td></tr>
                 </tbody>
             </table>
         </div>
@@ -219,7 +219,7 @@
         </div>
     </div>
 
-    <!-- â•â•â• LISTS TAB â•â•â• -->
+    <!-- -&bull;--&bull;--&bull;- LISTS TAB -&bull;--&bull;--&bull;- -->
     <div id="listsPane" style="display:none">
         <div class="d-flex justify-content-end mb-3">
             <button class="btn btn-primary btn-sm" onclick="openListModal()">
@@ -227,12 +227,12 @@
             </button>
         </div>
         <div id="listsGrid" class="row g-3">
-            <div class="col-12 text-center text-muted py-5">Loadingâ€¦</div>
+            <div class="col-12 text-center text-muted py-5">Loading&hellip;</div>
         </div>
     </div>
 </main>
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• Contact Modal (Add / Edit) â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- -&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;- Contact Modal (Add / Edit) -&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;- -->
 <div class="modal fade" id="contactModal" tabindex="-1">
 <div class="modal-dialog modal-lg modal-dialog-scrollable">
 <div class="modal-content">
@@ -256,7 +256,7 @@
                 <div class="col-md-3">
                     <label class="form-label small">Title</label>
                     <select id="c-title" class="form-select form-select-sm">
-                        <option value="">â€”</option>
+                        <option value="">&mdash;</option>
                         <option>Mr</option><option>Mrs</option><option>Ms</option>
                         <option>Dr</option><option>Prof</option>
                     </select>
@@ -289,7 +289,7 @@
                 <div class="col-md-4">
                     <label class="form-label small">Source</label>
                     <select id="c-source" class="form-select form-select-sm">
-                        <option value="">â€”</option>
+                        <option value="">&mdash;</option>
                         <option value="manual">Manual</option>
                         <option value="import">Import</option>
                         <option value="web">Web</option>
@@ -367,7 +367,7 @@
                 <div class="col-md-4">
                     <label class="form-label small">Gender</label>
                     <select id="c-gender" class="form-select form-select-sm">
-                        <option value="">â€”</option>
+                        <option value="">&mdash;</option>
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                         <option value="other">Other</option>
@@ -376,12 +376,12 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small">Tags</label>
-                    <input type="text" id="c-tags" class="form-control form-control-sm" placeholder="vip, prospect, â€¦">
+                    <input type="text" id="c-tags" class="form-control form-control-sm" placeholder="vip, prospect, &hellip;">
                     <div class="form-text">Comma-separated</div>
                 </div>
                 <div class="col-12">
                     <label class="form-label small">Notes</label>
-                    <textarea id="c-notes" class="form-control form-control-sm" rows="3" placeholder="Internal notesâ€¦"></textarea>
+                    <textarea id="c-notes" class="form-control form-control-sm" rows="3" placeholder="Internal notes&hellip;"></textarea>
                 </div>
             </div>
         </div>
@@ -394,7 +394,7 @@
     </div>
 </div></div></div>
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• List Modal (Add / Edit) â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- -&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;- List Modal (Add / Edit) -&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;- -->
 <div class="modal fade" id="listModal" tabindex="-1">
 <div class="modal-dialog">
 <div class="modal-content">
@@ -410,7 +410,7 @@
         </div>
         <div class="mb-3">
             <label class="form-label small">Description</label>
-            <textarea id="list-description" class="form-control form-control-sm" rows="2" placeholder="Optional descriptionâ€¦"></textarea>
+            <textarea id="list-description" class="form-control form-control-sm" rows="2" placeholder="Optional description&hellip;"></textarea>
         </div>
         <div class="mb-3">
             <label class="form-label small">Colour</label>
@@ -437,7 +437,7 @@
     </div>
 </div></div></div>
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• Import CSV Modal â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- -&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;- Import CSV Modal -&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;--&bull;- -->
 <div class="modal fade" id="importModal" tabindex="-1">
 <div class="modal-dialog modal-xl modal-dialog-scrollable">
 <div class="modal-content">
@@ -466,7 +466,7 @@
             <div class="mb-3">
                 <label class="form-label small">Add to List (optional)</label>
                 <select id="importListId" class="form-select form-select-sm">
-                    <option value="">â€” No list â€”</option>
+                    <option value="">&mdash; No list &mdash;</option>
                 </select>
                 <div class="form-text">Imported contacts will also be added to this list.</div>
             </div>
@@ -522,7 +522,7 @@
 .color-preset:hover { border-color: #fff; }
 </style>
 <script>
-/* â”€â”€â”€ Auth â”€â”€â”€ */
+/* \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC Auth \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC */
 const TOKEN_KEY = 'wizzardchat_token';
 let token = localStorage.getItem(TOKEN_KEY) || '';
 
@@ -565,17 +565,17 @@ document.getElementById('btnLogout').addEventListener('click', e => {
 const payload = token ? JSON.parse(atob(token.split('.')[1]||'e30=')) : {};
 document.getElementById('currentUser').textContent = payload.sub || 'Admin';
 
-/* â”€â”€â”€ State â”€â”€â”€ */
+/* \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC State \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC */
 let currentTab = 'contacts';
 let page = 0;
 const PAGE_SIZE = 50;
 let selectedIds = new Set();
 let allLists = [];
 let csvHeaders = [], csvSuggestions = {}, csvFile = null;
-const _contacts = {};  // id â†’ contact data cache
-const _lists = {};     // id â†’ list data cache
+const _contacts = {};  // id \u00E2\u2020\u2019 contact data cache
+const _lists = {};     // id \u00E2\u2020\u2019 list data cache
 
-/* â”€â”€â”€ Tab switch â”€â”€â”€ */
+/* \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC Tab switch \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC */
 function switchTab(tab) {
     currentTab = tab;
     document.getElementById('contactsPane').style.display = tab==='contacts' ? '' : 'none';
@@ -585,7 +585,7 @@ function switchTab(tab) {
     if (tab==='lists') loadLists();
 }
 
-/* â”€â”€â”€ Contacts â”€â”€â”€ */
+/* \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC Contacts \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC */
 let searchTimer = null;
 function debounceSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(()=>{ page=0; loadContacts(); }, 350); }
 function resetFilters() {
@@ -618,7 +618,7 @@ async function loadContacts() {
         document.getElementById('contactCountLabel').textContent = `${total} contact${total!==1?'s':''}`;
         const showing = total === 0
             ? 'No contacts'
-            : `Showing ${page*PAGE_SIZE+1}â€“${Math.min((page+1)*PAGE_SIZE, total)} of ${total}`;
+            : `Showing ${page*PAGE_SIZE+1}\u00E2\u20AC\u201C${Math.min((page+1)*PAGE_SIZE, total)} of ${total}`;
         document.getElementById('pageInfo').textContent = showing;
         document.getElementById('btnPrev').disabled = page===0;
         document.getElementById('btnNext').disabled = (page+1)*PAGE_SIZE >= total;
@@ -644,20 +644,20 @@ function renderContacts(contacts) {
     }
     tb.innerHTML = contacts.map(c => {
         _contacts[c.id] = c;  // cache for edit onclick
-        const name = [c.first_name, c.last_name].filter(Boolean).join(' ') || 'â€”';
+        const name = [c.first_name, c.last_name].filter(Boolean).join(' ') || '\u00E2\u20AC\u201D';
         const listBadges = (c.lists||[]).map(l =>
             `<span class="contact-list-badge"><span class="list-color-dot" style="background:#0d6efd"></span>${esc(l.name)}</span>`
         ).join('');
         const checked = selectedIds.has(c.id) ? 'checked' : '';
-        const date = c.created_at ? new Date(c.created_at).toLocaleDateString('en-ZA') : 'â€”';
+        const date = c.created_at ? new Date(c.created_at).toLocaleDateString('en-ZA') : '\u00E2\u20AC\u201D';
         return `<tr data-id="${c.id}">
             <td><input type="checkbox" class="row-check" value="${c.id}" ${checked} onchange="toggleSelect(this)"></td>
             <td><span class="fw-semibold">${esc(name)}</span>${c.job_title?`<br><small class="text-muted">${esc(c.job_title)}</small>`:''}</td>
-            <td>${esc(c.email||'â€”')}</td>
-            <td>${esc(c.phone||'â€”')}</td>
-            <td>${esc(c.company||'â€”')}</td>
+            <td>${esc(c.email||'\u00E2\u20AC\u201D')}</td>
+            <td>${esc(c.phone||'\u00E2\u20AC\u201D')}</td>
+            <td>${esc(c.company||'\u00E2\u20AC\u201D')}</td>
             <td>${statusBadge(c.status||'active')}</td>
-            <td>${listBadges||'<span class="text-muted small">â€”</span>'}</td>
+            <td>${listBadges||'<span class="text-muted small">\u00E2\u20AC\u201D</span>'}</td>
             <td><small class="text-muted">${date}</small></td>
             <td>
                 <button class="btn btn-link btn-sm p-0 me-2" onclick="editContact('${c.id}')" title="Edit">
@@ -675,7 +675,7 @@ function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 
 function changePage(d) { page = Math.max(0, page+d); loadContacts(); }
 
-/* â”€â”€â”€ Selection â”€â”€â”€ */
+/* \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC Selection \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC */
 function toggleSelect(cb) {
     if (cb.checked) selectedIds.add(cb.value); else selectedIds.delete(cb.value);
     updateBulkToolbar();
@@ -724,7 +724,7 @@ async function bulkAddToList() {
     } catch(e) { toast(e.message, false); }
 }
 
-/* â”€â”€â”€ Contact Modal â”€â”€â”€ */
+/* \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC Contact Modal \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC */
 const CONTACT_FIELDS = ['first_name','last_name','title','job_title','company','email','phone',
     'whatsapp_id','address_line1','city','state','postal_code','country',
     'date_of_birth','gender','language','status','source','tags','notes'];
@@ -785,7 +785,7 @@ async function deleteContact(id) {
     } catch(e) { toast(e.message, false); }
 }
 
-/* â”€â”€â”€ Lists â”€â”€â”€ */
+/* \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC Lists \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC */
 async function loadLists() {
     try {
         const lists = await api('GET', '/api/v1/contacts/lists');
@@ -874,7 +874,7 @@ async function deleteList(id, name) {
     } catch(e) { toast(e.message, false); }
 }
 
-/* â”€â”€â”€ CSV Import â”€â”€â”€ */
+/* \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC CSV Import \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC */
 function openImportModal() { goImportStep(1); bootstrap.Modal.getOrCreateInstance(document.getElementById('importModal')).show(); }
 
 function goImportStep(n) {
@@ -929,7 +929,7 @@ async function runImport() {
     try {
         const r = await apiForm(url, fd);
         document.getElementById('importResults').innerHTML = `
-            <div class="display-6 mb-3">âœ…</div>
+            <div class="display-6 mb-3">\u00E2\u0153\u2026</div>
             <h5 class="mb-3">Import Complete</h5>
             <div class="d-flex justify-content-center gap-4">
                 <div><div class="fs-4 fw-bold text-success">${r.created}</div><div class="text-muted small">Created</div></div>
@@ -942,7 +942,7 @@ async function runImport() {
     } catch(e) { toast(e.message, false); }
 }
 
-/* â”€â”€â”€ Init â”€â”€â”€ */
+/* \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC Init \u00E2\u201D\u20AC\u00E2\u201D\u20AC\u00E2\u201D\u20AC */
 async function init() {
     try { await loadLists(); } catch(e) { console.error('init loadLists:', e); }
     try { await loadContacts(); } catch(e) { console.error('init loadContacts:', e); }

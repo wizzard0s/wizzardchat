@@ -1,5 +1,5 @@
-﻿/**
- * WizzardChat – Users management page
+/**
+ * WizzardChat \u2013 Users management page
  */
 (function () {
     'use strict';
@@ -48,11 +48,11 @@
         return AVATAR_COLORS[n % AVATAR_COLORS.length];
     }
 
-    // ─── Global capacity defaults ──────────────────────────────────────────────
+    // \u2500\u2500\u2500 Global capacity defaults \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadGlobalCapacityDefaults() {
         const r = await apiFetch('/api/v1/settings');
         if (!r.ok) return;
-        const settings = await r.json();   // [{key, value}, …]
+        const settings = await r.json();   // [{key, value}, \u2026]
         const CAP_KEYS = [
             'default_omni_max',
             'default_channel_max_voice',
@@ -78,11 +78,11 @@
         ];
         for (const [id, key] of MAP) {
             const el = document.getElementById(id);
-            if (el) el.placeholder = _globalCapDefs[key] ?? '–';
+            if (el) el.placeholder = _globalCapDefs[key] ?? '\u2013';
         }
     }
 
-    // ─── Load / Render ─────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Load / Render \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadUsers() {
         const r = await apiFetch('/api/v1/users');
         _users = r.ok ? await r.json() : [];
@@ -131,7 +131,7 @@
         });
     }
 
-    // ─── Load campaigns for checkboxes ────────────────────────────────────────
+    // \u2500\u2500\u2500 Load campaigns for checkboxes \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadAllCampaigns() {
         const r = await apiFetch('/api/v1/campaigns');
         _allCampaigns = r.ok ? await r.json() : [];
@@ -194,7 +194,7 @@
         return Array.from(document.querySelectorAll('#uCampaignList input[type=checkbox]:checked')).map(el => el.value);
     }
 
-    // ─── Modal open ────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Modal open \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.openUserModal = function (id) {
         _editId = id || null;
         const title  = document.getElementById('userModalTitle');
@@ -296,7 +296,7 @@
         ).map(cb => cb.value);
     }
 
-    // ─── Save ──────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Save \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.saveUser = async function () {
         const fullName = document.getElementById('uFullName').value.trim();
         const username = document.getElementById('uUsername').value.trim();
@@ -389,7 +389,7 @@
         await loadUsers();
     };
 
-    // ─── Delete ────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Delete \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.deleteUser = function (id, name) {
         _deleteId = id;
         document.getElementById('deleteUName').textContent = name;
@@ -404,14 +404,14 @@
         await loadUsers();
     };
 
-    // ─── Logout ────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Logout \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     document.getElementById('btnLogout').addEventListener('click', e => {
         e.preventDefault();
         localStorage.removeItem('wizzardchat_token');
         window.location.href = '/login';
     });
 
-    // ─── Boot ──────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Boot \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     _guard();
     loadAllCampaigns();
     loadGlobalCapacityDefaults();

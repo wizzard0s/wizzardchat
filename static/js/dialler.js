@@ -1,8 +1,8 @@
-﻿/**
- * WizzardChat – Outbound Dialler (preview + progressive)
+/**
+ * WizzardChat \u2013 Outbound Dialler (preview + progressive)
  *
  * State machine:
- *   idle → dialling → connected → wrap_up → idle (or exhausted)
+ *   idle \u2192 dialling \u2192 connected \u2192 wrap_up \u2192 idle (or exhausted)
  *
  * WhatsApp rule:
  *   OUTBOUND_WHATSAPP campaigns check the 24-hour free-messaging window on
@@ -12,13 +12,13 @@
 (function () {
     'use strict';
 
-    // ── Config ────────────────────────────────────────────────────────────────
+    // \u2500\u2500 Config \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const CAMPAIGN_ID   = window.DIALLER_CAMPAIGN_ID || '';
     const API           = '';
     const _token        = () => localStorage.getItem('wizzardchat_token');
     const _headers      = () => ({ Authorization: 'Bearer ' + _token(), 'Content-Type': 'application/json' });
 
-    // ── State ─────────────────────────────────────────────────────────────────
+    // \u2500\u2500 State \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     let _campaign       = null;   // full campaign object
     let _diallerMode    = 'preview';   // 'preview' | 'progressive'
     let _ringTimeout    = 45;          // seconds before auto no-answer (progressive)
@@ -36,11 +36,11 @@
     let _ringTimerInt   = null;
     let _autoAdvInt     = null;
 
-    // ── DOM shortcuts ─────────────────────────────────────────────────────────
+    // \u2500\u2500 DOM shortcuts \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const $  = id => document.getElementById(id);
     const body = () => document.querySelector('.d-body') || document.body;
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // \u2500\u2500 Helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function esc(s) {
         return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -97,25 +97,25 @@
         document.body.className = `state-${state}`;
     }
 
-    // ── API ───────────────────────────────────────────────────────────────────
+    // \u2500\u2500 API \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function apiFetch(path, opts = {}) {
         const r = await fetch(API + path, { headers: _headers(), ...opts });
         if (r.status === 401) { localStorage.removeItem('wizzardchat_token'); window.location.href = '/login'; }
         return r;
     }
 
-    // ── Initialise ────────────────────────────────────────────────────────────
+    // \u2500\u2500 Initialise \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function init() {
         const token = _token();
         if (!token) { window.location.href = '/login'; return; }
-        if (!CAMPAIGN_ID) { alert('No campaign ID — returning to campaigns list.'); window.location.href = '/campaigns'; return; }
+        if (!CAMPAIGN_ID) { alert('No campaign ID \u2014 returning to campaigns list.'); window.location.href = '/campaigns'; return; }
 
         await loadCampaign();
         _setState('idle');
         await loadNext();
     }
 
-    // ── Load campaign metadata ────────────────────────────────────────────────
+    // \u2500\u2500 Load campaign metadata \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadCampaign() {
         const r = await apiFetch(`/api/v1/campaigns/${CAMPAIGN_ID}`);
         if (!r.ok) { alert('Could not load campaign.'); window.location.href = '/campaigns'; return; }
@@ -180,7 +180,7 @@
         });
     }
 
-    // ── Load next contact ─────────────────────────────────────────────────────
+    // \u2500\u2500 Load next contact \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadNext() {
         _attempt        = null;
         _selectedOutcome = null;
@@ -229,10 +229,10 @@
             : 0;
         $('hdrProgress').style.width = pct + '%';
         $('hdrProgressLabel').textContent =
-            `${data.completed_contacts} / ${data.total_contacts} completed · ${data.remaining_contacts} remaining`;
+            `${data.completed_contacts} / ${data.total_contacts} completed \u00B7 ${data.remaining_contacts} remaining`;
     }
 
-    // ── Render contact ────────────────────────────────────────────────────────
+    // \u2500\u2500 Render contact \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function renderNoContact(msg) {
         $('noContactMsg').style.display = '';
         $('contactDetail').style.display = 'none';
@@ -280,7 +280,7 @@
         $('connectedName').textContent = fullName;
     }
 
-    // ── WA window banner ──────────────────────────────────────────────────────
+    // \u2500\u2500 WA window banner \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function renderWaBanner(next) {
         const isWa = (_campaign.campaign_type === 'outbound_whatsapp') || (next.active_channel === 'whatsapp');
         if (!isWa) {
@@ -305,7 +305,7 @@
         }
     }
 
-    // ── Channel action buttons ────────────────────────────────────────────────
+    // \u2500\u2500 Channel action buttons \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const CHANNEL_DEFS = {
         voice:    { icon: 'bi-telephone-fill', label: 'Dial',        btnCls: 'btn-success' },
         whatsapp: { icon: 'bi-whatsapp',       label: 'WhatsApp',    btnCls: 'btn-success' },
@@ -355,7 +355,7 @@
         }
     }
 
-    // ── Template card ─────────────────────────────────────────────────────────
+    // \u2500\u2500 Template card \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function renderTemplateCard(next) {
         const channel    = next.active_channel || 'voice';
         const vars       = next.template_variables || [];
@@ -383,7 +383,7 @@
         const badgeEl = $('templateChannelBadge');
         if (badgeEl) { badgeEl.className = `wz-badge ${meta.wz} ms-auto`; badgeEl.textContent = channel.toUpperCase(); }
 
-        $('templateText').textContent = next.message_template || '(No body — configure template in campaign settings)';
+        $('templateText').textContent = next.message_template || '(No body \u2014 configure template in campaign settings)';
 
         // Subject row (email)
         const subjectWrap = $('templateSubjectWrap');
@@ -425,7 +425,7 @@
         }
     }
 
-    // ── History ───────────────────────────────────────────────────────────────
+    // \u2500\u2500 History \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadHistory(contactId) {
         const list  = $('historyList');
         const empty = $('histEmpty');
@@ -442,7 +442,7 @@
         history.forEach(a => {
             const col   = _statusColor(a.status);
             const label = _statusLabel(a.status);
-            const when  = a.dialled_at ? new Date(a.dialled_at).toLocaleString('en-ZA') : '–';
+            const when  = a.dialled_at ? new Date(a.dialled_at).toLocaleString('en-ZA') : '\u2013';
             list.insertAdjacentHTML('beforeend', `
                 <div class="hist-item mb-2">
                     <div class="d-flex justify-content-between align-items-center">
@@ -456,7 +456,7 @@
         });
     }
 
-    // ── State transitions ─────────────────────────────────────────────────────
+    // \u2500\u2500 State transitions \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
     window.beginDial = async function (channel) {
         if (!_contact) return;
@@ -569,7 +569,7 @@
         }
 
         if (pauseAfter) {
-            // Stay on current contact — just refresh history
+            // Stay on current contact \u2014 just refresh history
             await loadHistory(_contact?.id);
             _setState('idle');
             return;
@@ -591,7 +591,7 @@
         }
     }
 
-    // ── Connection timer ──────────────────────────────────────────────────────
+    // \u2500\u2500 Connection timer \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _startConnTimer() {
         _stopConnTimer();
         $('connTimer').textContent = '0:00';
@@ -605,7 +605,7 @@
         if (_connTimerInt) { clearInterval(_connTimerInt); _connTimerInt = null; }
     }
 
-    // ── Ring timeout (progressive) ────────────────────────────────────────────
+    // \u2500\u2500 Ring timeout (progressive) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _startRingTimeout() {
         $('ringTimeoutWrap').style.display = '';
         const fill  = $('ringTimeoutFill');
@@ -623,7 +623,7 @@
             fill.style.width = pct + '%';
             label.textContent = remaining > 0
                 ? `Auto no-answer in ${remaining}s`
-                : 'Logging no answer…';
+                : 'Logging no answer\u2026';
 
             if (remaining <= 0) {
                 _stopRingTimeout();
@@ -637,7 +637,7 @@
         $('ringTimeoutWrap').style.display = 'none';
     }
 
-    // ── Auto-advance strip (progressive) ─────────────────────────────────────
+    // \u2500\u2500 Auto-advance strip (progressive) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _showAutoAdvance() {
         const strip = $('autoAdvanceStrip');
         strip.classList.remove('hidden');
@@ -667,7 +667,7 @@
         if (_contact) renderContact(_contact);
     };
 
-    // ── Cross-campaign history ─────────────────────────────────────────────────
+    // \u2500\u2500 Cross-campaign history \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.loadCrossHistory = async function () {
         if (!_contact) return;
         const btn = $('btnXHistory');
@@ -707,7 +707,7 @@
         });
     };
 
-    // ── Exit ──────────────────────────────────────────────────────────────────
+    // \u2500\u2500 Exit \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.exitDialler = function () {
         _stopConnTimer();
         _stopRingTimeout();
@@ -715,7 +715,7 @@
         window.location.href = '/campaigns';
     };
 
-    // ── Boot ──────────────────────────────────────────────────────────────────
+    // \u2500\u2500 Boot \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     document.addEventListener('DOMContentLoaded', init);
 
 })();

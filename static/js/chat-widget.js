@@ -16,7 +16,7 @@
   if (window._WizzardChatLoaded === cfg.apiKey) return;
   window._WizzardChatLoaded = cfg.apiKey;
 
-  // ── Session ID (persisted per browser session) ────────────────────────────
+  // \u2500\u2500 Session ID (persisted per browser session) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   var SESSION_KEY = 'wc_session_' + cfg.apiKey;
   var sessionId = sessionStorage.getItem(SESSION_KEY);
   if (!sessionId) {
@@ -24,7 +24,7 @@
     sessionStorage.setItem(SESSION_KEY, sessionId);
   }
 
-  // ── SSE + HTTP POST ──────────────────────────────────────────────────────────────────
+  // \u2500\u2500 SSE + HTTP POST \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   var es = null;           // EventSource
   var initSent = false;    // prevent double-init across reconnects
   var wasConnected = false; // has this session ever reached OPEN state?
@@ -32,7 +32,7 @@
   var sseUrl   = serverBase + '/sse/chat/' + cfg.apiKey + '/' + sessionId;
   var postBase = serverBase + '/chat/' + cfg.apiKey + '/' + sessionId;
 
-  // ── Widget config (overridden by server on connect) ───────────────────────
+  // \u2500\u2500 Widget config (overridden by server on connect) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   var style = {
     primary_color: cfg.primary_color || '#0d6efd',
     bg_color: cfg.bg_color || '#ffffff',
@@ -46,14 +46,14 @@
     border_radius: cfg.border_radius || '12px',
   };
 
-  // ── State ─────────────────────────────────────────────────────────────────
+  // \u2500\u2500 State \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   var isOpen = false;
   var menuPending = null;  // current menu options waiting for selection
   var agentName = null;
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   // CSS injection
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   function injectStyles() {
     var css = [
       '#wc-launcher{position:fixed;bottom:20px;z-index:999999;cursor:pointer;width:54px;height:54px;border-radius:50%;',
@@ -171,9 +171,9 @@
     return pos;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   // DOM build
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   function buildDOM(posClass) {
     // Launcher button
     var launcher = document.createElement('div');
@@ -188,7 +188,7 @@
 
     var logoHtml = style.logo_url
       ? '<img src="' + style.logo_url + '" class="wc-logo" alt="logo">'
-      : '<div class="wc-logo" style="background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:18px;">💬</div>';
+      : '<div class="wc-logo" style="background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:18px;">\uD83D\uDCAC</div>';
 
     panel.innerHTML = [
       '<div id="wc-header">',
@@ -196,7 +196,7 @@
       '<div class="wc-hinfo"><p class="wc-htitle">' + esc(style.title) + '</p>',
       '<p class="wc-hsub">' + esc(style.subtitle) + '</p></div>',
       '<button class="wc-restart" id="wc-restart-btn" title="New conversation">&#8635;</button>',
-      '<span class="wc-close" id="wc-close-btn" title="Close">✕</span>',
+      '<span class="wc-close" id="wc-close-btn" title="Close">\u2715</span>',
       '</div>',
       '<div id="wc-msgs"></div>',
       '<div id="wc-footer">',
@@ -230,7 +230,7 @@
     var nudge = document.createElement('div');
     nudge.id = 'wc-nudge';
     nudge.className = posStr;
-    nudge.innerHTML = '<button id="wc-nudge-close" title="Dismiss">✕</button><p id="wc-nudge-msg"></p>';
+    nudge.innerHTML = '<button id="wc-nudge-close" title="Dismiss">\u2715</button><p id="wc-nudge-msg"></p>';
     nudge.addEventListener('click', function (ev) {
       if (ev.target.id === 'wc-nudge-close') { dismissNudge(); return; }
       dismissNudge();
@@ -245,9 +245,9 @@
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   // Emoji picker
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   var WC_EMOJIS = [
     '\uD83D\uDE00','\uD83D\uDE03','\uD83D\uDE04','\uD83D\uDE01','\uD83D\uDE06','\uD83D\uDE05','\uD83E\uDD23','\uD83D\uDE02','\uD83D\uDE42','\uD83D\uDE09','\uD83D\uDE0A','\uD83D\uDE07',
     '\uD83E\uDD70','\uD83D\uDE0D','\uD83D\uDE18','\uD83D\uDE1B','\uD83D\uDE1C','\uD83D\uDE1D','\uD83E\uDD11','\uD83E\uDD17','\uD83E\uDD14','\uD83D\uDE10','\uD83D\uDE11','\uD83D\uDE36',
@@ -306,9 +306,9 @@
     if (picker) picker.classList.remove('wc-ep-open');
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   // Attachment bubble
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   function addAttachmentBubble(url, filename, role) {
     var msgs = document.getElementById('wc-msgs');
     if (!msgs) return;
@@ -345,9 +345,9 @@
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   // File upload
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   function doUpload(file) {
     if (!file) return;
     // Show optimistic local bubble
@@ -368,9 +368,9 @@
     if (fi) fi.value = '';
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   // UI helpers
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   var unreadCount = 0;
 
   function addBubble(text, role) {
@@ -454,24 +454,24 @@
   function setTyping(from) {
     var el = document.getElementById('wc-status');
     if (el) {
-      el.textContent = (from === 'agent' ? 'Agent' : 'Support') + ' is typing…';
+      el.textContent = (from === 'agent' ? 'Agent' : 'Support') + ' is typing\u2026';
       clearTimeout(el._typingTimer);
       el._typingTimer = setTimeout(function () { el.textContent = ''; }, 3000);
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // SSE (server → client) + HTTP POST (client → server)
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // SSE (server \u2192 client) + HTTP POST (client \u2192 server)
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   function connect() {
-    // Already open or actively connecting — do nothing
+    // Already open or actively connecting \u2014 do nothing
     if (es && es.readyState !== 2 /* EventSource.CLOSED */) return;
 
-    // Fresh EventSource — reset init flag so flow re-triggers if session was reset
+    // Fresh EventSource \u2014 reset init flag so flow re-triggers if session was reset
     initSent = false;
     if (es) { try { es.close(); } catch (_) {} }
     es = new EventSource(sseUrl);
-    if (!wasConnected) setStatus('Connecting…');
+    if (!wasConnected) setStatus('Connecting\u2026');
 
     es.onopen = function () {
       wasConnected = true;
@@ -482,7 +482,7 @@
       var msg;
       try { msg = JSON.parse(e.data); } catch (err) { return; }
 
-      // 'connected' = brand new (or reset) session → POST init to trigger the flow
+      // 'connected' = brand new (or reset) session \u2192 POST init to trigger the flow
       if (msg.type === 'connected' && !initSent) {
         initSent = true;
         var meta = Object.assign({
@@ -499,7 +499,7 @@
           body: JSON.stringify({ metadata: meta }),
         }).catch(function () { setStatus('Failed to start session.'); });
       }
-      // 'resumed' = returning visitor — flow already running, no re-init needed
+      // 'resumed' = returning visitor \u2014 flow already running, no re-init needed
 
       handleServerMessage(msg);
     };
@@ -510,10 +510,10 @@
       if (!es || es.readyState === 2) {
         setStatus('Unable to connect. Please refresh the page.');
       } else if (wasConnected) {
-        // Was working before — show reconnecting
-        setStatus('Connection lost. Reconnecting…');
+        // Was working before \u2014 show reconnecting
+        setStatus('Connection lost. Reconnecting\u2026');
       }
-      // Else: first-time connect attempt in progress — stay silent ("Connecting…" already set)
+      // Else: first-time connect attempt in progress \u2014 stay silent ("Connecting\u2026" already set)
     };
   }
 
@@ -529,9 +529,9 @@
     fetch(postBase + '/typing', { method: 'POST' }).catch(function () {});
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   // End chat (visitor explicitly ends the session)
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   function endChat() {
     if (!confirm('End this conversation?\n\nThis will close the chat.')) return;
 
@@ -562,9 +562,9 @@
     setTimeout(function () { closePanel(); }, 2500);
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   // Restart chat (close session + start fresh)
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   function restartChat() {
     if (!confirm('Start a new conversation? This will end the current chat.')) return;
 
@@ -606,9 +606,9 @@
     connect();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   // Server message handler
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   function handleServerMessage(msg) {
     setStatus('');
 
@@ -631,8 +631,8 @@
         break;
 
       case 'queue':
-        addBubble(msg.message || 'Waiting for an agent…', 'system');
-        setStatus('Waiting for agent…');
+        addBubble(msg.message || 'Waiting for an agent\u2026', 'system');
+        setStatus('Waiting for agent\u2026');
         break;
 
       case 'agent_join':
@@ -674,9 +674,9 @@
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   // Proactive triggers
-  // ─────────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   var _triggerData = null;
 
   function _fireProactive(type, value) {
@@ -698,7 +698,7 @@
   function showNudge(message) {
     var nudge = document.getElementById('wc-nudge');
     var msgEl = document.getElementById('wc-nudge-msg');
-    if (!nudge || !msgEl || isOpen) return;  // don’t nudge if panel already open
+    if (!nudge || !msgEl || isOpen) return;  // don\u2019t nudge if panel already open
     msgEl.textContent = message;
     nudge.style.display = 'block';
     clearTimeout(nudge._dt);
@@ -773,9 +773,9 @@
     });
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   // Open / Close panel
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   function openPanel() {
     var panel = document.getElementById('wc-panel');
     if (panel) panel.classList.add('wc-open');
@@ -799,9 +799,9 @@
     isOpen = false;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   // Init
-  // ─────────────────────────────────────────────────────────────────────────
+  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   function init() {
     var posClass = injectStyles();
     var dom = buildDOM(posClass);

@@ -1,6 +1,6 @@
 /* Flow Designer styles */
 
-/* ─── Palette ─── */
+/* --- Palette --- */
 #nodePalette {
     background: #16213e;
     color: #e2e8f0;
@@ -105,7 +105,7 @@
     cursor: grabbing;
 }
 
-/* ─── Canvas ─── */
+/* --- Canvas --- */
 #canvasContainer {
     background-color: #1a1a2e;
     background-image:
@@ -119,7 +119,7 @@
     cursor: grabbing;
 }
 
-/* ─── Flow Nodes ─── */
+/* --- Flow Nodes --- */
 .flow-node {
     position: absolute;
     min-width: 160px;
@@ -156,7 +156,7 @@
     border-color: #0dcaf0;
 }
 
-/* ── Analytics overlay ──────────────────────────────────────── */
+/* -- Analytics overlay ---------------------------------------- */
 /* Single 3-part stats strip pinned to the bottom of each node  */
 .analytics-stats-bar {
     position: absolute;
@@ -223,7 +223,7 @@
 }
 
 /* Node type colors */
-/* ── Entry Points ─────────────────────────────────────────────────── */
+/* -- Entry Points --------------------------------------------------- */
 .flow-node[data-type="start_chat"]      .node-header { background: #0891b2; color: #fff; }
 .flow-node[data-type="start_whatsapp"]  .node-header { background: #128C7E; color: #fff; }
 .flow-node[data-type="start_api"]       .node-header { background: #7c3aed; color: #fff; }
@@ -246,7 +246,7 @@
 .flow-node[data-type="start_x_post"]           .node-header { background: #1da1f2; color: #fff; }
 .flow-node[data-type="start_apple_business"]   .node-header { background: #555; color: #fff; }
 .flow-node[data-type="start_hubspot"]          .node-header { background: #ff7a59; color: #fff; }
-/* ── Flow Control ──────────────────────────────────────────────────── */
+/* -- Flow Control ---------------------------------------------------- */
 .flow-node[data-type="start"] .node-header { background: #198754; color: #fff; }
 .flow-node[data-type="end"] .node-header { background: #dc3545; color: #fff; }
 .flow-node[data-type="message"] .node-header { background: #0d6efd; color: #fff; }
@@ -269,7 +269,7 @@
 .flow-node[data-type="loop"] .node-header { background: #20c997; color: #000; }
 .flow-node[data-type="time_gate"] .node-header { background: #0dcaf0; color: #000; }
 
-/* ─── Ports (connection points) ─── */
+/* --- Ports (connection points) --- */
 .node-port {
     position: absolute;
     width: 12px;
@@ -398,7 +398,7 @@
 /* Weekday picker pills */
 .weekday-pill { font-size: 0.72rem; padding: 2px 7px; min-width: 40px; }
 
-/* ─── Edges (SVG) ─── */
+/* --- Edges (SVG) --- */
 .edge-path {
     fill: none;
     stroke: #5a7abb;
@@ -426,7 +426,7 @@
     opacity: 0.7;
 }
 
-/* ─── Properties Panel ─── */
+/* --- Properties Panel --- */
 #propertiesPanel {
     background: #16213e;
 }
@@ -436,7 +436,7 @@
     color: #adb5bd;
 }
 
-/* ─── Set Fields (set_variable) ─── */
+/* --- Set Fields (set_variable) --- */
 .sf-row {
     position: relative;
     border-color: rgba(255,255,255,.1) !important;
@@ -481,7 +481,7 @@
 .sf-reldate {
     flex-wrap: nowrap;
 }
-/* ─── Input mode toggle (text / expression) ─── */
+/* --- Input mode toggle (text / expression) --- */
 .sf-mode-toggle {
     min-width: 30px;
     padding: 2px 5px;
@@ -515,7 +515,7 @@
     font-size: 0.82rem;
 }
 
-/* ─── Minimap ─── */
+/* --- Minimap --- */
 .minimap {
     position: absolute;
     bottom: 12px;
@@ -529,7 +529,7 @@
     overflow: hidden;
 }
 
-/* ─── Form Fields with Expression Toggle ─── */
+/* --- Form Fields with Expression Toggle --- */
 .form-field-group {
     position: relative;
 }
@@ -580,7 +580,7 @@
     margin-bottom: 4px;
 }
 
-/* ─── Options List Editor (menu nodes) ─── */
+/* --- Options List Editor (menu nodes) --- */
 .options-list-editor .opt-key {
     font-weight: 600;
     text-align: center;
@@ -590,7 +590,7 @@
     padding: 2px 6px;
 }
 
-/* ─── Key-Value Editor ─── */
+/* --- Key-Value Editor --- */
 .kv-editor .kv-k {
     flex: 0 0 40%;
 }
@@ -598,7 +598,7 @@
     padding: 2px 6px;
 }
 
-/* ─── Expression Builder Modal ─── */
+/* --- Expression Builder Modal --- */
 #exprBuilderModal .modal-content {
     background: #1a1f36;
 }
@@ -626,7 +626,7 @@
     font-size: 0.76rem;
 }
 
-/* ─── Flow Simulator ─── */
+/* --- Flow Simulator --- */
 .sim-visited .node-header {
     outline: 2px solid rgba(13,202,240,.5);
 }
@@ -740,7 +740,7 @@
     border-bottom: 1px solid rgba(56, 139, 253, 0.4) !important;
 }
 
-/* ─── Variable Picker ─── */
+/* --- Variable Picker --- */
 .var-picker {
     position: fixed;
     z-index: 9999;
@@ -803,7 +803,7 @@
     flex-shrink: 0;
 }
 
-/* ─── set_variable field toolbar ─── */
+/* --- set_variable field toolbar --- */
 .sf-field-wrap {
     display: flex;
     flex-direction: column;
@@ -817,7 +817,7 @@
 }
 .sf-field-toolbar .btn { font-size: 0.72rem; padding: 1px 7px; line-height: 1.5; }
 
-/* ─── Properties Panel Resize Handle ─── */
+/* --- Properties Panel Resize Handle --- */
 #propertiesPanel {
     flex-shrink: 0;
     min-width: 260px;
@@ -842,7 +842,7 @@
     background: rgba(99,102,241,.55);
 }
 
-/* ─── Light mode overrides ─── */
+/* --- Light mode overrides --- */
 [data-theme="light"] #nodePalette,
 [data-theme="light"] .palette-header {
     background: #f0f4f8;

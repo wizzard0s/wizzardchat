@@ -1,5 +1,5 @@
 /**
- * wz-theme.js — WizzardChat badge / status colour theme loader.
+ * wz-theme.js \u2014 WizzardChat badge / status colour theme loader.
  *
  * Runs immediately (before DOMContentLoaded) so there is no colour flash.
  * Reads overrides stored by the Badge Colors settings panel and writes
@@ -17,7 +17,7 @@
         Object.keys(vars).forEach(function (k) {
             if (vars[k]) root.style.setProperty(k, vars[k]);
         });
-    } catch (e) { /* silent — never block page render */ }
+    } catch (e) { /* silent \u2014 never block page render */ }
 
     /* Expose helpers so the settings page can call them */
     window.wzTheme = {

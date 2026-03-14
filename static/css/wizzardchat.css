@@ -1,6 +1,6 @@
 /* WizzardChat global styles */
 
-/* ─── Wizzard design tokens ───────────────────────────────────────────────── */
+/* --- Wizzard design tokens ------------------------------------------------- */
 /* Mirrors WIZZARDSDK/standards/css/wizzard-tokens.css (dark defaults).        */
 :root {
   --wz-ok:          #22c55e;
@@ -23,7 +23,7 @@ body {
     color: #e0e0e0;
 }
 
-/* ─── Sidebar base ────────────────────────────────────────────────── */
+/* --- Sidebar base -------------------------------------------------- */
 #sidebar {
     width: 220px;
     position: fixed;
@@ -35,7 +35,7 @@ body {
     flex-direction: column;
 }
 
-/* ─── Availability selector ──────────────────────────────────────── */
+/* --- Availability selector ---------------------------------------- */
 #sidebar #availabilitySelect {
     font-size: .8rem;
     background: #1e2029;
@@ -79,7 +79,7 @@ body {
     color: #fff !important;
 }
 
-/* ─── Nav accordion ───────────────────────────────────────────────── */
+/* --- Nav accordion ------------------------------------------------- */
 .nav-section-li { list-style: none; }
 .nav-section-hdr {
     cursor: pointer;
@@ -105,7 +105,7 @@ body {
 .nav-section-body.collapsed { display: none; }
 .nav-standalone-item { margin-top: 4px; }
 
-/* ─── Nav icon colours ────────────────────────────────────────────── */
+/* --- Nav icon colours ---------------------------------------------- */
 /* Monitoring */
 #sidebar .bi-speedometer2   { color: #38bdf8; }
 #sidebar .bi-display        { color: #818cf8; }
@@ -132,7 +132,7 @@ body {
 #sidebar .bi-journal-text   { color: #c084fc; }
 #sidebar .bi-code-square    { color: #67e8f9; }
 
-/* ─── Global icon identity colours (match sidebar everywhere) ────── */
+/* --- Global icon identity colours (match sidebar everywhere) ------ */
 /* Using !important so these override Bootstrap .text-* utilities    */
 .bi-speedometer2      { color: #38bdf8 !important; }
 .bi-display           { color: #818cf8 !important; }
@@ -161,7 +161,7 @@ body {
     z-index: 9999;
 }
 
-/* ─── Roles page ─────────────────────────────────────────────────── */
+/* --- Roles page --------------------------------------------------- */
 .rc-stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
 .rc-stat-card { background:var(--bs-secondary-bg,rgba(255,255,255,.06)); border:1px solid var(--bs-border-color); border-radius:.5rem; padding:1rem; text-align:center; }
 .rc-stat-card .stat-num { font-size:1.75rem; font-weight:700; line-height:1; margin-bottom:.25rem; }
@@ -198,7 +198,7 @@ body {
 .perm-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:.65rem; }
 .perm-group-card { background:rgba(0,0,0,.2); border:1px solid var(--bs-border-color); border-radius:.35rem; padding:.65rem .75rem; }
 
-/* ─── Profile dropdown ───────────────────────────────────────────────── */
+/* --- Profile dropdown ------------------------------------------------- */
 .profile-btn {
     border: none;
     background: transparent;
@@ -221,7 +221,7 @@ body {
 .profile-menu .dropdown-item { font-size: .85rem; border-radius: 5px; }
 .profile-menu .dropdown-divider { border-color: rgba(255,255,255,.08); }
 
-/* ─── Light theme ─────────────────────────────────────────────────────── */
+/* --- Light theme ------------------------------------------------------- */
 [data-theme="light"] body {
     background-color: #f0f2f5;
     color: #1a1c23;
@@ -249,11 +249,11 @@ body {
 [data-theme="light"] .perm-group-card { background: rgba(0,0,0,.04); }
 [data-theme="light"] .rc-role-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.12); }
 
-/* ─── Light theme: Bootstrap utility overrides ─────── */
+/* --- Light theme: Bootstrap utility overrides ------- */
 [data-theme="light"] body.bg-dark { background-color: #f0f2f5 !important; }
 [data-theme="light"] body.text-light { color: #1a1c23 !important; }
 
-/* ─── Light theme: Agent Panel ─────────────────────── */
+/* --- Light theme: Agent Panel ----------------------- */
 [data-theme="light"] html, [data-theme="light"] body { background: #f0f2f5; }
 [data-theme="light"] #sessionPanel {
     background: #ffffff;
@@ -288,7 +288,7 @@ body {
 [data-theme="light"] .cop-btn        { border-color: #ced4da; color: #6c757d; }
 [data-theme="light"] .cop-empty      { color: #9ca3af; }
 
-/* ─── Light theme: Agent Toolbar + Capacity ─────────── */
+/* --- Light theme: Agent Toolbar + Capacity ----------- */
 [data-theme="light"] #agentToolbar  { background: #ffffff; border-bottom-color: #dee2e6; }
 [data-theme="light"] .tbar-divider  { background: #dee2e6; }
 [data-theme="light"] .tbar-outbound-btn { border-color: #ced4da; color: #495057; }
@@ -311,7 +311,7 @@ body {
 [data-theme="light"] #btnPickNext:hover { border-color: #0d6efd; color: #0d6efd; background: rgba(13,110,253,.08); }
 [data-theme="light"] #btnPickNext.armed { background: #cfe2ff; border-color: #0d6efd; color: #0a58ca; }
 
-/* ─── Light theme: Wallboard ────────────────────────── */
+/* --- Light theme: Wallboard -------------------------- */
 [data-theme="light"] .stat-card   { background: #ffffff; border-color: rgba(0,0,0,.08); }
 [data-theme="light"] .stat-card .stat-lbl { color: #6c757d; }
 [data-theme="light"] .queue-card  { background: #ffffff; border-color: rgba(0,0,0,.08); }
@@ -322,7 +322,7 @@ body {
 [data-theme="light"] .filter-bar  { background: #e9ecef; }
 [data-theme="light"] #refreshTick { color: #adb5bd; }
 
-/* ─── Light theme: Interactions ─────────────────────── */
+/* --- Light theme: Interactions ----------------------- */
 [data-theme="light"] .msg-row.bot    .msg-bubble { background: #e9ecef; color: #374151; }
 [data-theme="light"] .msg-row.agent  .msg-bubble { background: #dbeafe; color: #1e3a8a; }
 [data-theme="light"] .msg-row.visitor .msg-bubble { background: #16a34a; color: #fff; }
@@ -338,7 +338,7 @@ body {
 [data-theme="light"] .badge-outcome  { background: #f8f9fa; color: #495057; border-color: #dee2e6; }
 [data-theme="light"] .tag-chip       { background: #f1f5f9; border-color: #cbd5e1; color: #475569; }
 
-/* ─── Light theme: Flow Designer ─────────────────────── */
+/* --- Light theme: Flow Designer ----------------------- */
 [data-theme="light"] #nodePalette      { background: #f0f2f5; }
 [data-theme="light"] .palette-header   { background: #f0f2f5; }
 [data-theme="light"] .palette-node     { background: rgba(0,0,0,.04); border-color: rgba(0,0,0,.1); }
@@ -372,7 +372,7 @@ body {
 .perm-toggle:checked::after { left:18px; }
 .perm-toggle:disabled { opacity:.4; cursor:not-allowed; }
 
-/* ─── wz-badge — canonical status/type indicators ───────────────────────── */
+/* --- wz-badge — canonical status/type indicators ------------------------- */
 /* Base pill shape shared by all semantic modifier classes below.             */
 .wz-badge {
   display:       inline-block;
@@ -384,7 +384,7 @@ body {
   white-space:   nowrap;
 }
 
-/* ── Generic color aliases (backward compat) ── */
+/* -- Generic color aliases (backward compat) -- */
 .wz-badge-ok     { background: var(--wz-ok);     color: #052e16; }
 .wz-badge-fail   { background: var(--wz-fail);   color: #fff;    }
 .wz-badge-warn   { background: var(--wz-warn);   color: #431407; }
@@ -392,56 +392,56 @@ body {
 .wz-badge-purple { background: var(--wz-purple); color: #fff;    }
 .wz-badge-muted  { background: var(--wz-muted);  color: #fff;    }
 
-/* ─── Semantic badge CSS variables ───────────────────────────────────────── */
+/* --- Semantic badge CSS variables ----------------------------------------- */
 /* Override any var in localStorage via wz-theme.js to customise per tenant. */
 :root {
-  /* ── Entity active/inactive ── */
+  /* -- Entity active/inactive -- */
   --wz-status-active:          #22c55e; --wz-status-active-txt:          #052e16;
   --wz-status-inactive:        #6e7681; --wz-status-inactive-txt:        #fff;
-  /* ── Flow publish state ── */
+  /* -- Flow publish state -- */
   --wz-status-published:       #22c55e; --wz-status-published-txt:       #052e16;
   --wz-status-draft:           #f59e0b; --wz-status-draft-txt:           #431407;
-  /* ── Campaign lifecycle ── */
+  /* -- Campaign lifecycle -- */
   --wz-status-running:         #22c55e; --wz-status-running-txt:         #052e16;
   --wz-status-paused:          #f59e0b; --wz-status-paused-txt:          #431407;
   --wz-status-completed:       #38bdf8; --wz-status-completed-txt:       #082f49;
   --wz-status-cancelled:       #ef4444; --wz-status-cancelled-txt:       #fff;
-  /* ── Interaction / session lifecycle ── */
+  /* -- Interaction / session lifecycle -- */
   --wz-status-in-flow:         #38bdf8; --wz-status-in-flow-txt:         #082f49;
   --wz-status-waiting:         #a371f7; --wz-status-waiting-txt:         #fff;
   --wz-status-with-agent:      #22c55e; --wz-status-with-agent-txt:      #052e16;
   --wz-status-wrap-up:         #f59e0b; --wz-status-wrap-up-txt:         #431407;
   --wz-status-closed:          #6e7681; --wz-status-closed-txt:          #fff;
   --wz-status-open:            #22c55e; --wz-status-open-txt:            #052e16;
-  /* ── Dialler call disposition ── */
+  /* -- Dialler call disposition -- */
   --wz-status-failed:          #ef4444; --wz-status-failed-txt:          #fff;
   --wz-status-no-answer:       #6e7681; --wz-status-no-answer-txt:       #fff;
   --wz-status-busy:            #f59e0b; --wz-status-busy-txt:            #431407;
-  /* ── Channel types ── */
+  /* -- Channel types -- */
   --wz-channel-chat:           #38bdf8; --wz-channel-chat-txt:           #082f49;
   --wz-channel-voice:          #ef4444; --wz-channel-voice-txt:          #fff;
   --wz-channel-whatsapp:       #25d366; --wz-channel-whatsapp-txt:       #fff;
   --wz-channel-sms:            #059669; --wz-channel-sms-txt:            #fff;
   --wz-channel-email:          #f59e0b; --wz-channel-email-txt:          #431407;
-  /* ── Flow types ── */
+  /* -- Flow types -- */
   --wz-flowtype-main:          #38bdf8; --wz-flowtype-main-txt:          #082f49;
   --wz-flowtype-subflow:       #6e7681; --wz-flowtype-subflow-txt:       #fff;
-  /* ── User roles ── */
+  /* -- User roles -- */
   --wz-role-super-admin:       #ef4444; --wz-role-super-admin-txt:       #fff;
   --wz-role-admin:             #f59e0b; --wz-role-admin-txt:             #431407;
   --wz-role-supervisor:        #38bdf8; --wz-role-supervisor-txt:        #082f49;
   --wz-role-agent:             #0d6efd; --wz-role-agent-txt:             #fff;
   --wz-role-viewer:            #6e7681; --wz-role-viewer-txt:            #fff;
-  /* ── AI health ── */
+  /* -- AI health -- */
   --wz-ai-online:              #22c55e; --wz-ai-online-txt:              #052e16;
   --wz-ai-degraded:            #f59e0b; --wz-ai-degraded-txt:            #431407;
   --wz-ai-offline:             #ef4444; --wz-ai-offline-txt:             #fff;
-  /* ── Dialler mode ── */
+  /* -- Dialler mode -- */
   --wz-mode-progressive:       #f59e0b; --wz-mode-progressive-txt:       #431407;
   --wz-mode-preview:           #38bdf8; --wz-mode-preview-txt:           #082f49;
 }
 
-/* ─── Semantic status classes ────────────────────────────────────────────── */
+/* --- Semantic status classes ---------------------------------------------- */
 .wz-status-active     { background: var(--wz-status-active);     color: var(--wz-status-active-txt);     }
 .wz-status-inactive   { background: var(--wz-status-inactive);   color: var(--wz-status-inactive-txt);   }
 .wz-status-published  { background: var(--wz-status-published);  color: var(--wz-status-published-txt);  }
@@ -460,29 +460,29 @@ body {
 .wz-status-no-answer  { background: var(--wz-status-no-answer);  color: var(--wz-status-no-answer-txt);  }
 .wz-status-busy       { background: var(--wz-status-busy);       color: var(--wz-status-busy-txt);       }
 
-/* ─── Channel type classes ───────────────────────────────────────────────── */
+/* --- Channel type classes ------------------------------------------------- */
 .wz-channel-chat     { background: var(--wz-channel-chat);     color: var(--wz-channel-chat-txt);     }
 .wz-channel-voice    { background: var(--wz-channel-voice);    color: var(--wz-channel-voice-txt);    }
 .wz-channel-whatsapp { background: var(--wz-channel-whatsapp); color: var(--wz-channel-whatsapp-txt); }
 .wz-channel-sms      { background: var(--wz-channel-sms);      color: var(--wz-channel-sms-txt);      }
 .wz-channel-email    { background: var(--wz-channel-email);    color: var(--wz-channel-email-txt);    }
 
-/* ─── Flow type classes ──────────────────────────────────────────────────── */
+/* --- Flow type classes ---------------------------------------------------- */
 .wz-flowtype-main    { background: var(--wz-flowtype-main);    color: var(--wz-flowtype-main-txt);    }
 .wz-flowtype-subflow { background: var(--wz-flowtype-subflow); color: var(--wz-flowtype-subflow-txt); }
 
-/* ─── Role classes ───────────────────────────────────────────────────────── */
+/* --- Role classes --------------------------------------------------------- */
 .wz-role-super-admin { background: var(--wz-role-super-admin); color: var(--wz-role-super-admin-txt); }
 .wz-role-admin       { background: var(--wz-role-admin);       color: var(--wz-role-admin-txt);       }
 .wz-role-supervisor  { background: var(--wz-role-supervisor);  color: var(--wz-role-supervisor-txt);  }
 .wz-role-agent       { background: var(--wz-role-agent);       color: var(--wz-role-agent-txt);       }
 .wz-role-viewer      { background: var(--wz-role-viewer);      color: var(--wz-role-viewer-txt);      }
 
-/* ─── AI health classes ──────────────────────────────────────────────────── */
+/* --- AI health classes ---------------------------------------------------- */
 .wz-ai-online   { background: var(--wz-ai-online);   color: var(--wz-ai-online-txt);   }
 .wz-ai-degraded { background: var(--wz-ai-degraded); color: var(--wz-ai-degraded-txt); }
 .wz-ai-offline  { background: var(--wz-ai-offline);  color: var(--wz-ai-offline-txt);  }
 
-/* ─── Dialler mode classes ───────────────────────────────────────────────── */
+/* --- Dialler mode classes ------------------------------------------------- */
 .wz-mode-progressive { background: var(--wz-mode-progressive); color: var(--wz-mode-progressive-txt); }
 .wz-mode-preview     { background: var(--wz-mode-preview);     color: var(--wz-mode-preview-txt);     }

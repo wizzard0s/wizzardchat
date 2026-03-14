@@ -1,5 +1,5 @@
-﻿/**
- * WizzardChat – Queues management page
+/**
+ * WizzardChat \u2013 Queues management page
  */
 (function () {
     'use strict';
@@ -16,12 +16,12 @@
     const modal   = () => bootstrap.Modal.getOrCreateInstance(document.getElementById('queueModal'));
     const delModal = () => bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteQModal'));
 
-    // ─── Auth guard ────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Auth guard \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _guard() {
         if (!_token()) { window.location.href = '/login'; }
     }
 
-    // ─── Helpers ───────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function apiFetch(path, opts = {}) {
         const r = await fetch(API + path, { headers: _headers(), ...opts });
         if (r.status === 401) { localStorage.removeItem('wizzardchat_token'); window.location.href = '/login'; }
@@ -35,7 +35,7 @@
                  priority: 'Priority', random: 'Random' }[s] ?? s;
     }
 
-    // ─── Global outcomes ────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Global outcomes \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadAllOutcomes() {
         const r = await apiFetch('/api/v1/outcomes?active_only=true');
         _allOutcomes = r.ok ? await r.json() : [];
@@ -84,7 +84,7 @@
         });
     }
 
-    // ─── Load / Render ─────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Load / Render \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadQueues() {
         const r = await apiFetch('/api/v1/queues');
         _queues = r.ok ? await r.json() : [];
@@ -117,7 +117,7 @@
             <span class="fw-semibold text-truncate">${esc(q.name)}</span>
             ${statusBadge}
         </div>
-        <p class="text-muted small mb-2">${esc(q.description || '—')}</p>
+        <p class="text-muted small mb-2">${esc(q.description || '\u2014')}</p>
         <div class="small">
             <span class="badge bg-secondary me-1">${esc(q.channel)}</span>
             <span class="badge bg-dark border me-1">${_strategyLabel(q.strategy)}</span>
@@ -135,7 +135,7 @@
         });
     }
 
-    // ─── Modal open ────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Modal open \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.openQueueModal = function (id) {
         _editId = id || null;
         const title = document.getElementById('queueModalTitle');
@@ -189,12 +189,12 @@
         _renderOutcomeCheckboxes('qOutcomeList', 'qOutcomeEmpty', q.outcomes || []);
     }
 
-    // ─── Outcomes (checkbox selection) ────────────────────────────────────────
+    // \u2500\u2500\u2500 Outcomes (checkbox selection) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _readOutcomes() {
         return Array.from(document.querySelectorAll('#qOutcomeList input[type=checkbox]:checked')).map(el => el.value);
     }
 
-    // ─── Save ──────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Save \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.saveQueue = async function () {
         const name = document.getElementById('qName').value.trim();
         if (!name) { alert('Queue name is required.'); return; }
@@ -231,7 +231,7 @@
         await loadQueues();
     };
 
-    // ─── Delete ────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Delete \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.deleteQueue = function (id, name) {
         _deleteId = id;
         document.getElementById('deleteQName').textContent = name;
@@ -246,14 +246,14 @@
         await loadQueues();
     };
 
-    // ─── Logout ────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Logout \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     document.getElementById('btnLogout').addEventListener('click', e => {
         e.preventDefault();
         localStorage.removeItem('wizzardchat_token');
         window.location.href = '/login';
     });
 
-    // ─── Boot ──────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Boot \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     _guard();
     loadAllOutcomes().then(() => { _fillDisconnectOutcomeSelect(null); });
     loadQueues();

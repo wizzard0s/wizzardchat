@@ -1,16 +1,16 @@
-﻿/**
- * WizzardChat – Connectors admin page logic
+/**
+ * WizzardChat \u2013 Connectors admin page logic
  */
 'use strict';
 
-// ─── Auth helpers ────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Auth helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const _token = () => localStorage.getItem('wizzardchat_token') || '';
 const apiFetch = (url, opts = {}) => {
     opts.headers = Object.assign({ Authorization: 'Bearer ' + _token(), 'Content-Type': 'application/json' }, opts.headers || {});
     return fetch(url, opts);
 };
 
-// ─── State ───────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 State \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 let connectors = [];
 let waConnectors = [];    // WhatsApp connectors
 let voiceConnectors = []; // Voice connectors
@@ -24,15 +24,15 @@ let deleteTargetType = 'chat';
 
 // Live chat state
 let agentWs = null;
-let sessions = {};  // session_key → session data
+let sessions = {};  // session_key \u2192 session data
 let activeSessionKey = null;  // currently open in chat window
 
-// ─── Bootstrap modals ────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Bootstrap modals \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 let connectorModal, snippetModal, deleteModal;
 
-// ─────────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // Init
-// ─────────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 document.addEventListener('DOMContentLoaded', async () => {
     // Ensure auth
     if (!_token()) { window.location.href = '/login'; return; }
@@ -64,9 +64,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // Tab switcher
-// ─────────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function bindTabSwitcher() {
     document.querySelectorAll('[data-tab]').forEach(link => {
         link.addEventListener('click', e => {
@@ -81,9 +81,9 @@ function bindTabSwitcher() {
     });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // Load helpers
-// ─────────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 async function loadConnectors() {
     const r = await apiFetch('/api/v1/connectors');
     if (!r.ok) return;
@@ -118,10 +118,10 @@ async function loadFlows() {
     flows = Array.isArray(data) ? data : (data.items || []);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // Render connector cards
-// ─────────────────────────────────────────────────────────────────────────────
-// ─── Connector card builders ─────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// \u2500\u2500\u2500 Connector card builders \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const CONNECTOR_TYPE_META = {
     chat:      { wz: 'wz-channel-chat',     icon: 'bi-chat',                    label: 'Chat'     },
     whatsapp:  { wz: 'wz-channel-whatsapp', icon: 'bi-whatsapp',                label: 'WhatsApp' },
@@ -146,7 +146,7 @@ function makeConnectorCard(c, type) {
     if (c.from_number)           providerLine += `<div class="small text-muted mb-1"><i class="bi bi-telephone me-1"></i>${escHtml(c.from_number)}</div>`;
 
     const keyHint = c.api_key
-        ? `<div class="small text-muted font-monospace text-truncate" title="${escHtml(c.api_key)}"><i class="bi bi-key me-1"></i>${c.api_key.slice(0, 18)}…</div>`
+        ? `<div class="small text-muted font-monospace text-truncate" title="${escHtml(c.api_key)}"><i class="bi bi-key me-1"></i>${c.api_key.slice(0, 18)}\u2026</div>`
         : '';
 
     const snippetBtn = type === 'chat'
@@ -216,9 +216,9 @@ function escHtml(s) {
     return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // Create / Edit modal
-// ─────────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 /** Switch visible type-specific panel and update the type hidden input */
 function switchConnectorType(type) {
@@ -253,7 +253,7 @@ function bindConnectorModal() {
         document.getElementById(id)?.addEventListener('input', updatePreview);
     });
 
-    // Sync color picker ↔ hex text ↔ round swatch
+    // Sync color picker \u2194 hex text \u2194 round swatch
     const _updateSwatch = (color) => {
         const sw = document.getElementById('colorSwatch');
         if (sw) sw.style.background = color;
@@ -274,7 +274,7 @@ function bindConnectorModal() {
 
 function populateFlowDropdown() {
     const sel = document.getElementById('cFlowId');
-    sel.innerHTML = '<option value="">— No flow —</option>';
+    sel.innerHTML = '<option value="">\u2014 No flow \u2014</option>';
     flows.forEach(f => {
         const opt = document.createElement('option');
         opt.value = f.id;
@@ -377,7 +377,7 @@ function openEditConnector(id, type) {
     connectorModal.show();
 }
 
-// ── Field helpers for typed connectors ──────────────────────────────────────
+// \u2500\u2500 Field helpers for typed connectors \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function clearWaFields() {
     ['waProvider','waBusinessPhone','waPhoneNumberId','waWabaId','waAccessToken',
      'waVerifyToken','waAccountSid','waAuthToken','waApiKey'].forEach(id => {
@@ -420,40 +420,40 @@ function fillVoiceFields(c) {
 }
 
 // Updates field labels, placeholders, visibility and the credential guide based on the selected voice provider.
-// ─── Hints are split into two sections ────────────────────────────────────────
-// "In WizzardChat"     — what to fill in the fields below.
-// "On provider portal" — external configuration you must do on the provider's dashboard / server.
+// \u2500\u2500\u2500 Hints are split into two sections \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// "In WizzardChat"     \u2014 what to fill in the fields below.
+// "On provider portal" \u2014 external configuration you must do on the provider's dashboard / server.
 function updateVoiceCredentialHints() {
     const provider = document.getElementById('voiceProvider')?.value || 'twilio';
 
-    // ── Per-provider config ────────────────────────────────────────────────────
+    // \u2500\u2500 Per-provider config \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     // fields: which of the six credential fields to show (true = visible)
     //   sid | token | key | secret | sip | callerId
     const config = {
         twilio: {
             sid:    'Account SID',    sidPh: 'ACxxxxxxxxxxxxxxxx',
             token:  'Auth Token',     tokenPh: 'Auth token (Twilio console)',
-            key:    'API Key SID',    keyPh: 'SKxxxxxxxxxxxxxxxx — only needed for agent softphone',
-            secret: 'API Key Secret', secPh: 'API Key Secret — only needed for agent softphone',
+            key:    'API Key SID',    keyPh: 'SKxxxxxxxxxxxxxxxx \u2014 only needed for agent softphone',
+            secret: 'API Key Secret', secPh: 'API Key Secret \u2014 only needed for agent softphone',
             sip:    null,
             fields: { sid: true, token: true, key: true, secret: true, sip: false, callerId: false },
             hint:
                 '<b>In WizzardChat:</b> Account SID + Auth Token are required for all calls. '
                 + 'API Key SID, API Key Secret and TwiML App SID are only needed for the agent browser softphone.<br>'
-                + '<b>On the Twilio console:</b> WizzardChat supplies the status callback URL automatically — no extra setup needed.',
+                + '<b>On the Twilio console:</b> WizzardChat supplies the status callback URL automatically \u2014 no extra setup needed.',
         },
         vonage: {
             sid:    'API Key',        sidPh: 'Vonage API key',
             token:  'API Secret',     tokenPh: 'Vonage API secret',
             key:    'Application ID', keyPh: 'Vonage Voice Application ID',
-            secret: 'Private Key',    secPh: 'Leave blank — set via Vonage dashboard',
+            secret: 'Private Key',    secPh: 'Leave blank \u2014 set via Vonage dashboard',
             sip:    'SIP Domain',     sipPh: 'sip.vonage.com',
             fields: { sid: true, token: true, key: true, secret: true, sip: true, callerId: false },
             hint:
                 '<b>In WizzardChat:</b> Account SID = Vonage API Key. Auth Token = Vonage API Secret. API Key = Voice Application ID.<br>'
-                + '<b>On the Vonage dashboard:</b> Voice Application → '
+                + '<b>On the Vonage dashboard:</b> Voice Application \u2192 '
                 + 'Answer URL = <code>GET https://your-host/api/v1/voice/ncco/{attempt_id}</code> '
-                + '· Event URL = <code>POST https://your-host/api/v1/voice/vonage/event/{attempt_id}</code>.',
+                + '\u00B7 Event URL = <code>POST https://your-host/api/v1/voice/vonage/event/{attempt_id}</code>.',
         },
         telnyx: {
             sid:    'Profile ID',      sidPh: 'Telnyx Connection Profile ID',
@@ -464,8 +464,8 @@ function updateVoiceCredentialHints() {
             fields: { sid: true, token: true, key: false, secret: false, sip: true, callerId: false },
             hint:
                 '<b>In WizzardChat:</b> Auth Token = Telnyx API v2 key. '
-                + 'SIP Domain = TeXML App ID or Connection Profile ID — both found in your Telnyx portal.<br>'
-                + '<b>On the Telnyx portal:</b> TeXML App → Webhook URL = '
+                + 'SIP Domain = TeXML App ID or Connection Profile ID \u2014 both found in your Telnyx portal.<br>'
+                + '<b>On the Telnyx portal:</b> TeXML App \u2192 Webhook URL = '
                 + '<code>POST https://your-host/api/v1/voice/telnyx/event/{attempt_id}</code>.',
         },
         africastalking: {
@@ -477,14 +477,14 @@ function updateVoiceCredentialHints() {
             fields: { sid: true, token: true, key: false, secret: false, sip: false, callerId: false },
             hint:
                 "<b>In WizzardChat:</b> Account SID = AT username. Auth Token = AT API key.<br>"
-                + "<b>On the AT dashboard:</b> Voice → Callback URL = "
+                + "<b>On the AT dashboard:</b> Voice \u2192 Callback URL = "
                 + "<code>POST https://your-host/api/v1/voice/at/event/{attempt_id}</code>.",
         },
         asterisk: {
             sid:    'ARI Username', sidPh: 'Username from ari.conf',
             token:  'ARI Password', tokenPh: 'Password from ari.conf',
-            key:    'Stasis App',   keyPh: 'Stasis application name — e.g. wizzardchat',
-            secret: 'SIP Trunk',    secPh: 'Trunk name from channels.conf — e.g. voip_ms',
+            key:    'Stasis App',   keyPh: 'Stasis application name \u2014 e.g. wizzardchat',
+            secret: 'SIP Trunk',    secPh: 'Trunk name from channels.conf \u2014 e.g. voip_ms',
             sip:    'Host:Port',    sipPh: '192.168.1.100:8088',
             fields: { sid: true, token: true, key: true, secret: true, sip: true, callerId: true },
             hint:
@@ -496,7 +496,7 @@ function updateVoiceCredentialHints() {
         freeswitch: {
             sid:    'ESL Username', sidPh: 'Usually ClueCon (event_socket.conf)',
             token:  'ESL Password', tokenPh: 'ESL password from event_socket.conf',
-            key:    'SIP Gateway',  keyPh: 'Gateway name from sofia.conf — e.g. voip_ms',
+            key:    'SIP Gateway',  keyPh: 'Gateway name from sofia.conf \u2014 e.g. voip_ms',
             secret: 'Outbound Caller ID', secPh: '+27210000001',
             sip:    'Host:Port',    sipPh: '192.168.1.50:8021',
             fields: { sid: true, token: true, key: true, secret: true, sip: true, callerId: true },
@@ -518,7 +518,7 @@ function updateVoiceCredentialHints() {
                 '<b>In WizzardChat:</b> SIP Domain = 3CX REST API host:port. '
                 + 'Account SID = OAuth2 client_id. Auth Token = OAuth2 client_secret. '
                 + 'API Key = default agent extension number.<br>'
-                + '<b>On the 3CX management console:</b> Settings → CRM Integration → Webhook URL = '
+                + '<b>On the 3CX management console:</b> Settings \u2192 CRM Integration \u2192 Webhook URL = '
                 + '<code>POST https://your-host/api/v1/inbound/3cx</code>.',
         },
         generic: {
@@ -534,7 +534,7 @@ function updateVoiceCredentialHints() {
 
     const h = config[provider] || config.generic;
 
-    // ── Apply labels and placeholders ─────────────────────────────────────────
+    // \u2500\u2500 Apply labels and placeholders \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const _set = (id, val) => { const el = document.getElementById(id); if (el && val) el.textContent = val; };
     const _ph  = (id, val) => { const el = document.getElementById(id); if (el && val) el.placeholder = val; };
     if (h.sid)    { _set('lblVoiceAccountSid', h.sid);    _ph('voiceAccountSid', h.sidPh); }
@@ -543,7 +543,7 @@ function updateVoiceCredentialHints() {
     if (h.secret) { _set('lblVoiceApiSecret',  h.secret); _ph('voiceApiSecret',  h.secPh); }
     if (h.sip)    { _set('lblVoiceSipDomain',  h.sip);    _ph('voiceSipDomain',  h.sipPh); }
 
-    // ── Show / hide credential fields ─────────────────────────────────────────
+    // \u2500\u2500 Show / hide credential fields \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const _vis = (id, show) => { const el = document.getElementById(id); if (el) el.style.display = show ? '' : 'none'; };
     const f = h.fields || {};
     _vis('voiceAccountSidWrap',  f.sid     !== false);
@@ -552,15 +552,15 @@ function updateVoiceCredentialHints() {
     _vis('voiceApiSecretWrap',   f.secret  !== false);
     _vis('voiceSipDomainWrap',   f.sip     !== false);
     _vis('voiceCallerIdWrap',    f.callerId === true);
-    // TwiML App SID — only for Twilio
+    // TwiML App SID \u2014 only for Twilio
     _vis('voiceTwimlAppWrap',    provider === 'twilio');
 
-    // ── Hint banner — uses innerHTML so bold/code tags render ─────────────────
+    // \u2500\u2500 Hint banner \u2014 uses innerHTML so bold/code tags render \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const hintEl = document.getElementById('voiceCredHint');
     if (hintEl) { hintEl.style.display = h.hint ? '' : 'none'; hintEl.innerHTML = h.hint || ''; }
 }
 
-// ── Per-provider field visibility for WhatsApp connectors ────────────────────
+// \u2500\u2500 Per-provider field visibility for WhatsApp connectors \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function updateWaCredentialHints() {
     const p = document.getElementById('waProvider')?.value || 'meta_cloud';
 
@@ -573,10 +573,10 @@ function updateWaCredentialHints() {
         generic:     { phoneNumberId: false, wabaId: false, accessToken: false, verifyToken: true,  accountSid: false, authToken: false, apiKey: true  },
     };
     const hints = {
-        meta_cloud:  '<b>In WizzardChat:</b> Phone Number ID, WABA ID and Access Token come from Meta Business Suite → WhatsApp → API Setup.',
+        meta_cloud:  '<b>In WizzardChat:</b> Phone Number ID, WABA ID and Access Token come from Meta Business Suite \u2192 WhatsApp \u2192 API Setup.',
         twilio:      '<b>In WizzardChat:</b> Account SID and Auth Token are from your Twilio Console. Set the inbound webhook URL below on your Twilio phone number.',
         '360dialog': '<b>In WizzardChat:</b> API Key is generated in your 360dialog Hub account under Channels.',
-        vonage:      '<b>In WizzardChat:</b> API Key is from Vonage Dashboard → API Settings → WhatsApp.',
+        vonage:      '<b>In WizzardChat:</b> API Key is from Vonage Dashboard \u2192 API Settings \u2192 WhatsApp.',
         generic:     '<b>In WizzardChat:</b> Verify Token is used to validate webhook challenge requests. API Key is your provider credential.',
     };
 
@@ -594,7 +594,7 @@ function updateWaCredentialHints() {
     if (hintEl) { hintEl.style.display = hints[p] ? '' : 'none'; hintEl.innerHTML = hints[p] || ''; }
 }
 
-// ── Per-provider field visibility for SMS connectors ─────────────────────────
+// \u2500\u2500 Per-provider field visibility for SMS connectors \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function updateSmsCredentialHints() {
     const p = document.getElementById('smsProvider')?.value || 'twilio';
 
@@ -612,8 +612,8 @@ function updateSmsCredentialHints() {
     };
     const hints = {
         twilio:         '<b>In WizzardChat:</b> Account SID and Auth Token are from the Twilio Console home page.',
-        vonage:         "<b>In WizzardChat:</b> API Key and API Secret are from Vonage Dashboard → API Settings.",
-        africastalking: "<b>In WizzardChat:</b> AT Username = your Africa's Talking account username. AT API Key = from the AT dashboard → Settings → API Key.",
+        vonage:         "<b>In WizzardChat:</b> API Key and API Secret are from Vonage Dashboard \u2192 API Settings.",
+        africastalking: "<b>In WizzardChat:</b> AT Username = your Africa's Talking account username. AT API Key = from the AT dashboard \u2192 Settings \u2192 API Key.",
         generic:        null,
     };
 
@@ -814,7 +814,7 @@ async function regenerateKey() {
     }
 }
 
-// ─── Meta field rows ──────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Meta field rows \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function addMetaFieldRow(e, data = {}) {
     const tbody = document.getElementById('metaFieldsBody');
     const tr = document.createElement('tr');
@@ -850,7 +850,7 @@ function updateMetaFieldsEmpty() {
     document.getElementById('metaFieldsEmpty')?.classList.toggle('d-none', has);
 }
 
-// ─── Proactive triggers ─────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Proactive triggers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const TRIGGER_TYPES = [
     { value: 'time_on_page',   label: 'Time on page (seconds)' },
     { value: 'scroll_depth',   label: 'Scroll depth (%)'       },
@@ -862,7 +862,7 @@ function fillProactive(pt) {
     document.getElementById('ptEnabled').checked = !!(pt.enabled);
     document.getElementById('ptNudgeEnabled').checked = (pt.nudge?.enabled !== false);
     document.getElementById('ptAutoOpen').checked = !!(pt.nudge?.auto_open);
-    document.getElementById('ptNudgeMessage').value = pt.nudge?.message || '👋 Need help?';
+    document.getElementById('ptNudgeMessage').value = pt.nudge?.message || '\uD83D\uDC4B Need help?';
     document.getElementById('ptNudgeDelay').value = pt.nudge?.delay_seconds || 0;
     const container = document.getElementById('ptRulesContainer');
     container.innerHTML = '';
@@ -883,7 +883,7 @@ function collectProactive() {
         nudge: {
             enabled:        document.getElementById('ptNudgeEnabled').checked,
             auto_open:      document.getElementById('ptAutoOpen').checked,
-            message:        document.getElementById('ptNudgeMessage').value.trim() || '👋 Need help?',
+            message:        document.getElementById('ptNudgeMessage').value.trim() || '\uD83D\uDC4B Need help?',
             delay_seconds:  parseInt(document.getElementById('ptNudgeDelay').value, 10) || 0,
         },
     };
@@ -940,7 +940,7 @@ function updateTriggerRulesEmpty() {
     document.getElementById('ptRulesEmpty')?.classList.toggle('d-none', has);
 }
 
-// ─── Preview ──────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Preview \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function updatePreview() {
     const color = document.getElementById('sPrimaryColorHex')?.value || '#0d6efd';
     const title = document.getElementById('sTitle')?.value || 'Chat with us';
@@ -954,9 +954,9 @@ function updatePreview() {
     if (userBubble) userBubble.style.background = color;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // Snippet modal
-// ─────────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function bindSnippetModal() {
     document.getElementById('btnCopySnippet')?.addEventListener('click', () => {
         const code = document.getElementById('snippetCode')?.textContent || '';
@@ -983,7 +983,7 @@ async function openSnippet(id) {
     if (metaFields.length) {
         metaExStr += ',\n  // Pre-supply metadata fields (must match configured field names)\n  metadata: {\n';
         metaFields.forEach((mf, i) => {
-            metaExStr += '    ' + mf.name + ': "..."' + (i < metaFields.length - 1 ? ',' : '') + '  // → ' + (mf.map_to_variable || mf.name) + '\n';
+            metaExStr += '    ' + mf.name + ': "..."' + (i < metaFields.length - 1 ? ',' : '') + '  // \u2192 ' + (mf.map_to_variable || mf.name) + '\n';
         });
         metaExStr += '  }';
     }
@@ -997,9 +997,9 @@ async function openSnippet(id) {
     snippetModal.show();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // Delete modal
-// ─────────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function bindDeleteModal() {
     document.getElementById('btnConfirmDelete')?.addEventListener('click', async () => {
         if (!deleteTargetId) return;
@@ -1028,7 +1028,7 @@ function openDeleteConfirm(id, name, type) {
     deleteModal.show();
 }
 
-// ─── Webhook info modal (for typed connectors) ────────────────────────────
+// \u2500\u2500\u2500 Webhook info modal (for typed connectors) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 async function openWebhookInfo(id, type) {
     let endpoint;
     if (type === 'whatsapp') endpoint = '/api/v1/whatsapp-connectors/' + id + '/webhook-info';
@@ -1039,15 +1039,15 @@ async function openWebhookInfo(id, type) {
     if (!r.ok) { alert('Could not retrieve webhook info'); return; }
     const data = await r.json();
     // Build a simple info display in a small modal or alert
-    let msg = 'Inbound Webhook URL:\n' + (data.inbound_url || data.webhook_url || '—') + '\n\n';
+    let msg = 'Inbound Webhook URL:\n' + (data.inbound_url || data.webhook_url || '\u2014') + '\n\n';
     if (data.verify_token) msg += 'Verify Token: ' + data.verify_token + '\n';
     if (data.instructions) msg += '\nSetup:\n' + data.instructions;
     alert(msg);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Live Chat Inbox – Agent WebSocket
-// ─────────────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// Live Chat Inbox \u2013 Agent WebSocket
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function initAgentWs() {
     const token = _token();
     const wsBase = (window.location.origin.replace(/^http/, 'ws'));
@@ -1065,7 +1065,7 @@ function initAgentWs() {
     };
 
     agentWs.onclose = () => {
-        setInboxStatus('Disconnected – reconnecting…');
+        setInboxStatus('Disconnected \u2013 reconnecting\u2026');
         agentWs = null;
         setTimeout(initAgentWs, 3000);
     };
@@ -1115,7 +1115,7 @@ function handleAgentMessage(msg) {
             if (msg.session_id === activeSessionKey) {
                 const el = document.getElementById('agentTypingStatus');
                 if (el) {
-                    el.textContent = 'Visitor is typing…';
+                    el.textContent = 'Visitor is typing\u2026';
                     clearTimeout(el._t);
                     el._t = setTimeout(() => { el.textContent = ''; }, 3000);
                 }

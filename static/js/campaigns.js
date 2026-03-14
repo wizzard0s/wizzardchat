@@ -1,5 +1,5 @@
-﻿/**
- * WizzardChat – Campaigns management page
+/**
+ * WizzardChat \u2013 Campaigns management page
  */
 (function () {
     'use strict';
@@ -19,7 +19,7 @@
     let _allTemplates  = [];
     let _waMetaTemplates = [];
 
-    // ─── Shuttle Widget ────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Shuttle Widget \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const _sh = {};
 
     function shuttleCreate(id, items, selectedIds) {
@@ -89,10 +89,10 @@
   <div class="list-group list-group-flush overflow-auto shuttle-list" id="${id}_avail_list"></div>
 </div>
 <div class="d-flex flex-column align-items-center justify-content-center gap-1 px-2 flex-shrink-0">
-  <button type="button" class="btn btn-sm btn-outline-primary px-2" title="Add all" onclick="shuttleMove('${id}','all_right')">»</button>
-  <button type="button" class="btn btn-sm btn-outline-primary px-2" title="Add selected" onclick="shuttleMove('${id}','sel_right')">›</button>
-  <button type="button" class="btn btn-sm btn-outline-secondary px-2" title="Remove selected" onclick="shuttleMove('${id}','sel_left')">‹</button>
-  <button type="button" class="btn btn-sm btn-outline-secondary px-2" title="Remove all" onclick="shuttleMove('${id}','all_left')">«</button>
+  <button type="button" class="btn btn-sm btn-outline-primary px-2" title="Add all" onclick="shuttleMove('${id}','all_right')">\u00BB</button>
+  <button type="button" class="btn btn-sm btn-outline-primary px-2" title="Add selected" onclick="shuttleMove('${id}','sel_right')">\u203A</button>
+  <button type="button" class="btn btn-sm btn-outline-secondary px-2" title="Remove selected" onclick="shuttleMove('${id}','sel_left')">\u2039</button>
+  <button type="button" class="btn btn-sm btn-outline-secondary px-2" title="Remove all" onclick="shuttleMove('${id}','all_left')">\u00AB</button>
 </div>
 <div class="d-flex flex-column flex-fill" style="min-width:0">
   <div class="small fw-semibold text-muted mb-1" id="${id}_sel_hdr">Selected</div>
@@ -154,7 +154,7 @@
         return { inbound: 'Inbound', outbound: 'Outbound', blended: 'Blended' }[t] ?? t;
     }
 
-    // ─── Load / Render ─────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Load / Render \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadCampaigns() {
         const r = await apiFetch('/api/v1/campaigns');
         _campaigns = r.ok ? await r.json() : [];
@@ -179,7 +179,7 @@
             const queueCount   = (c.queues || []).length;
             const agentCount   = (c.agents || []).length;
             const ct = c.campaign_time || {};
-            const timeStr = (ct.start && ct.end) ? `${ct.start}–${ct.end}` : '—';
+            const timeStr = (ct.start && ct.end) ? `${ct.start}\u2013${ct.end}` : '\u2014';
             const activeBadge = c.is_active
                 ? '<span class="wz-badge wz-status-active ms-1">Active</span>'
                 : '<span class="wz-badge wz-status-inactive ms-1">Inactive</span>';
@@ -203,7 +203,7 @@
             <span class="fw-semibold text-truncate">${esc(c.name)}</span>
             ${_statusBadge(c.status)}${activeBadge}${modeLabel}
         </div>
-        <p class="text-muted small mb-2">${esc(c.description || '—')}</p>
+        <p class="text-muted small mb-2">${esc(c.description || '\u2014')}</p>
         <div class="small">
             <span class="badge bg-secondary me-1">${_typeLabel(c.campaign_type)}</span>
             <span class="text-muted"><i class="bi bi-clock me-1"></i>${timeStr}</span>
@@ -225,7 +225,7 @@
         });
     }
 
-    // ─── Modal open ────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Modal open \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.openCampaignModal = function (id) {
         _editId = id || null;
         const title = document.getElementById('campaignModalTitle');
@@ -296,7 +296,7 @@
         _fillOutboundTab(c.outbound_config || {});
     }
 
-    // ─── Global outcomes ────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Global outcomes \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadAllOutcomes() {
         const r = await apiFetch('/api/v1/outcomes?active_only=true');
         _allOutcomes = r.ok ? await r.json() : [];
@@ -330,11 +330,11 @@
         });
     }
 
-    // ─── Outcomes (checkbox selection) ─────────────────────────────────────────
+    // \u2500\u2500\u2500 Outcomes (checkbox selection) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function _readOutcomes() {
         return Array.from(document.querySelectorAll('#cOutcomeList input[type=checkbox]:checked')).map(el => el.value);
     }
-    // ─── Queues (checkbox selection) ──────────────────────────────────────────
+    // \u2500\u2500\u2500 Queues (checkbox selection) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadAllQueues() {
         const r = await apiFetch('/api/v1/queues');
         _allQueues = r.ok ? await r.json() : [];
@@ -372,7 +372,7 @@
     function _readQueues() {
         return Array.from(document.querySelectorAll('#cQueueList input[type=checkbox]:checked')).map(el => el.value);
     }
-    // ─── Users / Agents ────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Users / Agents \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadAllUsers() {
         const r = await apiFetch('/api/v1/users');
         _allUsers = r.ok ? (await r.json()).filter(u => u.is_active !== false) : [];
@@ -382,7 +382,7 @@
         const r = await apiFetch('/api/v1/agent-groups');
         _allGroups = r.ok ? await r.json() : [];
     }
-    // ─── Save ──────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Save \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.saveCampaign = async function () {
         const name = document.getElementById('cName').value.trim();
         if (!name) { alert('Campaign name is required.'); return; }
@@ -440,7 +440,7 @@
         await loadCampaigns();
     };
 
-    // ─── Delete ────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Delete \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.deleteCampaign = function (id, name) {
         _deleteId = id;
         document.getElementById('deleteCName').textContent = name;
@@ -455,14 +455,14 @@
         await loadCampaigns();
     };
 
-    // ─── Logout ────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Logout \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     document.getElementById('btnLogout').addEventListener('click', e => {
         e.preventDefault();
         localStorage.removeItem('wizzardchat_token');
         window.location.href = '/login';
     });
 
-    // ─── Outbound Config ───────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Outbound Config \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
     async function loadAllConnectors() {
         const r = await apiFetch('/api/v1/connectors');
@@ -478,7 +478,7 @@
         const sel = document.getElementById(selectId);
         if (!sel) return;
         const current = sel.value;
-        sel.innerHTML = '<option value="">— none —</option>';
+        sel.innerHTML = '<option value="">\u2014 none \u2014</option>';
         _allConnectors
             .filter(c => !providerTypes.length || providerTypes.some(t => (c.connector_type || c.type || '').toLowerCase().includes(t)))
             .forEach(c => {
@@ -494,7 +494,7 @@
         const sel = document.getElementById(selectId);
         if (!sel) return;
         const current = sel.value;
-        sel.innerHTML = '<option value="">— none —</option>';
+        sel.innerHTML = '<option value="">\u2014 none \u2014</option>';
         _allTemplates
             .filter(t => t.channel === channel && t.status === 'active')
             .forEach(t => {
@@ -507,26 +507,26 @@
         sel.addEventListener('change', () => _onTemplateSelectChange(selectId, channel, sel.value));
     }
 
-    // ─── WhatsApp Meta templates ───────────────────────────────────────────────
+    // \u2500\u2500\u2500 WhatsApp Meta templates \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function _loadWaMetaTemplates(connectorId) {
         const sel = document.getElementById('ocWaTemplate');
         if (!sel) return;
         const wrap = document.getElementById('ocWaVarWrap');
         if (!connectorId) {
-            sel.innerHTML = '<option value="">— select connector first —</option>';
+            sel.innerHTML = '<option value="">\u2014 select connector first \u2014</option>';
             _waMetaTemplates = [];
             if (wrap) wrap.style.display = 'none';
             return;
         }
-        sel.innerHTML = '<option value="">— loading… —</option>';
+        sel.innerHTML = '<option value="">\u2014 loading\u2026 \u2014</option>';
         const r = await apiFetch(`/api/v1/whatsapp-connectors/${connectorId}/meta-templates`);
         if (!r.ok) {
-            sel.innerHTML = '<option value="">— error loading templates —</option>';
+            sel.innerHTML = '<option value="">\u2014 error loading templates \u2014</option>';
             _waMetaTemplates = [];
             return;
         }
         _waMetaTemplates = await r.json();
-        sel.innerHTML = '<option value="">— none —</option>';
+        sel.innerHTML = '<option value="">\u2014 none \u2014</option>';
         _waMetaTemplates
             .filter(t => t.status === 'APPROVED')
             .forEach(t => {
@@ -566,7 +566,7 @@
 <span class="fw-bold text-warning" style="width:32px;text-align:center">{{${pos}}}</span>
 <span class="text-muted small flex-fill">Variable ${pos}</span>
 <input type="text" class="form-control form-control-sm oc-var-override" style="max-width:180px"
-    placeholder="Override value…" data-pos="${pos}">`;
+    placeholder="Override value\u2026" data-pos="${pos}">`;
             rows.appendChild(div);
         });
     }
@@ -599,9 +599,9 @@
             div.dataset.pos = v.pos;
             div.innerHTML = `
 <span class="fw-bold text-warning" style="width:32px;text-align:center">{{${v.pos}}}</span>
-<span class="text-muted small flex-fill">${esc(v.label || `Variable ${v.pos}`)} · <em>${esc(v.contact_field || 'no binding')}</em></span>
+<span class="text-muted small flex-fill">${esc(v.label || `Variable ${v.pos}`)} \u00B7 <em>${esc(v.contact_field || 'no binding')}</em></span>
 <input type="text" class="form-control form-control-sm oc-var-override" style="max-width:180px"
-    placeholder="Override value…" data-pos="${v.pos}">`;
+    placeholder="Override value\u2026" data-pos="${v.pos}">`;
             rows.appendChild(div);
         });
     }
@@ -667,7 +667,7 @@
                 }
             } else {
                 const waTemplateSel = document.getElementById('ocWaTemplate');
-                if (waTemplateSel) waTemplateSel.innerHTML = '<option value="">— select connector first —</option>';
+                if (waTemplateSel) waTemplateSel.innerHTML = '<option value="">\u2014 select connector first \u2014</option>';
             }
         })();
 
@@ -703,7 +703,7 @@
         };
     }
 
-    // ─── Boot ──────────────────────────────────────────────────────────────────
+    // \u2500\u2500\u2500 Boot \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     _guard();    loadAllOutcomes();    loadAllQueues();    loadAllUsers();    loadAllGroups();    loadCampaigns();
     loadAllConnectors();    loadAllTemplates();
 

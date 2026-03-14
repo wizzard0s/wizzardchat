@@ -1,7 +1,7 @@
-/* agent_groups.js — Groups management page */
+/* agent_groups.js \u2014 Groups management page */
 'use strict';
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Auth \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const _token = () => localStorage.getItem('wizzardchat_token');
 async function apiFetch(url, opts = {}) {
     opts.headers = { ...(opts.headers || {}), Authorization: `Bearer ${_token()}`, 'Content-Type': 'application/json' };
@@ -14,13 +14,13 @@ async function apiFetch(url, opts = {}) {
     return res;
 }
 
-// ─── State ────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 State \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 let _groups   = [];
 let _allUsers = [];
 let _editId   = null;
 let _deleteId = null;
 
-// ─── Shuttle Widget ───────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Shuttle Widget \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // A dual-list pick widget. Shared between groups member management.
 const _sh = {};
 
@@ -95,24 +95,24 @@ function _buildShuttleHtml(id) {
 <div class="d-flex flex-column flex-fill" style="min-width:0">
   <div class="small fw-semibold text-muted mb-1" id="${id}_avail_hdr">Available</div>
   <input type="search" class="form-control form-control-sm mb-1" id="${id}_avail_search"
-         placeholder="Filter…" oninput="_shuttleRender('${id}')">
+         placeholder="Filter\u2026" oninput="_shuttleRender('${id}')">
   <div class="list-group list-group-flush overflow-auto shuttle-list" id="${id}_avail_list"></div>
 </div>
 <div class="d-flex flex-column align-items-center justify-content-center gap-1 px-2 flex-shrink-0">
-  <button type="button" class="btn btn-sm btn-outline-primary px-2" title="Add all" onclick="shuttleMove('${id}','all_right')">»</button>
-  <button type="button" class="btn btn-sm btn-outline-primary px-2" title="Add selected" onclick="shuttleMove('${id}','sel_right')">›</button>
-  <button type="button" class="btn btn-sm btn-outline-secondary px-2" title="Remove selected" onclick="shuttleMove('${id}','sel_left')">‹</button>
-  <button type="button" class="btn btn-sm btn-outline-secondary px-2" title="Remove all" onclick="shuttleMove('${id}','all_left')">«</button>
+  <button type="button" class="btn btn-sm btn-outline-primary px-2" title="Add all" onclick="shuttleMove('${id}','all_right')">\u00BB</button>
+  <button type="button" class="btn btn-sm btn-outline-primary px-2" title="Add selected" onclick="shuttleMove('${id}','sel_right')">\u203A</button>
+  <button type="button" class="btn btn-sm btn-outline-secondary px-2" title="Remove selected" onclick="shuttleMove('${id}','sel_left')">\u2039</button>
+  <button type="button" class="btn btn-sm btn-outline-secondary px-2" title="Remove all" onclick="shuttleMove('${id}','all_left')">\u00AB</button>
 </div>
 <div class="d-flex flex-column flex-fill" style="min-width:0">
   <div class="small fw-semibold text-muted mb-1" id="${id}_sel_hdr">Members</div>
   <input type="search" class="form-control form-control-sm mb-1" id="${id}_sel_search"
-         placeholder="Filter…" oninput="_shuttleRender('${id}')">
+         placeholder="Filter\u2026" oninput="_shuttleRender('${id}')">
   <div class="list-group list-group-flush overflow-auto shuttle-list" id="${id}_sel_list"></div>
 </div>`;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function esc(s) {
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -122,7 +122,7 @@ function deleteModal() { return bootstrap.Modal.getOrCreateInstance(document.get
 
 const roleClass = { super_admin: 'wz-role-super-admin', admin: 'wz-role-admin', supervisor: 'wz-role-supervisor', agent: 'wz-role-agent', viewer: 'wz-role-viewer' };
 
-// ─── Load ─────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Load \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 async function loadAll() {
     const [gr, ur] = await Promise.all([
         apiFetch('/api/v1/agent-groups'),
@@ -133,7 +133,7 @@ async function loadAll() {
     renderGroupsTable();
 }
 
-// ─── Table Render ─────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Table Render \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function renderGroupsTable() {
     const tbody = document.getElementById('groupsBody');
     tbody.innerHTML = '';
@@ -146,7 +146,7 @@ function renderGroupsTable() {
             tr.innerHTML = `
 <td><span class="color-dot" style="background:${esc(g.color)}"></span></td>
 <td class="fw-semibold">${esc(g.name)}</td>
-<td class="text-muted small">${esc(g.description || '–')}</td>
+<td class="text-muted small">${esc(g.description || '\u2013')}</td>
 <td class="text-center">
   <span class="wz-badge wz-badge-muted">${g.members?.length ?? 0}</span>
 </td>
@@ -173,7 +173,7 @@ function renderGroupsTable() {
     document.getElementById('statMembers').textContent = _groups.reduce((s, g) => s + (g.members?.length ?? 0), 0);
 }
 
-// ─── Open Modal ───────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Open Modal \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 window.openGroupModal = function(id) {
     _editId = id || null;
     document.getElementById('gId').value = id || '';
@@ -212,7 +212,7 @@ window.openGroupModal = function(id) {
     groupModal().show();
 };
 
-// ─── Save ─────────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Save \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 window.saveGroup = async function() {
     const name = document.getElementById('gName').value.trim();
     if (!name) { alert('Group name is required.'); return; }
@@ -245,7 +245,7 @@ window.saveGroup = async function() {
     await loadAll();
 };
 
-// ─── Delete ───────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Delete \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 window.deleteGroup = function(id, name) {
     _deleteId = id;
     document.getElementById('deleteGName').textContent = name;
@@ -260,7 +260,7 @@ window.confirmDeleteGroup = async function() {
     await loadAll();
 };
 
-// ─── Auth / User ──────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Auth / User \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 (async () => {
     if (!_token()) { location.href = '/login'; return; }
     document.getElementById('btnLogout').addEventListener('click', e => {
