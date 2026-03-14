@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <script src="/static/js/theme-init.js"></script>
     <script src="/static/js/wz-theme.js"></script>
-    <script src="/static/js/wz-theme.js"></script>
-    <script src="/static/js/wz-theme.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Users â€“ WizzardChat</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -137,6 +135,7 @@
             <div class="modal-body">
                 <ul class="nav nav-tabs mb-3" id="userTabs">
                     <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabUBasic">Basic</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabUCapacity"><i class="bi bi-sliders me-1"></i>Capacity</button></li>
                     <li class="nav-item"><button class="nav-link" id="tabUCampaignsBtn" data-bs-toggle="tab" data-bs-target="#tabUCampaigns">Campaigns</button></li>
                 </ul>
                 <div class="tab-content">
@@ -171,8 +170,15 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Max Concurrent Chats</label>
-                                <input type="number" id="uMaxChats" class="form-control" value="5" min="1" max="50">
+                                <label class="form-label">Languages</label>
+                                <div id="uLanguageChips" class="d-flex flex-wrap gap-2 mt-1">
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="en" id="ulang_en"><label class="form-check-label" for="ulang_en">English</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="af" id="ulang_af"><label class="form-check-label" for="ulang_af">Afrikaans</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="zu" id="ulang_zu"><label class="form-check-label" for="ulang_zu">Zulu</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="xh" id="ulang_xh"><label class="form-check-label" for="ulang_xh">Xhosa</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="st" id="ulang_st"><label class="form-check-label" for="ulang_st">Sotho</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="tn" id="ulang_tn"><label class="form-check-label" for="ulang_tn">Tswana</label></div>
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Password <span id="uPasswordNote" class="text-muted small">(leave blank to keep current)</span></label>
@@ -187,7 +193,49 @@
                         </div>
                     </div>
 
-                    <!-- â”€â”€ Campaigns â”€â”€ -->
+                    <!-- ── Capacity ── -->
+                    <div class="tab-pane fade" id="tabUCapacity">
+                        <p class="text-muted small mb-3">Leave a field blank to inherit the global system default (shown as placeholder). Set a value to override for this agent only.</p>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label"><i class="bi bi-infinity me-1 text-primary"></i>Omni Total</label>
+                                <input type="number" id="uLimOmni" class="form-control" placeholder="–" min="1" max="50">
+                                <div class="form-text">Max concurrent interactions across all channels</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label"><i class="bi bi-telephone-fill me-1 text-success"></i>Voice</label>
+                                <input type="number" id="uLimVoice" class="form-control" placeholder="–" min="1" max="10">
+                                <div class="form-text">Concurrent voice calls</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label"><i class="bi bi-chat-fill me-1 text-primary"></i>Chat</label>
+                                <input type="number" id="uLimChat" class="form-control" placeholder="–" min="1" max="20">
+                                <div class="form-text">Concurrent web chat sessions</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label"><i class="bi bi-whatsapp me-1" style="color:#25d366"></i>WhatsApp</label>
+                                <input type="number" id="uLimWa" class="form-control" placeholder="–" min="1" max="20">
+                                <div class="form-text">Concurrent WhatsApp sessions</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label"><i class="bi bi-envelope-fill me-1 text-warning"></i>Email</label>
+                                <input type="number" id="uLimEmail" class="form-control" placeholder="–" min="1" max="20">
+                                <div class="form-text">Concurrent email threads</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label"><i class="bi bi-phone-fill me-1 text-secondary"></i>SMS</label>
+                                <input type="number" id="uLimSms" class="form-control" placeholder="–" min="1" max="20">
+                                <div class="form-text">Concurrent SMS threads</div>
+                            </div>
+                            <div class="col-12">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetCapacityToDefaults()">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset all to global defaults
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── Campaigns ── -->
                     <div class="tab-pane fade" id="tabUCampaigns">
                         <p class="text-muted small mb-2">Select the campaigns this user is assigned to work on.</p>
                         <div id="uCampaignList" class="row g-2"></div>

@@ -231,7 +231,6 @@
         document.getElementById('uEmail').value        = '';
         document.getElementById('uPhone').value        = '';
         document.getElementById('uRole').value         = 'agent';
-        document.getElementById('uMaxChats').value     = '5';
         document.getElementById('uPassword').value     = '';
         document.getElementById('uIsActive').checked   = true;
         _setLanguages([]);
@@ -243,7 +242,6 @@
         document.getElementById('uEmail').value        = u.email || '';
         document.getElementById('uPhone').value        = u.phone_number || '';
         document.getElementById('uRole').value         = u.role || 'agent';
-        document.getElementById('uMaxChats').value     = u.max_concurrent_chats ?? 5;
         document.getElementById('uPassword').value     = '';
         document.getElementById('uIsActive').checked   = !!u.is_active;
         _setLanguages(u.languages || []);
@@ -323,7 +321,6 @@
                 email,
                 phone_number:         document.getElementById('uPhone').value.trim() || null,
                 role:                 document.getElementById('uRole').value,
-                max_concurrent_chats: parseInt(document.getElementById('uMaxChats').value, 10) || 5,
                 is_active:            document.getElementById('uIsActive').checked,
                 languages:            _readLanguages(),
             };
@@ -347,7 +344,6 @@
                 password,
                 phone_number:         document.getElementById('uPhone').value.trim() || null,
                 role:                 document.getElementById('uRole').value,
-                max_concurrent_chats: parseInt(document.getElementById('uMaxChats').value, 10) || 5,
                 auth_type:            'local',
                 languages:            _readLanguages(),
             };
