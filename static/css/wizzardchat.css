@@ -288,6 +288,29 @@ body {
 [data-theme="light"] .cop-btn        { border-color: #ced4da; color: #6c757d; }
 [data-theme="light"] .cop-empty      { color: #9ca3af; }
 
+/* ─── Light theme: Agent Toolbar + Capacity ─────────── */
+[data-theme="light"] #agentToolbar  { background: #ffffff; border-bottom-color: #dee2e6; }
+[data-theme="light"] .tbar-divider  { background: #dee2e6; }
+[data-theme="light"] .tbar-outbound-btn { border-color: #ced4da; color: #495057; }
+[data-theme="light"] .tbar-outbound-btn:hover { background: #f8f9fa; border-color: #6c757d; color: #212529; }
+[data-theme="light"] .tbar-outbound-btn.voice    { border-color: #198754; color: #198754; }
+[data-theme="light"] .tbar-outbound-btn.voice:hover    { background: #d1e7dd; }
+[data-theme="light"] .tbar-outbound-btn.whatsapp { border-color: #25d366; color: #1a8c46; }
+[data-theme="light"] .tbar-outbound-btn.whatsapp:hover { background: #d1f5e0; }
+[data-theme="light"] .tbar-outbound-btn.email    { border-color: #c09010; color: #c09010; }
+[data-theme="light"] .tbar-outbound-btn.email:hover    { background: #fff3cd; }
+[data-theme="light"] #tbarCampaignBadge { background: #e8f5e9; border-color: #4caf50; color: #1a5c22; }
+[data-theme="light"] .cap-bar  { background: #dee2e6; }
+[data-theme="light"] .cap-count { color: #6c757d; }
+[data-theme="light"] #tbarCapacity > span:first-child { color: #6c757d !important; }
+[data-theme="light"] .cap-pill { background: #f8f9fa; border-color: #dee2e6; color: #495057; }
+[data-theme="light"] .cap-pill.active { background: #e7f0ff; border-color: #86b7fe; }
+[data-theme="light"] .cap-pill.near   { background: #fff3cd; border-color: #ffc107; color: #664d03; }
+[data-theme="light"] .cap-pill.full   { background: #f8d7da; border-color: #dc3545; color: #842029; }
+[data-theme="light"] #btnPickNext { border-color: #ced4da; color: #495057; }
+[data-theme="light"] #btnPickNext:hover { border-color: #0d6efd; color: #0d6efd; background: rgba(13,110,253,.08); }
+[data-theme="light"] #btnPickNext.armed { background: #cfe2ff; border-color: #0d6efd; color: #0a58ca; }
+
 /* ─── Light theme: Wallboard ────────────────────────── */
 [data-theme="light"] .stat-card   { background: #ffffff; border-color: rgba(0,0,0,.08); }
 [data-theme="light"] .stat-card .stat-lbl { color: #6c757d; }

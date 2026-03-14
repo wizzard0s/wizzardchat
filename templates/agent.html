@@ -302,6 +302,37 @@
         #tbarCampaignBadge.active { display: flex; }
         #tbarCapacity { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; overflow: hidden; }
 
+        /* ── Capacity elements ──────────────────────────────────────────── */
+        .cap-bar { height: 6px; background: #2e3140; border-radius: 4px; overflow: hidden; }
+        .cap-bar-fill { height: 100%; background: #0d6efd; border-radius: 4px; width: 0%; transition: width .4s; }
+        .cap-bar-fill.near { background: #fd7e14; }
+        .cap-bar-fill.full { background: #dc3545; }
+        .cap-count { font-size: .72rem; color: #8a9bb0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .cap-pill {
+            font-size: .72rem; color: #8a9bb0;
+            background: #1e2029; border: 1px solid #2e3140;
+            border-radius: 10px; padding: 2px 8px;
+            white-space: nowrap; line-height: 1.4;
+        }
+        .cap-pill.near   { background: #2a1e10; border-color: #fd7e14; color: #fd7e14; }
+        .cap-pill.full   { background: #2a1010; border-color: #dc3545; color: #dc3545; }
+        .cap-pill.active { background: #0d1e38; border-color: #0d6efd; }
+        /* Per-channel icon colours */
+        #capPill-voice    i { color: #198754; }
+        #capPill-chat     i { color: #0d6efd; }
+        #capPill-whatsapp i { color: #25d366; }
+        #capPill-email    i { color: #ffc107; }
+        #capPill-sms      i { color: #adb5bd; }
+        /* Pick Next button */
+        #btnPickNext {
+            background: none; border: 1px solid #2e3140; color: #8a9bb0;
+            border-radius: 6px; font-size: .72rem; padding: 3px 9px;
+            cursor: pointer; white-space: nowrap; flex-shrink: 0;
+            transition: border-color .15s, color .15s, background .15s;
+        }
+        #btnPickNext:hover { border-color: #0d6efd; color: #6ea8fe; background: rgba(13,110,253,.1); }
+        #btnPickNext.armed { background: #0d3a6e; border-color: #0d6efd; color: #6ea8fe; }
+
         /* ── Chat header channel border ─────────────────────────────────── */
         #chatHeaderBar { border-left: 4px solid transparent; transition: border-color .2s; }
         #chatHeaderBar.ch-voice    { border-left-color: #198754; }
@@ -1221,7 +1252,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/sidebar.js"></script>
 
-<script src="/static/js/agent.js?v=16"></script>
+<script src="/static/js/agent.js?v=17"></script>
 
 
 
