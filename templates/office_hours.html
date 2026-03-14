@@ -104,7 +104,7 @@
             </div>
             <ul class="nav flex-column ps-2 nav-section-body" id="sec-usermgmt">
                 <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
-                <li class="nav-item"><a href="/groups" class="nav-link text-white"><i class="bi bi-collection me-2"></i>Groups</a></li>
+                <li class="nav-item"><a href="/groups" class="nav-link text-white"><i class="bi bi-collection me-2"></i>Availability Profiles</a></li>
                 <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
                 <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
             </ul>
@@ -118,7 +118,7 @@
                 <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
                 <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
                 <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>
-                <li class="nav-item"><a href="/office-hours" class="active"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+                <li class="nav-item"><a href="/office-hours" class="nav-link active"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
                 <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
                 <li class="nav-item"><a href="/audit-log" class="nav-link text-white"><i class="bi bi-journal-text me-2"></i>Audit Log</a></li>
                 <li class="nav-item"><a href="/docs" target="_blank" class="nav-link text-white"><i class="bi bi-code-square me-2"></i>API Docs</a></li>
@@ -161,14 +161,7 @@
         <!-- RIGHT: Detail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <div class="col-md-9">
 
-            <!-- Placeholder shown when nothing is selected -->
-            <div id="panelEmpty" class="d-flex flex-column align-items-center justify-content-center text-muted rounded py-5"
-                 style="border:2px dashed rgba(255,255,255,.1); min-height:400px;">
-                <i class="bi bi-clock fs-1 opacity-25 mb-3"></i>
-                <p class="mb-0">Select a group on the left, or create a new one.</p>
-            </div>
-
-            <!-- Group detail panel (shown when a group is selected) -->
+            <!-- Availability Profile detail panel -->
             <div id="panelDetail" style="display:none">
 
                 <!-- Group header -->
@@ -493,7 +486,6 @@ function selectGroup(id) {
     var g = allGroups.find(function(x){ return x.id === id; });
     if (!g) { showEmptyPanel(); return; }
 
-    document.getElementById('panelEmpty').style.display  = 'none';
     document.getElementById('panelDetail').style.display = '';
 
     document.getElementById('gpName').textContent = g.name;
@@ -510,7 +502,6 @@ function selectGroup(id) {
 }
 
 function showEmptyPanel() {
-    document.getElementById('panelEmpty').style.display  = '';
     document.getElementById('panelDetail').style.display = 'none';
     curGroupId = null;
 }

@@ -43,16 +43,22 @@ body {
 }
 
 #sidebar .nav-link {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
     border-radius: 6px;
     padding: 4px 10px;
     margin-bottom: 1px;
     transition: background .15s;
+    color: rgba(255,255,255,.78) !important; /* beats Bootstrap text-white !important via specificity */
 }
 #sidebar .nav-link:hover {
     background: rgba(255,255,255,.1);
+    color: #fff !important;
 }
 #sidebar .nav-link.active {
-    background: var(--bs-primary);
+    background: rgba(13,110,253,.55);
+    color: #fff !important;
 }
 
 /* ─── Nav accordion ───────────────────────────────────────────────── */

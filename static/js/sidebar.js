@@ -1,23 +1,24 @@
 /* WizzardChat – shared sidebar logic (loaded on every page) */
 
 // ─── Accordion toggle ─────────────────────────────────────────────────────────
+var WC_NAV_STATE_KEY = 'wc_nav_state_v3';
+
+function _saveNavState() {
+    var state = {};
+    document.querySelectorAll('.nav-section-body').forEach(function (b) {
+        if (b.id) state[b.id] = !b.classList.contains('collapsed');
+    });
+    localStorage.setItem(WC_NAV_STATE_KEY, JSON.stringify(state));
+}
+
 function navToggle(id, hdr) {
-    const body = document.getElementById(id);
-    const chev = hdr.querySelector('.section-chev');
+    var body = document.getElementById(id);
+    var chev = hdr.querySelector('.section-chev');
     if (!body) return;
-    const willOpen = body.classList.contains('collapsed');
-    // Close all other accordions first
-    if (willOpen) {
-        document.querySelectorAll('.nav-section-body').forEach(function (b) {
-            if (b !== body) {
-                b.classList.add('collapsed');
-                const h = b.previousElementSibling;
-                if (h) { const c = h.querySelector('.section-chev'); if (c) c.classList.add('collapsed'); }
-            }
-        });
-    }
+    var willOpen = body.classList.contains('collapsed');
     body.classList.toggle('collapsed', !willOpen);
     if (chev) chev.classList.toggle('collapsed', !willOpen);
+    _saveNavState();
 }
 
 // ─── Theme management ─────────────────────────────────────────────────────────
@@ -98,30 +99,29 @@ function injectProfileDropdown() {
 document.addEventListener('DOMContentLoaded', function () {
 
     // ─── Auto-mark active nav link from current URL ───────────────────────────
-    const path = window.location.pathname;
-    // Clear any hardcoded active classes first so only one link is highlighted
+    var path = window.location.pathname;
+    // Only manage the 'active' class — never touch text-white (CSS handles colour)
     document.querySelectorAll('#sidebar .nav-link').forEach(function (a) {
         a.classList.remove('active');
-        a.classList.add('text-white');
     });
     document.querySelectorAll('#sidebar .nav-link[href]').forEach(function (a) {
-        const href = a.getAttribute('href').split('?')[0];
+        var href = a.getAttribute('href').split('?')[0];
         if (href === path) {
             a.classList.add('active');
-            a.classList.remove('text-white');
         }
     });
 
-    // ─── Accordion init: collapse sections that don't contain the active link ──
+    // ─── Accordion init: only open section with active link (restore user toggles) ──
+    // All sections collapsed by default; user-toggled state persists across pages
+    var _savedNav = localStorage.getItem(WC_NAV_STATE_KEY);
+    var _navState = _savedNav ? JSON.parse(_savedNav) : {};
     document.querySelectorAll('.nav-section-body').forEach(function (body) {
-        const hasActive = body.querySelector('.nav-link.active');
-        if (!hasActive) {
-            body.classList.add('collapsed');
-            const hdr = body.previousElementSibling;
-            if (hdr) {
-                const chev = hdr.querySelector('.section-chev');
-                if (chev) chev.classList.add('collapsed');
-            }
+        var shouldOpen = (body.id && _navState[body.id] === true);
+        body.classList.toggle('collapsed', !shouldOpen);
+        var hdr = body.previousElementSibling;
+        if (hdr) {
+            var chev = hdr.querySelector('.section-chev');
+            if (chev) chev.classList.toggle('collapsed', !shouldOpen);
         }
     });
 
