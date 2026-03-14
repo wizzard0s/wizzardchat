@@ -27,7 +27,7 @@
     function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
     const TYPE_LABELS  = { positive: 'Positive', negative: 'Negative', neutral: 'Neutral', escalation: 'Escalation' };
-    const TYPE_CLASS   = { positive: 'type-badge-positive', negative: 'type-badge-negative', neutral: 'type-badge-neutral', escalation: 'type-badge-escalation' };
+    const TYPE_CLASS   = { positive: 'wz-badge-ok', negative: 'wz-badge-fail', neutral: 'wz-badge-muted', escalation: 'wz-badge-warn' };
     const ACTION_LABELS = { end_interaction: 'End interaction', flow_redirect: 'Redirect to flow' };
     const ACTION_CLASS  = { end_interaction: 'action-badge-end', flow_redirect: 'action-badge-redirect' };
 
@@ -108,17 +108,17 @@
         _outcomes.forEach(o => {
             const tr = document.createElement('tr');
             tr.className = 'outcome-data-row';
-            const typeCls = TYPE_CLASS[o.outcome_type] || 'type-badge-neutral';
+            const typeCls = TYPE_CLASS[o.outcome_type] || 'wz-badge-muted';
             const typeLabel = TYPE_LABELS[o.outcome_type] || o.outcome_type;
             tr.innerHTML = `
 <td><code class="text-info">${esc(o.code)}</code></td>
 <td class="fw-semibold">${esc(o.label)}</td>
-<td><span class="badge ${typeCls}">${esc(typeLabel)}</span></td>
+<td><span class="wz-badge ${typeCls}">${esc(typeLabel)}</span></td>
 <td class="text-muted small">${esc(o.description || '—')}</td>
 <td class="text-center">
     ${o.is_active
-        ? '<span class="badge bg-success">Active</span>'
-        : '<span class="badge bg-secondary">Inactive</span>'}
+        ? '<span class="wz-badge wz-badge-ok">Active</span>'
+        : '<span class="wz-badge wz-badge-muted">Inactive</span>'}
 </td>
 <td class="text-center">
     <button class="btn btn-sm btn-outline-secondary me-1" onclick="openOutcomeModal('${o.id}')" title="Edit"><i class="bi bi-pencil"></i></button>

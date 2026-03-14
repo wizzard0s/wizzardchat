@@ -59,6 +59,14 @@ const Interactions = (() => {
         load(1);
     }
 
+    // ── Status badge map ──────────────────────────────────────────────────────
+    const _statusClass = {
+        active:        'wz-badge-info',
+        closed:        'wz-badge-ok',
+        with_agent:    'wz-badge-info',
+        waiting_agent: 'wz-badge-purple',
+    };
+
     // ── Table ────────────────────────────────────────────────────────────────
     function _renderTable(items) {
         const tbody = document.getElementById('ixTableBody');
@@ -69,14 +77,14 @@ const Interactions = (() => {
         }
         tbody.innerHTML = items.map(ix => {
             const started = ix.created_at ? _fmtDate(ix.created_at) : '—';
-            const statusBadge = `<span class="badge badge-status-${ix.status}">${_statusLabel(ix.status)}</span>`;
-            const outcome  = ix.disconnect_outcome ? `<span class="badge badge-outcome">${_esc(ix.disconnect_outcome)}</span>` : '<span class="text-muted">—</span>';
+            const statusBadge = `<span class="wz-badge ${_statusClass[ix.status] ?? 'wz-badge-muted'}">${_statusLabel(ix.status)}</span>`;
+            const outcome  = ix.disconnect_outcome ? `<span class="wz-badge wz-badge-muted">${_esc(ix.disconnect_outcome)}</span>` : '<span class="text-muted">—</span>';
             const csat     = ix.csat_score   ? _renderStarsMini(ix.csat_score, 5)   : '<span class="text-muted">—</span>';
-            const nps      = ix.nps_score !== null && ix.nps_score !== undefined ? `<span class="badge bg-secondary">${ix.nps_score}</span>` : '<span class="text-muted">—</span>';
+            const nps      = ix.nps_score !== null && ix.nps_score !== undefined ? `<span class="wz-badge wz-badge-muted">${ix.nps_score}</span>` : '<span class="text-muted">—</span>';
             const agentTxt = _esc(ix.agent_name || '—');
             const connTxt  = _esc(ix.connector_name || '—');
             const session  = _esc(ix.session_key.slice(0, 18) + (ix.session_key.length > 18 ? '…' : ''));
-            const tagChips = (ix.tags || []).map(t => `<span class="tag-chip ms-1">${_esc(t)}</span>`).join('');
+            const tagChips = (ix.tags || []).map(t => `<span class="wz-badge wz-badge-muted ms-1">${_esc(t)}</span>`).join('');
             return `<tr class="ix-row" onclick="Interactions.openDetail('${ix.id}')">
                 <td class="text-secondary">${started}</td>
                 <td><code class="text-info" style="font-size:.78rem;">${session}</code>${tagChips}</td>
@@ -143,7 +151,7 @@ const Interactions = (() => {
     // ── Build detail HTML ─────────────────────────────────────────────────────
     function _buildDetail(ix) {
         const created = ix.created_at ? _fmtDate(ix.created_at) : '—';
-        const statusBadge = `<span class="badge badge-status-${ix.status} fs-6">${_statusLabel(ix.status)}</span>`;
+        const statusBadge = `<span class="wz-badge ${_statusClass[ix.status] ?? 'wz-badge-muted'} fs-6">${_statusLabel(ix.status)}</span>`;
         const session = _esc(ix.session_key);
 
         let html = `
@@ -181,7 +189,7 @@ const Interactions = (() => {
                 <div class="text-secondary mb-1 fw-semibold" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;"><i class="bi bi-globe me-1"></i>Visitor info</div>
                 ${vm.page_title ? `<div class="mb-1"><span class="text-secondary">Page:</span> ${_esc(vm.page_title)}</div>` : ''}
                 ${vm.page_url   ? `<div class="mb-1 text-truncate"><span class="text-secondary">URL:</span> <a href="${_esc(vm.page_url)}" target="_blank" class="text-info" style="font-size:.78rem;">${_esc(vm.page_url)}</a></div>` : ''}
-                ${vm.trigger_type ? `<div><span class="text-secondary">Trigger:</span> <span class="badge badge-outline-info">${_esc(vm.trigger_type)}</span> <span class="text-muted">${_esc(vm.trigger_value || '')}</span></div>` : ''}
+                ${vm.trigger_type ? `<div><span class="text-secondary">Trigger:</span> <span class="wz-badge wz-badge-info">${_esc(vm.trigger_type)}</span> <span class="text-muted">${_esc(vm.trigger_value || '')}</span></div>` : ''}
             </div>`;
         }
 
@@ -195,7 +203,7 @@ const Interactions = (() => {
         if (ix.disconnect_outcome) {
             html += `<div class="col-12 metric-card">
                 <div class="text-secondary mb-1" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;"><i class="bi bi-flag me-1"></i>Outcome</div>
-                <span class="badge badge-outcome fs-6">${_esc(ix.disconnect_outcome)}</span>
+                <span class="wz-badge wz-badge-muted fs-6">${_esc(ix.disconnect_outcome)}</span>
             </div>`;
         }
         if (ix.csat_score != null) {
@@ -226,7 +234,7 @@ const Interactions = (() => {
         // ── Tags ──
         if (ix.tags && ix.tags.length) {
             html += `<div class="mb-3 d-flex flex-wrap gap-1">
-                ${ix.tags.map(t => `<span class="tag-chip"><i class="bi bi-tag me-1"></i>${_esc(t)}</span>`).join('')}
+                ${ix.tags.map(t => `<span class="wz-badge wz-badge-muted"><i class="bi bi-tag me-1"></i>${_esc(t)}</span>`).join('')}
             </div>`;
         }
 

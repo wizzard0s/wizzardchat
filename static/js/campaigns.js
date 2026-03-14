@@ -140,14 +140,14 @@
 
     function _statusBadge(status) {
         const map = {
-            running:   ['Running',   'bg-success'],
-            draft:     ['Draft',     'bg-secondary'],
-            paused:    ['Paused',    'bg-warning text-dark'],
-            completed: ['Completed', 'bg-primary'],
-            cancelled: ['Cancelled', 'bg-danger'],
+            running:   ['Running',   'wz-badge-ok'],
+            draft:     ['Draft',     'wz-badge-muted'],
+            paused:    ['Paused',    'wz-badge-warn'],
+            completed: ['Completed', 'wz-badge-info'],
+            cancelled: ['Cancelled', 'wz-badge-fail'],
         };
-        const [label, cls] = map[status] ?? [status, 'bg-secondary'];
-        return `<span class="badge ${cls}">${label}</span>`;
+        const [label, cls] = map[status] ?? [status, 'wz-badge-muted'];
+        return `<span class="wz-badge ${cls}">${label}</span>`;
     }
 
     function _typeLabel(t) {
@@ -181,8 +181,8 @@
             const ct = c.campaign_time || {};
             const timeStr = (ct.start && ct.end) ? `${ct.start}–${ct.end}` : '—';
             const activeBadge = c.is_active
-                ? '<span class="badge bg-success ms-1">Active</span>'
-                : '<span class="badge bg-secondary ms-1">Inactive</span>';
+                ? '<span class="wz-badge wz-badge-ok ms-1">Active</span>'
+                : '<span class="wz-badge wz-badge-muted ms-1">Inactive</span>';
             const diallerBtn = (c.status === 'running')
                 ? `<button class="btn btn-sm btn-success w-100 mt-2" style="font-size:12px"
                       onclick="event.stopPropagation();window.location.href='/dialler/${c.id}'">
@@ -191,8 +191,8 @@
                 : '';
             const modeLabel = (() => {
                 const m = (c.settings || {}).dialler_mode;
-                if (m === 'progressive') return '<span class="badge bg-warning text-dark ms-1" style="font-size:10px">Progressive</span>';
-                if (m === 'preview') return '<span class="badge bg-info text-dark ms-1" style="font-size:10px">Preview</span>';
+                if (m === 'progressive') return '<span class="wz-badge wz-badge-warn ms-1">Progressive</span>';
+                if (m === 'preview') return '<span class="wz-badge wz-badge-info ms-1">Preview</span>';
                 return '';
             })();
             col.innerHTML = `
@@ -311,10 +311,10 @@
             return;
         }
         empty.style.display = 'none';
-        const typeBadge = { positive: 'success', negative: 'danger', neutral: 'secondary', escalation: 'warning' };
+        const typeBadge = { positive: 'wz-badge-ok', negative: 'wz-badge-fail', neutral: 'wz-badge-muted', escalation: 'wz-badge-warn' };
         _allOutcomes.forEach(o => {
             const checked = selectedIds.includes(o.id) ? 'checked' : '';
-            const badge   = typeBadge[o.outcome_type] ?? 'secondary';
+            const badge   = typeBadge[o.outcome_type] ?? 'wz-badge-muted';
             const col     = document.createElement('div');
             col.className = 'col-md-6';
             col.innerHTML = `
@@ -322,7 +322,7 @@
     <input class="form-check-input" type="checkbox" value="${o.id}" id="co_${o.id}" ${checked}>
     <label class="form-check-label d-flex align-items-center gap-2" for="co_${o.id}">
         <span class="fw-semibold">${esc(o.label)}</span>
-        <span class="badge bg-${badge} text-uppercase" style="font-size:.65rem">${esc(o.outcome_type)}</span>
+        <span class="wz-badge ${badge}">${esc(o.outcome_type)}</span>
         <code class="text-muted" style="font-size:.75rem">${esc(o.code)}</code>
     </label>
 </div>`;
@@ -361,8 +361,8 @@
     <label class="form-check-label d-flex align-items-center gap-2" for="cq_${q.id}">
         <span class="queue-color-dot" style="background:${esc(q.color || '#fd7e14')};width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0"></span>
         <span class="fw-semibold">${esc(q.name)}</span>
-        <span class="badge bg-dark border"><i class="bi ${icon} me-1"></i>${esc(q.channel)}</span>
-        ${q.is_active ? '' : '<span class="badge bg-secondary">Inactive</span>'}
+        <span class="wz-badge wz-badge-info"><i class="bi ${icon} me-1"></i>${esc(q.channel)}</span>
+        ${q.is_active ? '' : '<span class="wz-badge wz-badge-muted">Inactive</span>'}
     </label>
 </div>`;
             list.appendChild(col);

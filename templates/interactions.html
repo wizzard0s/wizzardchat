@@ -123,19 +123,7 @@
 
         .ix-row:hover { cursor:pointer; background:#1a1a2e !important; }
 
-        .badge-status-active        { background:#0d6efd; color:#fff; }
-
-        .badge-status-closed        { background:#198754; color:#fff; }
-
-        .badge-status-with_agent    { background:#fd7e14; color:#000; }
-
-        .badge-status-waiting_agent { background:#6f42c1; color:#fff; }
-
-        .badge-outcome { background:#2a2a2a; color:#ccc; border:1px solid #444; }
-
         .csat-stars { letter-spacing:2px; }
-
-        .tag-chip { background:#222; border:1px solid #444; padding:.15rem .5rem; border-radius:12px; font-size:.75rem; color:#aaa; }
 
         .panel-close-btn { position:absolute; top:14px; right:16px; }
 
@@ -460,33 +448,19 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
 
-        // Fetch current user display
+        // Auth check (agentName and logout are handled by sidebar.js)
 
         try {
 
             const r = await fetch('/api/v1/auth/me', { headers: { Authorization: 'Bearer ' + token } });
 
-            if (r.ok) {
-
-                const u = await r.json();
-
-                document.getElementById('agentName').textContent = u.email || u.username || 'Agent';
-
-            } else if (r.status === 401) {
+            if (r.status === 401) {
 
                 localStorage.removeItem('wizzardchat_token'); location.href = '/login'; return;
 
             }
 
         } catch (_) {}
-
-        document.getElementById('btnLogout').addEventListener('click', e => {
-
-            e.preventDefault(); localStorage.removeItem('wizzardchat_token'); location.href = '/login';
-
-        });
-
-        Interactions.init();
 
     });
 

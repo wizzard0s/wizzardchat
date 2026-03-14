@@ -3,6 +3,7 @@
 /* ─── Palette ─── */
 #nodePalette {
     background: #16213e;
+    color: #e2e8f0;
     width: 240px;
     min-width: 44px;
     flex-shrink: 0;
@@ -21,6 +22,7 @@
 .palette-header {
     flex-shrink: 0;
     background: #16213e;
+    color: #e2e8f0;
     position: sticky;
     top: 0;
     z-index: 2;
@@ -838,5 +840,48 @@
 }
 #panelResizeHandle.dragging {
     background: rgba(99,102,241,.55);
+}
+
+/* ─── Light mode overrides ─── */
+[data-theme="light"] #nodePalette,
+[data-theme="light"] .palette-header {
+    background: #f0f4f8;
+    color: #1a1c23;
+    border-color: #dee2e6;
+}
+[data-theme="light"] .palette-toggle { color: #495057; }
+[data-theme="light"] .palette-toggle:hover { color: #000; }
+[data-theme="light"] .palette-node {
+    background: rgba(0,0,0,.04);
+    border-color: rgba(0,0,0,.1);
+    color: #1a1c23;
+}
+[data-theme="light"] .palette-node:hover {
+    background: rgba(0,0,0,.08);
+    border-color: rgba(100,149,237,.5);
+}
+[data-theme="light"] #canvasContainer {
+    background-color: #f5f7fa;
+    background-image:
+        linear-gradient(rgba(0,0,0,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,.06) 1px, transparent 1px);
+}
+[data-theme="light"] .flow-node {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    color: #1a1c23;
+}
+[data-theme="light"] .flow-node:hover {
+    border-color: #6ea8fe;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
+}
+[data-theme="light"] .flow-node .node-body { color: #374151; }
+[data-theme="light"] #propertiesPanel {
+    background: #f8fafc;
+    border-color: #dee2e6;
+}
+[data-theme="light"] .navbar.bg-dark {
+    background-color: #343a40 !important;
 }
 
