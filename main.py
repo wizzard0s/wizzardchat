@@ -827,6 +827,9 @@ async def lifespan(app: FastAPI):
             # ── Campaign agent-group assignment ─────────────────────────────────────
             ("campaigns.agent_groups",
              "ALTER TABLE chat_campaigns ADD COLUMN IF NOT EXISTS agent_groups JSONB DEFAULT '[]'"),
+            # ── Campaign outbound dialler config ─────────────────────────────────
+            ("campaigns.outbound_config",
+             "ALTER TABLE chat_campaigns ADD COLUMN IF NOT EXISTS outbound_config JSONB DEFAULT '{}'"),
             # ── Agent omnichannel capacity limits (Phase 1) ──────────────────────────
             ("users.omni_max",
              "ALTER TABLE chat_users ADD COLUMN IF NOT EXISTS omni_max INTEGER"),

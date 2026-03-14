@@ -151,13 +151,27 @@
     }
 
     function _typeLabel(t) {
-        return { inbound: 'Inbound', outbound: 'Outbound', blended: 'Blended' }[t] ?? t;
+        const map = {
+            inbound:        'Inbound',
+            outbound:       'Outbound',
+            blended:        'Blended',
+            outbound_voice: 'Voice Outbound',
+            outbound_sms:   'SMS Outbound',
+            outbound_whatsapp: 'WhatsApp Outbound',
+            outbound_email: 'Email Outbound',
+        };
+        return map[t] ?? (t ? t.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Unknown');
     }
 
     // \u2500\u2500\u2500 Load / Render \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function loadCampaigns() {
         const r = await apiFetch('/api/v1/campaigns');
-        _campaigns = r.ok ? await r.json() : [];
+        if (!r.ok) {
+            console.error('[campaigns] API error', r.status, await r.text().catch(() => ''));
+            _campaigns = [];
+        } else {
+            _campaigns = await r.json();
+        }
         renderCampaigns();
     }
 
