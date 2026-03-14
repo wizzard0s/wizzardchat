@@ -350,21 +350,116 @@ body {
 .perm-toggle:disabled { opacity:.4; cursor:not-allowed; }
 
 /* ─── wz-badge — canonical status/type indicators ───────────────────────── */
-/* Matches the definition in WIZZARDSDK/standards/css/wizzard-tokens.css.     */
-/* All modifiers use CSS-variable tints that are already declared above, so   */
-/* they adapt to light and dark themes automatically.                          */
+/* Base pill shape shared by all semantic modifier classes below.             */
 .wz-badge {
-  display:      inline-block;
-  font-size:    .72rem;
-  font-weight:  600;
-  line-height:  1.5;
-  padding:      2px 9px;
+  display:       inline-block;
+  font-size:     .72rem;
+  font-weight:   600;
+  line-height:   1.5;
+  padding:       2px 9px;
   border-radius: 6px;
-  white-space:  nowrap;
+  white-space:   nowrap;
 }
-.wz-badge-ok     { background: var(--wz-ok-tint);     color: var(--wz-ok);     }
-.wz-badge-fail   { background: var(--wz-fail-tint);   color: var(--wz-fail);   }
-.wz-badge-warn   { background: var(--wz-warn-tint);   color: var(--wz-warn);   }
-.wz-badge-info   { background: var(--wz-info-tint);   color: var(--wz-info);   }
-.wz-badge-purple { background: var(--wz-purple-tint); color: var(--wz-purple); }
-.wz-badge-muted  { background: var(--wz-muted-tint);  color: var(--wz-muted);  }
+
+/* ── Generic color aliases (backward compat) ── */
+.wz-badge-ok     { background: var(--wz-ok);     color: #052e16; }
+.wz-badge-fail   { background: var(--wz-fail);   color: #fff;    }
+.wz-badge-warn   { background: var(--wz-warn);   color: #431407; }
+.wz-badge-info   { background: var(--wz-info);   color: #082f49; }
+.wz-badge-purple { background: var(--wz-purple); color: #fff;    }
+.wz-badge-muted  { background: var(--wz-muted);  color: #fff;    }
+
+/* ─── Semantic badge CSS variables ───────────────────────────────────────── */
+/* Override any var in localStorage via wz-theme.js to customise per tenant. */
+:root {
+  /* ── Entity active/inactive ── */
+  --wz-status-active:          #22c55e; --wz-status-active-txt:          #052e16;
+  --wz-status-inactive:        #6e7681; --wz-status-inactive-txt:        #fff;
+  /* ── Flow publish state ── */
+  --wz-status-published:       #22c55e; --wz-status-published-txt:       #052e16;
+  --wz-status-draft:           #f59e0b; --wz-status-draft-txt:           #431407;
+  /* ── Campaign lifecycle ── */
+  --wz-status-running:         #22c55e; --wz-status-running-txt:         #052e16;
+  --wz-status-paused:          #f59e0b; --wz-status-paused-txt:          #431407;
+  --wz-status-completed:       #38bdf8; --wz-status-completed-txt:       #082f49;
+  --wz-status-cancelled:       #ef4444; --wz-status-cancelled-txt:       #fff;
+  /* ── Interaction / session lifecycle ── */
+  --wz-status-in-flow:         #38bdf8; --wz-status-in-flow-txt:         #082f49;
+  --wz-status-waiting:         #a371f7; --wz-status-waiting-txt:         #fff;
+  --wz-status-with-agent:      #22c55e; --wz-status-with-agent-txt:      #052e16;
+  --wz-status-wrap-up:         #f59e0b; --wz-status-wrap-up-txt:         #431407;
+  --wz-status-closed:          #6e7681; --wz-status-closed-txt:          #fff;
+  --wz-status-open:            #22c55e; --wz-status-open-txt:            #052e16;
+  /* ── Dialler call disposition ── */
+  --wz-status-failed:          #ef4444; --wz-status-failed-txt:          #fff;
+  --wz-status-no-answer:       #6e7681; --wz-status-no-answer-txt:       #fff;
+  --wz-status-busy:            #f59e0b; --wz-status-busy-txt:            #431407;
+  /* ── Channel types ── */
+  --wz-channel-chat:           #38bdf8; --wz-channel-chat-txt:           #082f49;
+  --wz-channel-voice:          #ef4444; --wz-channel-voice-txt:          #fff;
+  --wz-channel-whatsapp:       #25d366; --wz-channel-whatsapp-txt:       #fff;
+  --wz-channel-sms:            #059669; --wz-channel-sms-txt:            #fff;
+  --wz-channel-email:          #f59e0b; --wz-channel-email-txt:          #431407;
+  /* ── Flow types ── */
+  --wz-flowtype-main:          #38bdf8; --wz-flowtype-main-txt:          #082f49;
+  --wz-flowtype-subflow:       #6e7681; --wz-flowtype-subflow-txt:       #fff;
+  /* ── User roles ── */
+  --wz-role-super-admin:       #ef4444; --wz-role-super-admin-txt:       #fff;
+  --wz-role-admin:             #f59e0b; --wz-role-admin-txt:             #431407;
+  --wz-role-supervisor:        #38bdf8; --wz-role-supervisor-txt:        #082f49;
+  --wz-role-agent:             #0d6efd; --wz-role-agent-txt:             #fff;
+  --wz-role-viewer:            #6e7681; --wz-role-viewer-txt:            #fff;
+  /* ── AI health ── */
+  --wz-ai-online:              #22c55e; --wz-ai-online-txt:              #052e16;
+  --wz-ai-degraded:            #f59e0b; --wz-ai-degraded-txt:            #431407;
+  --wz-ai-offline:             #ef4444; --wz-ai-offline-txt:             #fff;
+  /* ── Dialler mode ── */
+  --wz-mode-progressive:       #f59e0b; --wz-mode-progressive-txt:       #431407;
+  --wz-mode-preview:           #38bdf8; --wz-mode-preview-txt:           #082f49;
+}
+
+/* ─── Semantic status classes ────────────────────────────────────────────── */
+.wz-status-active     { background: var(--wz-status-active);     color: var(--wz-status-active-txt);     }
+.wz-status-inactive   { background: var(--wz-status-inactive);   color: var(--wz-status-inactive-txt);   }
+.wz-status-published  { background: var(--wz-status-published);  color: var(--wz-status-published-txt);  }
+.wz-status-draft      { background: var(--wz-status-draft);      color: var(--wz-status-draft-txt);      }
+.wz-status-running    { background: var(--wz-status-running);    color: var(--wz-status-running-txt);    }
+.wz-status-paused     { background: var(--wz-status-paused);     color: var(--wz-status-paused-txt);     }
+.wz-status-completed  { background: var(--wz-status-completed);  color: var(--wz-status-completed-txt);  }
+.wz-status-cancelled  { background: var(--wz-status-cancelled);  color: var(--wz-status-cancelled-txt);  }
+.wz-status-in-flow    { background: var(--wz-status-in-flow);    color: var(--wz-status-in-flow-txt);    }
+.wz-status-waiting    { background: var(--wz-status-waiting);    color: var(--wz-status-waiting-txt);    }
+.wz-status-with-agent { background: var(--wz-status-with-agent); color: var(--wz-status-with-agent-txt); }
+.wz-status-wrap-up    { background: var(--wz-status-wrap-up);    color: var(--wz-status-wrap-up-txt);    }
+.wz-status-closed     { background: var(--wz-status-closed);     color: var(--wz-status-closed-txt);     }
+.wz-status-open       { background: var(--wz-status-open);       color: var(--wz-status-open-txt);       }
+.wz-status-failed     { background: var(--wz-status-failed);     color: var(--wz-status-failed-txt);     }
+.wz-status-no-answer  { background: var(--wz-status-no-answer);  color: var(--wz-status-no-answer-txt);  }
+.wz-status-busy       { background: var(--wz-status-busy);       color: var(--wz-status-busy-txt);       }
+
+/* ─── Channel type classes ───────────────────────────────────────────────── */
+.wz-channel-chat     { background: var(--wz-channel-chat);     color: var(--wz-channel-chat-txt);     }
+.wz-channel-voice    { background: var(--wz-channel-voice);    color: var(--wz-channel-voice-txt);    }
+.wz-channel-whatsapp { background: var(--wz-channel-whatsapp); color: var(--wz-channel-whatsapp-txt); }
+.wz-channel-sms      { background: var(--wz-channel-sms);      color: var(--wz-channel-sms-txt);      }
+.wz-channel-email    { background: var(--wz-channel-email);    color: var(--wz-channel-email-txt);    }
+
+/* ─── Flow type classes ──────────────────────────────────────────────────── */
+.wz-flowtype-main    { background: var(--wz-flowtype-main);    color: var(--wz-flowtype-main-txt);    }
+.wz-flowtype-subflow { background: var(--wz-flowtype-subflow); color: var(--wz-flowtype-subflow-txt); }
+
+/* ─── Role classes ───────────────────────────────────────────────────────── */
+.wz-role-super-admin { background: var(--wz-role-super-admin); color: var(--wz-role-super-admin-txt); }
+.wz-role-admin       { background: var(--wz-role-admin);       color: var(--wz-role-admin-txt);       }
+.wz-role-supervisor  { background: var(--wz-role-supervisor);  color: var(--wz-role-supervisor-txt);  }
+.wz-role-agent       { background: var(--wz-role-agent);       color: var(--wz-role-agent-txt);       }
+.wz-role-viewer      { background: var(--wz-role-viewer);      color: var(--wz-role-viewer-txt);      }
+
+/* ─── AI health classes ──────────────────────────────────────────────────── */
+.wz-ai-online   { background: var(--wz-ai-online);   color: var(--wz-ai-online-txt);   }
+.wz-ai-degraded { background: var(--wz-ai-degraded); color: var(--wz-ai-degraded-txt); }
+.wz-ai-offline  { background: var(--wz-ai-offline);  color: var(--wz-ai-offline-txt);  }
+
+/* ─── Dialler mode classes ───────────────────────────────────────────────── */
+.wz-mode-progressive { background: var(--wz-mode-progressive); color: var(--wz-mode-progressive-txt); }
+.wz-mode-preview     { background: var(--wz-mode-preview);     color: var(--wz-mode-preview-txt);     }

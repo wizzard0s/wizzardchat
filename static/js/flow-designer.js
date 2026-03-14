@@ -2603,8 +2603,8 @@
 
         listEl.innerHTML = visible.map(f => {
             const pubBadge = f.is_published
-                ? `<span class="badge bg-success me-1">Published</span><span class="badge bg-secondary me-2">v${f.version}</span>`
-                : `<span class="badge bg-warning text-dark me-1">Draft</span><span class="badge bg-secondary me-2">v${f.version}</span>`;
+                ? `<span class="wz-badge wz-status-published me-1">Published</span><span class="wz-badge wz-badge-muted me-2">v${f.version}</span>`
+                : `<span class="wz-badge wz-status-draft me-1">Draft</span><span class="wz-badge wz-badge-muted me-2">v${f.version}</span>`;
             const desc = f.description ? `<div class="text-muted small mt-1">${escapeHtml(f.description)}</div>` : '';
             return `
             <div class="d-flex justify-content-between align-items-start py-2 border-bottom border-dark">
@@ -2833,8 +2833,8 @@
             let html = '<p class="text-warning fw-semibold mb-2"><i class="bi bi-exclamation-triangle-fill me-1"></i>This flow is referenced by:</p><ul class="small mb-0">';
             usage.connectors.forEach(c => {
                 const badge = c.is_active
-                    ? '<span class="badge bg-success ms-1">active</span>'
-                    : '<span class="badge bg-secondary ms-1">inactive</span>';
+                    ? '<span class="wz-badge wz-status-active ms-1">active</span>'
+                    : '<span class="wz-badge wz-status-inactive ms-1">inactive</span>';
                 html += `<li><strong>Connector:</strong> ${escapeHtml(c.name)}${badge}</li>`;
             });
             usage.sub_flow_parents.forEach(p => {
@@ -4644,14 +4644,14 @@ Always generate flows in this exact pattern. Sub-flows first in the array. Every
             if (res && res.ok) {
                 const st = await res.json();
                 if (badge) {
-                    badge.className = st.ok ? 'badge bg-success ms-2 fw-normal fs-6' : 'badge bg-warning ms-2 fw-normal fs-6';
+                    badge.className = st.ok ? 'wz-badge wz-ai-online ms-2 fw-normal fs-6' : 'wz-badge wz-ai-degraded ms-2 fw-normal fs-6';
                     badge.textContent = st.ok ? 'AI online' : 'AI degraded';
                 }
             } else {
-                if (badge) { badge.className = 'badge bg-danger ms-2 fw-normal fs-6'; badge.textContent = 'AI offline'; }
+                if (badge) { badge.className = 'wz-badge wz-ai-offline ms-2 fw-normal fs-6'; badge.textContent = 'AI offline'; }
             }
         } catch (_) {
-            if (badge) { badge.className = 'badge bg-danger ms-2 fw-normal fs-6'; badge.textContent = 'AI offline'; }
+            if (badge) { badge.className = 'wz-badge wz-ai-offline ms-2 fw-normal fs-6'; badge.textContent = 'AI offline'; }
         }
 
         // Opening greeting from the AI

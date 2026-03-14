@@ -26,15 +26,15 @@
     ];
 
     const CHANNEL_META = {
-        whatsapp: { label: 'WhatsApp', icon: 'bi-whatsapp', color: '#0d6efd', badgeCls: 'bg-success' },
-        sms:      { label: 'SMS',       icon: 'bi-phone',    color: '#0dcaf0', badgeCls: 'bg-info text-dark' },
-        email:    { label: 'Email',     icon: 'bi-envelope', color: '#f59e0b', badgeCls: 'bg-warning text-dark' },
+        whatsapp: { label: 'WhatsApp', icon: 'bi-whatsapp', color: '#0d6efd', wz: 'wz-channel-whatsapp' },
+        sms:      { label: 'SMS',       icon: 'bi-phone',    color: '#0dcaf0', wz: 'wz-channel-sms'      },
+        email:    { label: 'Email',     icon: 'bi-envelope', color: '#f59e0b', wz: 'wz-channel-email'    },
     };
 
     const STATUS_BADGE = {
-        active:   'bg-success',
-        draft:    'bg-secondary',
-        inactive: 'bg-danger',
+        active:   'wz-status-active',
+        draft:    'wz-status-draft',
+        inactive: 'wz-status-inactive',
     };
 
     // ── Modal helpers ────────────────────────────────────────────────────────
@@ -85,8 +85,8 @@
     function _buildCard(t) {
         const col = document.createElement('div');
         col.className = 'col-md-4 col-sm-6';
-        const m = CHANNEL_META[t.channel] || { label: t.channel, icon: 'bi-file-text', badgeCls: 'bg-secondary' };
-        const sb = STATUS_BADGE[t.status] || 'bg-secondary';
+        const m = CHANNEL_META[t.channel] || { label: t.channel, icon: 'bi-file-text', wz: 'wz-badge-muted' };
+        const sb = STATUS_BADGE[t.status] || 'wz-status-inactive';
         const varCount = (t.variables || []).length;
         const waExtra = t.channel === 'whatsapp' && t.wa_template_name
             ? `<div class="small text-muted mt-1"><i class="bi bi-check2-circle me-1"></i><code>${esc(t.wa_template_name)}</code> · ${esc(t.wa_approval_status || '–')}</div>`
@@ -95,8 +95,8 @@
 <div class="template-card-item h-100" onclick="openTemplateModal('${t.id}')">
     <div class="d-flex align-items-start justify-content-between mb-2">
         <div class="d-flex align-items-center gap-2">
-            <span class="badge ${m.badgeCls}"><i class="bi ${m.icon} me-1"></i>${m.label}</span>
-            <span class="badge ${sb}" style="font-size:.68rem">${esc(t.status)}</span>
+            <span class="wz-badge ${m.wz}"><i class="bi ${m.icon} me-1"></i>${m.label}</span>
+            <span class="wz-badge ${sb}" style="font-size:.68rem">${esc(t.status)}</span>
         </div>
         ${varCount ? `<span class="badge bg-dark border" title="${varCount} variable(s)"><i class="bi bi-braces me-1"></i>${varCount}</span>` : ''}
     </div>
@@ -367,9 +367,9 @@
         _waMetaTemplates.forEach(t => {
             const col = document.createElement('div');
             col.className = 'col-md-4 col-sm-6';
-            const statusCls = t.status === 'APPROVED' ? 'bg-success'
-                            : t.status === 'REJECTED'  ? 'bg-danger'
-                            : 'bg-warning text-dark';
+            const statusCls = t.status === 'APPROVED' ? 'wz-status-active'
+                            : t.status === 'REJECTED'  ? 'wz-status-cancelled'
+                            : 'wz-status-draft';
             const varBadge = t.variables_count > 0
                 ? `<span class="badge bg-dark border" title="${t.variables_count} variable(s)"><i class="bi bi-braces me-1"></i>${t.variables_count}</span>` : '';
             const catBadge = t.category
@@ -380,8 +380,8 @@
 <div class="template-card-item h-100">
     <div class="d-flex align-items-start justify-content-between mb-2">
         <div class="d-flex align-items-center gap-1 flex-wrap">
-            <span class="badge bg-success"><i class="bi bi-whatsapp me-1"></i>WhatsApp</span>
-            <span class="badge ${statusCls}" style="font-size:.68rem">${esc(t.status)}</span>
+            <span class="wz-badge wz-channel-whatsapp"><i class="bi bi-whatsapp me-1"></i>WhatsApp</span>
+            <span class="wz-badge ${statusCls}" style="font-size:.68rem">${esc(t.status)}</span>
             ${catBadge}
         </div>
         ${varBadge}

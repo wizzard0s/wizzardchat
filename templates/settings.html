@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <script src="/static/js/theme-init.js"></script>
+    <script src="/static/js/wz-theme.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Settings â€“ WizzardChat</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -233,6 +234,9 @@ function renderLayout() {
     document.querySelectorAll('.btn-save-cat').forEach(btn => {
         btn.addEventListener('click', () => saveCategory(btn.dataset.cat));
     });
+
+    // Append Badge Colors panel (not schema-driven — uses localStorage via wz-theme.js)
+    renderBadgeColorsPanel();
 }
 
 function renderCategoryPanel(cat) {
@@ -320,6 +324,210 @@ document.addEventListener('input', e => {
         if (el) el.textContent = e.target.value;
     }
 });
+
+// ─── Badge Colors panel ──────────────────────────────────────────────────────
+const BADGE_DEFAULTS = {
+    '--wz-status-active':        '#22c55e', '--wz-status-active-txt':        '#052e16',
+    '--wz-status-inactive':      '#6e7681', '--wz-status-inactive-txt':      '#ffffff',
+    '--wz-status-published':     '#22c55e', '--wz-status-published-txt':     '#052e16',
+    '--wz-status-draft':         '#f59e0b', '--wz-status-draft-txt':         '#431407',
+    '--wz-status-running':       '#22c55e', '--wz-status-running-txt':       '#052e16',
+    '--wz-status-paused':        '#f59e0b', '--wz-status-paused-txt':        '#431407',
+    '--wz-status-completed':     '#38bdf8', '--wz-status-completed-txt':     '#082f49',
+    '--wz-status-cancelled':     '#ef4444', '--wz-status-cancelled-txt':     '#ffffff',
+    '--wz-status-in-flow':       '#38bdf8', '--wz-status-in-flow-txt':       '#082f49',
+    '--wz-status-waiting':       '#a371f7', '--wz-status-waiting-txt':       '#ffffff',
+    '--wz-status-with-agent':    '#22c55e', '--wz-status-with-agent-txt':    '#052e16',
+    '--wz-status-wrap-up':       '#f59e0b', '--wz-status-wrap-up-txt':       '#431407',
+    '--wz-status-closed':        '#6e7681', '--wz-status-closed-txt':        '#ffffff',
+    '--wz-status-open':          '#22c55e', '--wz-status-open-txt':          '#052e16',
+    '--wz-status-failed':        '#ef4444', '--wz-status-failed-txt':        '#ffffff',
+    '--wz-status-no-answer':     '#6e7681', '--wz-status-no-answer-txt':     '#ffffff',
+    '--wz-status-busy':          '#f59e0b', '--wz-status-busy-txt':          '#431407',
+    '--wz-channel-chat':         '#38bdf8', '--wz-channel-chat-txt':         '#082f49',
+    '--wz-channel-voice':        '#ef4444', '--wz-channel-voice-txt':        '#ffffff',
+    '--wz-channel-whatsapp':     '#25d366', '--wz-channel-whatsapp-txt':     '#ffffff',
+    '--wz-channel-sms':          '#059669', '--wz-channel-sms-txt':          '#ffffff',
+    '--wz-channel-email':        '#f59e0b', '--wz-channel-email-txt':        '#431407',
+    '--wz-flowtype-main':        '#38bdf8', '--wz-flowtype-main-txt':        '#082f49',
+    '--wz-flowtype-subflow':     '#6e7681', '--wz-flowtype-subflow-txt':     '#ffffff',
+    '--wz-role-super-admin':     '#ef4444', '--wz-role-super-admin-txt':     '#ffffff',
+    '--wz-role-admin':           '#f59e0b', '--wz-role-admin-txt':           '#431407',
+    '--wz-role-supervisor':      '#38bdf8', '--wz-role-supervisor-txt':      '#082f49',
+    '--wz-role-agent':           '#0d6efd', '--wz-role-agent-txt':           '#ffffff',
+    '--wz-role-viewer':          '#6e7681', '--wz-role-viewer-txt':          '#ffffff',
+    '--wz-ai-online':            '#22c55e', '--wz-ai-online-txt':            '#052e16',
+    '--wz-ai-degraded':          '#f59e0b', '--wz-ai-degraded-txt':          '#431407',
+    '--wz-ai-offline':           '#ef4444', '--wz-ai-offline-txt':           '#ffffff',
+    '--wz-mode-progressive':     '#f59e0b', '--wz-mode-progressive-txt':     '#431407',
+    '--wz-mode-preview':         '#38bdf8', '--wz-mode-preview-txt':         '#082f49',
+};
+
+const BADGE_GROUPS = [
+    { label: 'Entity status', icon: 'bi-toggle-on', rows: [
+        { label: 'Active',       bg: '--wz-status-active',     txt: '--wz-status-active-txt'     },
+        { label: 'Inactive',     bg: '--wz-status-inactive',   txt: '--wz-status-inactive-txt'   },
+        { label: 'Published',    bg: '--wz-status-published',  txt: '--wz-status-published-txt'  },
+        { label: 'Draft',        bg: '--wz-status-draft',      txt: '--wz-status-draft-txt'      },
+        { label: 'Open',         bg: '--wz-status-open',       txt: '--wz-status-open-txt'       },
+    ]},
+    { label: 'Campaign lifecycle', icon: 'bi-megaphone', rows: [
+        { label: 'Running',      bg: '--wz-status-running',    txt: '--wz-status-running-txt'    },
+        { label: 'Paused',       bg: '--wz-status-paused',     txt: '--wz-status-paused-txt'     },
+        { label: 'Completed',    bg: '--wz-status-completed',  txt: '--wz-status-completed-txt'  },
+        { label: 'Cancelled',    bg: '--wz-status-cancelled',  txt: '--wz-status-cancelled-txt'  },
+    ]},
+    { label: 'Interaction / session', icon: 'bi-chat-dots', rows: [
+        { label: 'In flow',      bg: '--wz-status-in-flow',    txt: '--wz-status-in-flow-txt'    },
+        { label: 'Waiting',      bg: '--wz-status-waiting',    txt: '--wz-status-waiting-txt'    },
+        { label: 'With agent',   bg: '--wz-status-with-agent', txt: '--wz-status-with-agent-txt' },
+        { label: 'Wrap-up',      bg: '--wz-status-wrap-up',    txt: '--wz-status-wrap-up-txt'    },
+        { label: 'Closed',       bg: '--wz-status-closed',     txt: '--wz-status-closed-txt'     },
+    ]},
+    { label: 'Call disposition', icon: 'bi-telephone', rows: [
+        { label: 'Failed',       bg: '--wz-status-failed',     txt: '--wz-status-failed-txt'     },
+        { label: 'No answer',    bg: '--wz-status-no-answer',  txt: '--wz-status-no-answer-txt'  },
+        { label: 'Busy',         bg: '--wz-status-busy',       txt: '--wz-status-busy-txt'       },
+    ]},
+    { label: 'Channel type', icon: 'bi-diagram-3', rows: [
+        { label: 'Chat',         bg: '--wz-channel-chat',      txt: '--wz-channel-chat-txt'      },
+        { label: 'Voice',        bg: '--wz-channel-voice',     txt: '--wz-channel-voice-txt'     },
+        { label: 'WhatsApp',     bg: '--wz-channel-whatsapp',  txt: '--wz-channel-whatsapp-txt'  },
+        { label: 'SMS',          bg: '--wz-channel-sms',       txt: '--wz-channel-sms-txt'       },
+        { label: 'Email',        bg: '--wz-channel-email',     txt: '--wz-channel-email-txt'     },
+    ]},
+    { label: 'Flow type', icon: 'bi-diagram-2', rows: [
+        { label: 'Main flow',    bg: '--wz-flowtype-main',     txt: '--wz-flowtype-main-txt'     },
+        { label: 'Sub-flow',     bg: '--wz-flowtype-subflow',  txt: '--wz-flowtype-subflow-txt'  },
+    ]},
+    { label: 'User role', icon: 'bi-person-badge', rows: [
+        { label: 'Super admin',  bg: '--wz-role-super-admin',  txt: '--wz-role-super-admin-txt'  },
+        { label: 'Admin',        bg: '--wz-role-admin',        txt: '--wz-role-admin-txt'        },
+        { label: 'Supervisor',   bg: '--wz-role-supervisor',   txt: '--wz-role-supervisor-txt'   },
+        { label: 'Agent',        bg: '--wz-role-agent',        txt: '--wz-role-agent-txt'        },
+        { label: 'Viewer',       bg: '--wz-role-viewer',       txt: '--wz-role-viewer-txt'       },
+    ]},
+    { label: 'AI health', icon: 'bi-robot', rows: [
+        { label: 'Online',       bg: '--wz-ai-online',         txt: '--wz-ai-online-txt'         },
+        { label: 'Degraded',     bg: '--wz-ai-degraded',       txt: '--wz-ai-degraded-txt'       },
+        { label: 'Offline',      bg: '--wz-ai-offline',        txt: '--wz-ai-offline-txt'        },
+    ]},
+    { label: 'Dialler mode', icon: 'bi-telephone-outbound', rows: [
+        { label: 'Progressive',  bg: '--wz-mode-progressive',  txt: '--wz-mode-progressive-txt'  },
+        { label: 'Preview',      bg: '--wz-mode-preview',      txt: '--wz-mode-preview-txt'      },
+    ]},
+];
+
+function renderBadgeColorsPanel() {
+    const nav  = document.getElementById('catNav');
+    const pane = document.getElementById('catPanels');
+    const stored = (window.wzTheme ? wzTheme.load() : null) || {};
+
+    nav.insertAdjacentHTML('beforeend', `
+        <li class="nav-item">
+            <a class="nav-link" href="#cat-Badge_Colors" data-bs-toggle="tab">
+                <i class="bi bi-palette2 text-warning"></i>
+                Badge Colors
+            </a>
+        </li>`);
+
+    const groupHtml = BADGE_GROUPS.map(g => {
+        const rows = g.rows.map(r => {
+            const bgVal  = stored[r.bg]  || BADGE_DEFAULTS[r.bg]  || '#888888';
+            const txtVal = stored[r.txt] || BADGE_DEFAULTS[r.txt] || '#ffffff';
+            const safeId = r.bg.replace(/[^a-z0-9]/gi, '_');
+            return `
+            <div class="field-row row align-items-center">
+                <div class="col-md-3">
+                    <div class="field-label">${esc(r.label)}</div>
+                </div>
+                <div class="col-md-4 d-flex align-items-center gap-2">
+                    <span class="field-desc mb-0 me-1" style="min-width:5.5rem">Background</span>
+                    <input type="color" class="form-control form-control-sm wz-color-input"
+                           style="width:3rem;height:2rem;padding:2px;cursor:pointer"
+                           data-var="${r.bg}" value="${bgVal}">
+                    <code class="small" id="ctbg-${safeId}">${bgVal}</code>
+                </div>
+                <div class="col-md-3 d-flex align-items-center gap-2">
+                    <span class="field-desc mb-0 me-1" style="min-width:2.5rem">Text</span>
+                    <input type="color" class="form-control form-control-sm wz-color-input"
+                           style="width:3rem;height:2rem;padding:2px;cursor:pointer"
+                           data-var="${r.txt}" value="${txtVal}">
+                </div>
+                <div class="col-md-2 text-end">
+                    <span class="wz-badge"
+                          data-preview-bg="${r.bg}" data-preview-txt="${r.txt}"
+                          style="background:${bgVal};color:${txtVal}">${esc(r.label)}</span>
+                </div>
+            </div>`;
+        }).join('');
+
+        return `
+        <div class="mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2 pb-1 border-bottom border-secondary border-opacity-25">
+                <i class="bi ${g.icon} text-secondary"></i>
+                <span class="fw-semibold small text-uppercase text-secondary"
+                      style="letter-spacing:.05em">${esc(g.label)}</span>
+            </div>
+            ${rows}
+        </div>`;
+    }).join('');
+
+    pane.insertAdjacentHTML('beforeend', `
+        <div class="tab-pane fade" id="cat-Badge_Colors">
+            <div class="card bg-body-secondary border-0 mb-3">
+                <div class="card-header d-flex align-items-center gap-2
+                            border-bottom border-secondary border-opacity-25">
+                    <i class="bi bi-palette2 text-warning fs-5"></i>
+                    <span class="fw-semibold">Badge &amp; Status Colors</span>
+                    <span class="text-muted small ms-2">
+                        Stored in your browser — applies to all pages immediately
+                    </span>
+                </div>
+                <div class="card-body">${groupHtml}</div>
+                <div class="save-bar d-flex align-items-center gap-3">
+                    <button class="btn btn-primary" id="btnSaveBadgeColors">
+                        <i class="bi bi-check2 me-1"></i>Save colors
+                    </button>
+                    <button class="btn btn-outline-secondary" id="btnResetBadgeColors">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Reset to defaults
+                    </button>
+                    <span class="text-success small" id="badgeColorsSaved" style="display:none">
+                        <i class="bi bi-check-circle me-1"></i>Saved
+                    </span>
+                </div>
+            </div>
+        </div>`);
+
+    // Live preview — update :root and pill previews while dragging the color picker
+    document.getElementById('cat-Badge_Colors').addEventListener('input', e => {
+        if (!e.target.classList.contains('wz-color-input')) return;
+        const varName = e.target.dataset.var;
+        const val     = e.target.value;
+        const codeEl  = document.getElementById('ctbg-' + varName.replace(/[^a-z0-9]/gi, '_'));
+        if (codeEl) codeEl.textContent = val;
+        document.querySelectorAll('[data-preview-bg],[data-preview-txt]').forEach(b => {
+            if (b.dataset.previewBg  === varName) b.style.background = val;
+            if (b.dataset.previewTxt === varName) b.style.color      = val;
+        });
+        document.documentElement.style.setProperty(varName, val);
+    });
+
+    document.getElementById('btnSaveBadgeColors').addEventListener('click', () => {
+        const theme = {};
+        document.querySelectorAll('.wz-color-input').forEach(el => {
+            theme[el.dataset.var] = el.value;
+        });
+        if (window.wzTheme) wzTheme.apply(theme);
+        const saved = document.getElementById('badgeColorsSaved');
+        if (saved) { saved.style.display = 'inline'; setTimeout(() => saved.style.display = 'none', 3500); }
+    });
+
+    document.getElementById('btnResetBadgeColors').addEventListener('click', () => {
+        if (!confirm('Reset all badge colors to defaults? This will reload the page.')) return;
+        if (window.wzTheme) wzTheme.reset();
+    });
+}
 
 // â”€â”€â”€ Save category â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function saveCategory(catName) {

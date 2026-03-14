@@ -123,12 +123,11 @@ async function loadFlows() {
 // ─────────────────────────────────────────────────────────────────────────────
 // ─── Connector card builders ─────────────────────────────────────────────────
 const CONNECTOR_TYPE_META = {
-    chat:      { badge: 'bg-info text-dark',    icon: 'bi-chat',                    label: 'Chat' },
-    whatsapp:  { badge: 'bg-success',           icon: 'bi-whatsapp',                label: 'WhatsApp' },
-    voice:     { badge: 'bg-danger',            icon: 'bi-telephone-inbound-fill',  label: 'Voice' },
-    sms:       { badge: '',                     icon: 'bi-chat-square-text-fill',   label: 'SMS',
-                 badgeStyle: 'background:#059669;color:#fff' },
-    email:     { badge: 'bg-warning text-dark', icon: 'bi-envelope-fill',           label: 'Email' },
+    chat:      { wz: 'wz-channel-chat',     icon: 'bi-chat',                    label: 'Chat'     },
+    whatsapp:  { wz: 'wz-channel-whatsapp', icon: 'bi-whatsapp',                label: 'WhatsApp' },
+    voice:     { wz: 'wz-channel-voice',    icon: 'bi-telephone-inbound-fill',  label: 'Voice'    },
+    sms:       { wz: 'wz-channel-sms',      icon: 'bi-chat-square-text-fill',   label: 'SMS'      },
+    email:     { wz: 'wz-channel-email',    icon: 'bi-envelope-fill',           label: 'Email'    },
 };
 
 function makeConnectorCard(c, type) {
@@ -137,9 +136,7 @@ function makeConnectorCard(c, type) {
     const statusDot  = c.is_active
         ? '<span class="connector-status bg-success me-1"></span>Active'
         : '<span class="connector-status bg-secondary me-1"></span>Inactive';
-    const badgeHtml  = meta.badgeStyle
-        ? `<span class="badge" style="${meta.badgeStyle}"><i class="bi ${meta.icon} me-1"></i>${meta.label}</span>`
-        : `<span class="badge ${meta.badge}"><i class="bi ${meta.icon} me-1"></i>${meta.label}</span>`;
+    const badgeHtml  = `<span class="wz-badge ${meta.wz}"><i class="bi ${meta.icon} me-1"></i>${meta.label}</span>`;
 
     // Extra line for typed connectors
     let providerLine = '';
@@ -1145,10 +1142,10 @@ function renderSessionList() {
     keys.forEach(key => {
         const s = sessions[key];
         const statusBadge = {
-            active: '<span class="badge bg-primary">active</span>',
-            waiting_agent: '<span class="badge bg-warning text-dark">waiting</span>',
-            with_agent: '<span class="badge bg-success">with agent</span>',
-            closed: '<span class="badge bg-secondary">closed</span>',
+            active:        '<span class="wz-badge wz-status-in-flow">active</span>',
+            waiting_agent: '<span class="wz-badge wz-status-waiting">waiting</span>',
+            with_agent:    '<span class="wz-badge wz-status-with-agent">with agent</span>',
+            closed:        '<span class="wz-badge wz-status-closed">closed</span>',
         }[s.status] || '';
 
         const el = document.createElement('a');
@@ -1208,9 +1205,9 @@ function updateChatHeader() {
 
     if (nameEl) nameEl.textContent = sess.visitor_name || 'Visitor';
 
-    const statusColors = { active: 'bg-primary', waiting_agent: 'bg-warning text-dark', with_agent: 'bg-success', closed: 'bg-secondary' };
+    const statusClasses = { active: 'wz-status-in-flow', waiting_agent: 'wz-status-waiting', with_agent: 'wz-status-with-agent', closed: 'wz-status-closed' };
     if (statusEl) {
-        statusEl.className = 'badge ms-2 ' + (statusColors[sess.status] || 'bg-secondary');
+        statusEl.className = 'wz-badge ms-2 ' + (statusClasses[sess.status] || 'wz-status-inactive');
         statusEl.textContent = sess.status?.replace('_', ' ');
     }
 

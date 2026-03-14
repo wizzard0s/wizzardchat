@@ -6,6 +6,9 @@
 
     <meta charset="UTF-8">
     <script src="/static/js/theme-init.js"></script>
+    <script src="/static/js/wz-theme.js"></script>
+    <script src="/static/js/wz-theme.js"></script>
+    <script src="/static/js/wz-theme.js"></script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -942,7 +945,7 @@ function renderMemberCard(m) {
 
                 ${agentStatusBadge(status)}
 
-                <span class="badge bg-dark text-capitalize" style="font-size:.62rem;">${m.role}</span>
+                <span class="wz-badge wz-role-${(m.role||'viewer').replace(/_/g,'-')} text-capitalize" style="font-size:.62rem;">${m.role}</span>
 
             </div>
 

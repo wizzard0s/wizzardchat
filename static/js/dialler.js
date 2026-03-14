@@ -130,13 +130,19 @@
         $('tbCampaignName').textContent = _campaign.name;
         const ch = $('tbChannelBadge');
         ch.textContent = _channelLabel(_campaign.campaign_type);
-        ch.className = `badge bg-secondary`;
+        const channelClassMap = {
+            outbound_voice:    'wz-channel-voice',
+            outbound_sms:      'wz-channel-sms',
+            outbound_whatsapp: 'wz-channel-whatsapp',
+            outbound_email:    'wz-channel-email',
+        };
+        ch.className = `wz-badge ${channelClassMap[_campaign.campaign_type] || 'wz-badge-muted'}`;
         $('tbModeBadge').textContent = _diallerMode === 'progressive' ? 'Progressive' : 'Preview';
-        $('tbModeBadge').className = `badge ${_diallerMode === 'progressive' ? 'bg-warning text-dark' : 'bg-info text-dark'}`;
+        $('tbModeBadge').className = `wz-badge ${_diallerMode === 'progressive' ? 'wz-mode-progressive' : 'wz-mode-preview'}`;
 
         const sb = $('tbStatusBadge');
         sb.textContent = _campaign.status;
-        sb.className = `badge ${_campaign.status === 'running' ? 'bg-success' : 'bg-secondary'}`;
+        sb.className = `wz-badge ${_campaign.status === 'running' ? 'wz-status-running' : 'wz-status-inactive'}`;
 
         // Outcomes
         const grid = $('outcomeGrid');
@@ -362,11 +368,11 @@
         $('templateCardWrap').style.display = '';
 
         const channelMeta = {
-            whatsapp: { icon: 'bi-whatsapp',      label: 'WhatsApp HSM', badgeCls: 'bg-success' },
-            sms:      { icon: 'bi-phone',          label: 'SMS',          badgeCls: 'bg-info text-dark' },
-            email:    { icon: 'bi-envelope-fill',  label: 'Email',        badgeCls: 'bg-warning text-dark' },
+            whatsapp: { icon: 'bi-whatsapp',      label: 'WhatsApp HSM', wz: 'wz-channel-whatsapp' },
+            sms:      { icon: 'bi-phone',          label: 'SMS',          wz: 'wz-channel-sms'      },
+            email:    { icon: 'bi-envelope-fill',  label: 'Email',        wz: 'wz-channel-email'    },
         };
-        const meta = channelMeta[channel] || { icon: 'bi-card-text', label: 'Template', badgeCls: 'bg-secondary' };
+        const meta = channelMeta[channel] || { icon: 'bi-card-text', label: 'Template', wz: 'wz-badge-muted' };
 
         const iconEl = $('templateCardIcon');
         if (iconEl) iconEl.className = `bi ${meta.icon} text-warning`;
@@ -375,7 +381,7 @@
         if (titleEl) titleEl.textContent = meta.label + ' Template';
 
         const badgeEl = $('templateChannelBadge');
-        if (badgeEl) { badgeEl.className = `badge ${meta.badgeCls} ms-auto`; badgeEl.textContent = channel.toUpperCase(); }
+        if (badgeEl) { badgeEl.className = `wz-badge ${meta.wz} ms-auto`; badgeEl.textContent = channel.toUpperCase(); }
 
         $('templateText').textContent = next.message_template || '(No body — configure template in campaign settings)';
 

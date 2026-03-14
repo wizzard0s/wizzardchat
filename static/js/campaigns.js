@@ -114,12 +114,12 @@
 
     function _initAgentShuttle(selectedIds) {
         document.getElementById('agentShuttleWrap').innerHTML = _buildShuttleHtml('campAgents');
-        const roleColor = { super_admin: 'danger', admin: 'warning', supervisor: 'info', agent: 'primary', viewer: 'secondary' };
+        const roleClass = { super_admin: 'wz-role-super-admin', admin: 'wz-role-admin', supervisor: 'wz-role-supervisor', agent: 'wz-role-agent', viewer: 'wz-role-viewer' };
         shuttleCreate('campAgents', _allUsers.map(u => ({
             id:         u.id,
             searchText: (u.full_name || u.username) + ' ' + u.role,
             html: `<span class="fw-semibold">${esc(u.full_name || u.username)}</span>`
-                  + ` <span class="badge bg-${roleColor[u.role] ?? 'secondary'} ms-1" style="font-size:.6rem">${esc(u.role)}</span>`,
+                  + ` <span class="wz-badge ${roleClass[u.role] ?? 'wz-role-viewer'} ms-1" style="font-size:.6rem">${esc(u.role)}</span>`,
         })), selectedIds || []);
     }
 
@@ -140,13 +140,13 @@
 
     function _statusBadge(status) {
         const map = {
-            running:   ['Running',   'wz-badge-ok'],
-            draft:     ['Draft',     'wz-badge-muted'],
-            paused:    ['Paused',    'wz-badge-warn'],
-            completed: ['Completed', 'wz-badge-info'],
-            cancelled: ['Cancelled', 'wz-badge-fail'],
+            running:   ['Running',   'wz-status-running'],
+            draft:     ['Draft',     'wz-status-draft'],
+            paused:    ['Paused',    'wz-status-paused'],
+            completed: ['Completed', 'wz-status-completed'],
+            cancelled: ['Cancelled', 'wz-status-cancelled'],
         };
-        const [label, cls] = map[status] ?? [status, 'wz-badge-muted'];
+        const [label, cls] = map[status] ?? [status, 'wz-status-inactive'];
         return `<span class="wz-badge ${cls}">${label}</span>`;
     }
 
@@ -181,8 +181,8 @@
             const ct = c.campaign_time || {};
             const timeStr = (ct.start && ct.end) ? `${ct.start}–${ct.end}` : '—';
             const activeBadge = c.is_active
-                ? '<span class="wz-badge wz-badge-ok ms-1">Active</span>'
-                : '<span class="wz-badge wz-badge-muted ms-1">Inactive</span>';
+                ? '<span class="wz-badge wz-status-active ms-1">Active</span>'
+                : '<span class="wz-badge wz-status-inactive ms-1">Inactive</span>';
             const diallerBtn = (c.status === 'running')
                 ? `<button class="btn btn-sm btn-success w-100 mt-2" style="font-size:12px"
                       onclick="event.stopPropagation();window.location.href='/dialler/${c.id}'">
@@ -191,8 +191,8 @@
                 : '';
             const modeLabel = (() => {
                 const m = (c.settings || {}).dialler_mode;
-                if (m === 'progressive') return '<span class="wz-badge wz-badge-warn ms-1">Progressive</span>';
-                if (m === 'preview') return '<span class="wz-badge wz-badge-info ms-1">Preview</span>';
+                if (m === 'progressive') return '<span class="wz-badge wz-mode-progressive ms-1">Progressive</span>';
+                if (m === 'preview') return '<span class="wz-badge wz-mode-preview ms-1">Preview</span>';
                 return '';
             })();
             col.innerHTML = `

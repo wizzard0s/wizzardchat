@@ -61,10 +61,10 @@ const Interactions = (() => {
 
     // ── Status badge map ──────────────────────────────────────────────────────
     const _statusClass = {
-        active:        'wz-badge-info',
-        closed:        'wz-badge-ok',
-        with_agent:    'wz-badge-info',
-        waiting_agent: 'wz-badge-purple',
+        active:        'wz-status-in-flow',
+        closed:        'wz-status-closed',
+        with_agent:    'wz-status-with-agent',
+        waiting_agent: 'wz-status-waiting',
     };
 
     // ── Table ────────────────────────────────────────────────────────────────
@@ -77,7 +77,7 @@ const Interactions = (() => {
         }
         tbody.innerHTML = items.map(ix => {
             const started = ix.created_at ? _fmtDate(ix.created_at) : '—';
-            const statusBadge = `<span class="wz-badge ${_statusClass[ix.status] ?? 'wz-badge-muted'}">${_statusLabel(ix.status)}</span>`;
+            const statusBadge = `<span class="wz-badge ${_statusClass[ix.status] ?? 'wz-status-closed'}">${_statusLabel(ix.status)}</span>`;
             const outcome  = ix.disconnect_outcome ? `<span class="wz-badge wz-badge-muted">${_esc(ix.disconnect_outcome)}</span>` : '<span class="text-muted">—</span>';
             const csat     = ix.csat_score   ? _renderStarsMini(ix.csat_score, 5)   : '<span class="text-muted">—</span>';
             const nps      = ix.nps_score !== null && ix.nps_score !== undefined ? `<span class="wz-badge wz-badge-muted">${ix.nps_score}</span>` : '<span class="text-muted">—</span>';

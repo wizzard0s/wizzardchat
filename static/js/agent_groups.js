@@ -120,7 +120,7 @@ function esc(s) {
 function groupModal()  { return bootstrap.Modal.getOrCreateInstance(document.getElementById('groupModal')); }
 function deleteModal() { return bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteGroupModal')); }
 
-const roleColor = { super_admin: 'danger', admin: 'warning', supervisor: 'info', agent: 'primary', viewer: 'secondary' };
+const roleClass = { super_admin: 'wz-role-super-admin', admin: 'wz-role-admin', supervisor: 'wz-role-supervisor', agent: 'wz-role-agent', viewer: 'wz-role-viewer' };
 
 // ─── Load ─────────────────────────────────────────────────────────────────────
 async function loadAll() {
@@ -148,12 +148,12 @@ function renderGroupsTable() {
 <td class="fw-semibold">${esc(g.name)}</td>
 <td class="text-muted small">${esc(g.description || '–')}</td>
 <td class="text-center">
-  <span class="badge bg-secondary">${g.members?.length ?? 0}</span>
+  <span class="wz-badge wz-badge-muted">${g.members?.length ?? 0}</span>
 </td>
 <td class="text-center">
   ${g.is_active
-    ? '<span class="badge bg-success">Active</span>'
-    : '<span class="badge bg-secondary">Inactive</span>'}
+    ? '<span class="wz-badge wz-status-active">Active</span>'
+    : '<span class="wz-badge wz-status-inactive">Inactive</span>'}
 </td>
 <td class="text-end">
   <button class="btn btn-sm btn-outline-info me-1" onclick="openGroupModal('${g.id}')">
@@ -196,7 +196,7 @@ window.openGroupModal = function(id) {
         id:         u.id,
         searchText: (u.full_name || u.username) + ' ' + u.role,
         html: `<span class="fw-semibold">${esc(u.full_name || u.username)}</span>
-               <span class="badge bg-${roleColor[u.role] ?? 'secondary'} ms-1" style="font-size:.6rem">${esc(u.role)}</span>`,
+               <span class="wz-badge ${roleClass[u.role] ?? 'wz-role-viewer'} ms-1" style="font-size:.6rem">${esc(u.role)}</span>`,
     })), selectedIds);
 
     if (id) {

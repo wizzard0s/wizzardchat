@@ -593,7 +593,7 @@ function renderOutcomeModal(sessionKey) {
         items.forEach(o => {
             const isFlow = o.action_type === 'flow_redirect';
             const badge = isFlow
-                ? `<span class="badge bg-info text-dark mt-1"><i class="bi bi-diagram-2-fill me-1"></i>Redirects to flow</span>`
+                ? `<span class="wz-badge wz-flowtype-main mt-1"><i class="bi bi-diagram-2-fill me-1"></i>Redirects to flow</span>`
                 : `<span class="badge bg-dark border mt-1" style="border-color:#2e3140!important;"><i class="bi bi-x-circle me-1"></i>Ends session</span>`;
             html += `<button class="outcome-card-btn text-start p-3 rounded"
                       style="background:#252836;border:1px solid #2e3140;border-left:3px solid ${cfg.colour};cursor:pointer;display:block;width:100%;"
@@ -802,14 +802,14 @@ function updateChatHeader() {
     el.chatMeta.textContent = [meta.email, meta.page_url ? '🔗 ' + meta.page_url : ''].filter(Boolean).join(' · ');
 
     const badgeMap = {
-        active:        ['bg-info',    'In Flow'],
-        waiting_agent: ['bg-warning', 'Waiting'],
-        with_agent:    ['bg-success', 'Live Chat'],
-        wrap_up:       ['bg-warning text-dark', 'Wrap-Up'],
-        closed:        ['bg-secondary','Closed'],
+        active:        ['wz-status-in-flow',  'In Flow'],
+        waiting_agent: ['wz-status-waiting',  'Waiting'],
+        with_agent:    ['wz-status-with-agent','Live Chat'],
+        wrap_up:       ['wz-status-wrap-up',  'Wrap-Up'],
+        closed:        ['wz-status-closed',   'Closed'],
     };
-    const [cls, label] = badgeMap[s.status] || ['bg-secondary', s.status];
-    el.chatBadge.className = 'badge ' + cls;
+    const [cls, label] = badgeMap[s.status] || ['wz-status-closed', s.status];
+    el.chatBadge.className = 'wz-badge ' + cls;
     el.chatBadge.textContent = label;
 
     const isMine   = s.agent_id === currentUserId;
@@ -1059,11 +1059,11 @@ function diallerRenderHeader() {
     }
 
     const statusColors = {
-        running: 'bg-success', paused: 'bg-warning text-dark',
-        draft: 'bg-secondary', completed: 'bg-info text-dark', archived: 'bg-dark text-muted',
+        running: 'wz-status-running', paused: 'wz-status-paused',
+        draft: 'wz-status-draft', completed: 'wz-status-completed', archived: 'wz-status-inactive',
     };
     if (el.dpStatusBadge) {
-        el.dpStatusBadge.className = 'badge ' + (statusColors[diallerCampaign.status] || 'bg-secondary');
+        el.dpStatusBadge.className = 'wz-badge ' + (statusColors[diallerCampaign.status] || 'wz-status-inactive');
         el.dpStatusBadge.textContent = (diallerCampaign.status || '').toUpperCase();
     }
 
@@ -1081,14 +1081,14 @@ function diallerRenderProgress() {
 
     if (el.dpByStatus) {
         const pills = [
-            { key: 'completed', label: '✓ Done',       cls: 'bg-success' },
-            { key: 'no_answer', label: '↩ No Answer',  cls: 'bg-secondary' },
-            { key: 'busy',      label: '☎ Busy',       cls: 'bg-warning text-dark' },
-            { key: 'failed',    label: '✗ Failed',     cls: 'bg-danger' },
-            { key: 'skipped',   label: '⟫ Skipped',    cls: 'bg-secondary' },
+            { key: 'completed', label: '✓ Done',       cls: 'wz-status-completed' },
+            { key: 'no_answer', label: '↩ No Answer',  cls: 'wz-status-no-answer' },
+            { key: 'busy',      label: '☎ Busy',       cls: 'wz-status-busy'      },
+            { key: 'failed',    label: '✗ Failed',     cls: 'wz-status-failed'    },
+            { key: 'skipped',   label: '⟫ Skipped',    cls: 'wz-status-inactive'  },
         ].filter(p => (by_status[p.key] || 0) > 0);
         el.dpByStatus.innerHTML = pills.map(p =>
-            `<span class="badge ${p.cls} dp-stat-pill">${p.label}: ${by_status[p.key]}</span>`
+            `<span class="wz-badge ${p.cls} dp-stat-pill">${p.label}: ${by_status[p.key]}</span>`
         ).join('');
     }
 }
