@@ -150,6 +150,17 @@
       'font-size:12.5px;color:#0d6efd;text-decoration:none;word-break:break-all;}',
       '.wc-attach-file:hover{background:#e8f0fe;}',
       '.wc-attach-file .wc-attach-icon{font-size:18px;}',
+      // Nudge (proactive teaser bubble)
+      '#wc-nudge{position:fixed;z-index:999997;display:none;background:#fff;',
+      'border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.2);padding:10px 30px 10px 12px;',
+      'max-width:240px;cursor:pointer;animation:wc-nudge-in .3s ease;bottom:84px;}',
+      '#wc-nudge.wc-right{right:16px;}#wc-nudge.wc-left{left:16px;}',
+      '#wc-nudge-close{position:absolute;top:4px;right:6px;background:none;border:none;',
+      'font-size:14px;cursor:pointer;color:#aaa;padding:0;line-height:1;}',
+      '#wc-nudge-close:hover{color:#555;}',
+      '#wc-nudge-msg{margin:0;color:#212529;font-size:13.5px;line-height:1.45;',
+      'font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;}',
+      '@keyframes wc-nudge-in{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}',
     ].join('');
 
     var pos = style.position === 'bottom-left' ? 'wc-left' : 'wc-right';
@@ -213,6 +224,20 @@
 
     document.body.appendChild(launcher);
     document.body.appendChild(panel);
+
+    // Nudge bubble (proactive teaser)
+    var posStr = posClass === 'wc-left' ? 'wc-left' : 'wc-right';
+    var nudge = document.createElement('div');
+    nudge.id = 'wc-nudge';
+    nudge.className = posStr;
+    nudge.innerHTML = '<button id="wc-nudge-close" title="Dismiss">✕</button><p id="wc-nudge-msg"></p>';
+    nudge.addEventListener('click', function (ev) {
+      if (ev.target.id === 'wc-nudge-close') { dismissNudge(); return; }
+      dismissNudge();
+      openPanel();
+    });
+    document.body.appendChild(nudge);
+
     return { launcher: launcher, panel: panel };
   }
 
@@ -465,6 +490,8 @@
           page_title: document.title,
           referrer: document.referrer,
           user_agent: navigator.userAgent,
+          trigger_type: _triggerData ? _triggerData.trigger_type : null,
+          trigger_value: _triggerData ? _triggerData.trigger_value : null,
         }, cfg.metadata || {});
         fetch(postBase + '/init', {
           method: 'POST',
@@ -647,6 +674,105 @@
     }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Proactive triggers
+  // ─────────────────────────────────────────────────────────────────────────────
+  var _triggerData = null;
+
+  function _fireProactive(type, value) {
+    var pt = cfg.proactive || {};
+    var nudgeCfg = pt.nudge || {};
+    _triggerData = { trigger_type: type, trigger_value: value };
+    var delaySec = nudgeCfg.delay_seconds || 0;
+    setTimeout(function () {
+      if (nudgeCfg.auto_open) {
+        openPanel();
+      } else if (nudgeCfg.enabled !== false) {
+        showNudge(nudgeCfg.message || '\uD83D\uDC4B Need help?');
+      } else {
+        openPanel();
+      }
+    }, delaySec * 1000);
+  }
+
+  function showNudge(message) {
+    var nudge = document.getElementById('wc-nudge');
+    var msgEl = document.getElementById('wc-nudge-msg');
+    if (!nudge || !msgEl || isOpen) return;  // don’t nudge if panel already open
+    msgEl.textContent = message;
+    nudge.style.display = 'block';
+    clearTimeout(nudge._dt);
+    nudge._dt = setTimeout(dismissNudge, 10000);  // auto-dismiss after 10 s
+  }
+
+  function dismissNudge() {
+    var nudge = document.getElementById('wc-nudge');
+    if (!nudge) return;
+    nudge.style.display = 'none';
+    clearTimeout(nudge._dt);
+  }
+
+  function initProactiveTriggers() {
+    var pt = cfg.proactive;
+    if (!pt || !pt.enabled || !Array.isArray(pt.triggers) || !pt.triggers.length) return;
+    var fired = sessionStorage.getItem('wc_pt_' + cfg.apiKey);
+    if (fired) return;  // already fired this session
+
+    pt.triggers.forEach(function (rule) {
+      switch (rule.type) {
+
+        case 'time_on_page':
+          setTimeout(function () {
+            if (!rule.repeat) sessionStorage.setItem('wc_pt_' + cfg.apiKey, '1');
+            _fireProactive('time_on_page', rule.value);
+          }, (rule.value || 30) * 1000);
+          break;
+
+        case 'scroll_depth':
+          var spct = rule.value || 50;
+          var _sHandler = function () {
+            var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            if (maxScroll <= 0) return;
+            var pct = (window.scrollY / maxScroll) * 100;
+            if (pct >= spct) {
+              window.removeEventListener('scroll', _sHandler);
+              if (!rule.repeat) sessionStorage.setItem('wc_pt_' + cfg.apiKey, '1');
+              _fireProactive('scroll_depth', spct);
+            }
+          };
+          window.addEventListener('scroll', _sHandler, { passive: true });
+          break;
+
+        case 'exit_intent':
+          var _eHandler = function (ev) {
+            if (ev.clientY <= 5) {
+              document.removeEventListener('mouseleave', _eHandler);
+              if (!rule.repeat) sessionStorage.setItem('wc_pt_' + cfg.apiKey, '1');
+              _fireProactive('exit_intent', null);
+            }
+          };
+          document.addEventListener('mouseleave', _eHandler);
+          break;
+
+        case 'element_in_view':
+          if (!rule.selector) break;
+          var _tgt = document.querySelector(rule.selector);
+          if (!_tgt) break;
+          var _obs = new IntersectionObserver(function (entries, observer) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                observer.disconnect();
+                if (!rule.repeat) sessionStorage.setItem('wc_pt_' + cfg.apiKey, '1');
+                _fireProactive('element_in_view', rule.selector);
+              }
+            });
+          }, { threshold: 0.3 });
+          _obs.observe(_tgt);
+          break;
+      }
+    });
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // Open / Close panel
   // ─────────────────────────────────────────────────────────────────────────
@@ -742,6 +868,13 @@
       this.style.height = Math.min(this.scrollHeight, 80) + 'px';
       sendTypingNotification();
     });
+
+    // Dismiss nudge when user opens panel manually
+    var origOpen = openPanel;
+    openPanel = function () { dismissNudge(); origOpen(); };
+
+    // Initialise proactive trigger rules
+    initProactiveTriggers();
   }
 
   function doSend() {

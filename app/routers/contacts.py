@@ -1,10 +1,14 @@
 """Contact & Contact List management  full CRUD + CSV upload."""
 
+import asyncio
 import csv
 import io
+import logging
+from datetime import datetime
 from uuid import UUID
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from pydantic import BaseModel
 from sqlalchemy import select, func, delete
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,11 +21,50 @@ from app.schemas import (
 )
 from app.auth import get_current_user, require_permission
 
+_log = logging.getLogger(__name__)
+
 router = APIRouter(
     prefix="/api/v1/contacts",
     tags=["contacts"],
     dependencies=[Depends(get_current_user)],
 )
+
+
+async def _fire_contact_imported(contact) -> None:
+    """POST to the inbound router to trigger start_contact_imported nodes."""
+    import httpx
+    try:
+        payload = {
+            "contact_id": str(contact.id),
+            "name": " ".join(filter(None, [contact.first_name, contact.last_name])),
+            "email": contact.email,
+            "phone": contact.phone,
+            "company": getattr(contact, "company", None),
+            "source": getattr(contact, "source", None),
+            "tags": contact.tags if isinstance(contact.tags, list) else [],
+        }
+        async with httpx.AsyncClient(timeout=5) as client:
+            await client.post("http://127.0.0.1:8092/api/v1/inbound/contact-imported", json=payload)
+    except Exception as exc:
+        _log.debug("_fire_contact_imported: could not notify inbound router: %s", exc)
+
+
+async def _fire_contact_status_changed(contact, old_status: Optional[str], new_status: Optional[str]) -> None:
+    """POST to the inbound router to trigger start_contact_status_changed nodes."""
+    import httpx
+    try:
+        payload = {
+            "contact_id": str(contact.id),
+            "name": " ".join(filter(None, [contact.first_name, contact.last_name])),
+            "email": contact.email,
+            "phone": contact.phone,
+            "old_status": old_status,
+            "new_status": new_status,
+        }
+        async with httpx.AsyncClient(timeout=5) as client:
+            await client.post("http://127.0.0.1:8092/api/v1/inbound/contact-status-changed", json=payload)
+    except Exception as exc:
+        _log.debug("_fire_contact_status_changed: could not notify inbound router: %s", exc)
 
 #  CSV column  model field map 
 CSV_FIELD_MAP = {
@@ -373,12 +416,19 @@ async def list_contacts(
 @router.post("", response_model=ContactOut, status_code=201,
              dependencies=[Depends(require_permission("contacts.create"))])
 async def create_contact(body: ContactCreate, db: AsyncSession = Depends(get_db)):
+    import asyncio
     kwargs = {k: v for k, v in body.model_dump().items()
               if k in CONTACT_FIELDS or k in ("tags", "custom_fields", "language")}
     c = Contact(**kwargs)
     db.add(c)
     await db.flush()
     c = await _get_contact_or_404(c.id, db)
+    # Fire contact-imported event for start_contact_imported flow entry nodes
+    try:
+        import httpx
+        asyncio.create_task(_fire_contact_imported(c))
+    except Exception:
+        pass
     return _build_contact_out(c)
 
 
@@ -392,11 +442,85 @@ async def get_contact(contact_id: UUID, db: AsyncSession = Depends(get_db)):
             dependencies=[Depends(require_permission("contacts.edit"))])
 async def update_contact(contact_id: UUID, body: ContactUpdate, db: AsyncSession = Depends(get_db)):
     c = await _get_contact_or_404(contact_id, db)
+    # Track status for change event
+    old_status = getattr(c, "status", None)
     for k, v in body.model_dump(exclude_unset=True).items():
         setattr(c, k, v)
+    new_status = getattr(c, "status", None)
     await db.flush()
     c = await _get_contact_or_404(contact_id, db)
+    # Fire status-changed event if status was in the update payload and it actually changed
+    if "status" in body.model_fields_set and old_status != new_status:
+        asyncio.create_task(_fire_contact_status_changed(c, old_status, new_status))
     return _build_contact_out(c)
+
+
+# ── Opt-out / Opt-in (CPA / ECTA compliance) ────────────────────────────────
+
+class _OptChannelBody(BaseModel):
+    channel: str  # voice | whatsapp | sms | email | all
+
+
+class _OptInBody(BaseModel):
+    channel: str = "all"
+    reference: Optional[str] = None
+
+
+_OPT_FIELD_MAP: dict = {
+    "voice":    "do_not_call",
+    "call":     "do_not_call",
+    "whatsapp": "do_not_whatsapp",
+    "sms":      "do_not_sms",
+    "email":    "do_not_email",
+}
+_ALL_OPT_FIELDS = ["do_not_call", "do_not_whatsapp", "do_not_sms", "do_not_email"]
+
+
+@router.post("/{contact_id}/opt-out", status_code=200,
+             dependencies=[Depends(require_permission("contacts.edit"))])
+async def opt_out_contact(
+    contact_id: UUID,
+    body: _OptChannelBody,
+    db: AsyncSession = Depends(get_db),
+):
+    """Mark a contact as opted-out for one or all outreach channels (CPA / ECTA)."""
+    c = await _get_contact_or_404(contact_id, db)
+    if body.channel == "all":
+        for field in _ALL_OPT_FIELDS:
+            setattr(c, field, True)
+    else:
+        field = _OPT_FIELD_MAP.get(body.channel.lower())
+        if not field:
+            raise HTTPException(status_code=400, detail=f"Unknown channel '{body.channel}'")
+        setattr(c, field, True)
+    c.opt_out_at = datetime.utcnow()
+    await db.commit()
+    return {"ok": True, "contact_id": str(contact_id), "channel": body.channel}
+
+
+@router.post("/{contact_id}/opt-in", status_code=200,
+             dependencies=[Depends(require_permission("contacts.edit"))])
+async def opt_in_contact(
+    contact_id: UUID,
+    body: _OptInBody,
+    db: AsyncSession = Depends(get_db),
+):
+    """Record a contact's opt-in consent and clear the matching do_not_* flag (CPA / ECTA)."""
+    c = await _get_contact_or_404(contact_id, db)
+    if body.channel == "all":
+        for field in _ALL_OPT_FIELDS:
+            setattr(c, field, False)
+    else:
+        field = _OPT_FIELD_MAP.get(body.channel.lower())
+        if not field:
+            raise HTTPException(status_code=400, detail=f"Unknown channel '{body.channel}'")
+        setattr(c, field, False)
+    c.opt_in_at = datetime.utcnow()
+    c.opt_in_channel = body.channel
+    if body.reference:
+        c.opt_in_reference = body.reference
+    await db.commit()
+    return {"ok": True, "contact_id": str(contact_id), "channel": body.channel}
 
 
 @router.delete("/{contact_id}", status_code=204,

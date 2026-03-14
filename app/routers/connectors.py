@@ -1,5 +1,6 @@
 """Chat connector CRUD – create, manage and embed chat widgets."""
 
+import json
 import secrets
 from uuid import UUID
 from typing import List
@@ -9,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 # Bump this whenever the visitor chat-widget.js changes protocol/API
 # so browsers discard their cached copy.
-_WIDGET_VERSION = "5"  # SSE + HTTP POST (no WebSocket) + restart + end-chat button
+_WIDGET_VERSION = "6"  # + proactive triggers (nudge, time/scroll/exit/element rules)
 
 from app.database import get_db
 from app.models import Connector, Flow
@@ -61,6 +62,7 @@ async def create_connector(body: ConnectorCreate, db: AsyncSession = Depends(get
         allowed_origins=body.allowed_origins,
         style=style,
         meta_fields=body.meta_fields,
+        proactive_triggers=body.proactive_triggers,
         is_active=body.is_active,
     )
     db.add(connector)
@@ -127,12 +129,14 @@ async def get_snippet(connector_id: UUID, request: Request, db: AsyncSession = D
         raise HTTPException(status_code=404, detail="Connector not found")
 
     base_url = str(request.base_url).rstrip("/")
+    proactive_json = json.dumps(c.proactive_triggers or {})
     snippet = f"""<!-- WizzardChat Widget — {c.name} -->
 <script>
 (function(){{
   window.WizzardChat = {{
     apiKey: '{c.api_key}',
-    serverUrl: '{base_url}'
+    serverUrl: '{base_url}',
+    proactive: {proactive_json}
   }};
   var s = document.createElement('script');
   s.async = true;

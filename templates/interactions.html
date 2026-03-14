@@ -1,0 +1,498 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <script src="/static/js/theme-init.js"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>WizzardChat – Interaction History</title>
+
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+
+    <style>
+
+        /* -- Chat timeline -------------------------- */
+
+        .chat-timeline { display:flex; flex-direction:column; gap:.5rem; padding:.5rem 0; }
+
+        .msg-row { display:flex; gap:.6rem; align-items:flex-end; }
+
+        .msg-row.visitor  { justify-content:flex-end; }
+
+        .msg-row.system   { justify-content:center; }
+
+
+
+        .msg-bubble {
+
+            max-width:70%; padding:.45rem .75rem; border-radius:14px; font-size:.85rem;
+
+            word-break:break-word; line-height:1.4;
+
+        }
+
+        .msg-row.bot    .msg-bubble { background:#0d6efd22; color:#b8d4ff; border-bottom-left-radius:4px; }
+
+        .msg-row.agent  .msg-bubble { background:#0d6efd44; color:#cfe2ff; border-bottom-left-radius:4px; }
+
+        .msg-row.visitor .msg-bubble { background:#198754; color:#d1e7dd; border-bottom-right-radius:4px; }
+
+        .msg-row.system  .msg-bubble { background:#444; color:#aaa; font-size:.78rem; border-radius:6px; }
+
+
+
+        .msg-meta { font-size:.7rem; color:#888; white-space:nowrap; margin-bottom:2px; }
+
+        .msg-avatar { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.75rem; flex-shrink:0; }
+
+        .avatar-bot { background:#1a3a6e; color:#60a5fa; }
+
+        .avatar-agent { background:#1a3a6e; color:#93c5fd; }
+
+        .avatar-visitor { background:#14532d; color:#86efac; }
+
+
+
+        /* -- Segment timeline bar ------------------- */
+
+        .seg-bar { display:flex; height:32px; border-radius:6px; overflow:hidden; gap:2px; }
+
+        .seg-chunk {
+
+            display:flex; align-items:center; justify-content:center;
+
+            font-size:.7rem; font-weight:600; overflow:hidden;
+
+            transition:flex .2s;
+
+        }
+
+        .seg-flow     { background:#0d6efd44; color:#93c5fd; }
+
+        .seg-queue    { background:#dc354544; color:#f8babd; }
+
+        .seg-agent    { background:#19875444; color:#86efac; }
+
+        .seg-wrap_up  { background:#fd7e1444; color:#ffc078; }
+
+        .seg-unknown  { background:#33333366; color:#aaa; }
+
+
+
+        /* -- Metric cards --------------------------- */
+
+        .metric-card { background:#1a1a2e; border:1px solid #2a2a3e; border-radius:10px; padding:1rem 1.2rem; }
+
+        .star-filled  { color:#ffc107; }
+
+        .star-empty   { color:#444; }
+
+
+
+        /* -- Detail panel overlay ------------------- */
+
+        #detailPanel {
+
+            position:fixed; top:0; right:-660px; width:650px; height:100vh;
+
+            background:#121212; border-left:1px solid #2a2a3e; z-index:1050;
+
+            display:flex; flex-direction:column; transition:right .25s ease;
+
+            box-shadow:-6px 0 24px #00000088;
+
+        }
+
+        #detailPanel.open { right:0; }
+
+        #detailPanelBody { flex:1; overflow-y:auto; padding:1.2rem 1.4rem; }
+
+
+
+        /* -- Misc ----------------------------------- */
+
+        .ix-row:hover { cursor:pointer; background:#1a1a2e !important; }
+
+        .badge-status-active        { background:#0d6efd; color:#fff; }
+
+        .badge-status-closed        { background:#198754; color:#fff; }
+
+        .badge-status-with_agent    { background:#fd7e14; color:#000; }
+
+        .badge-status-waiting_agent { background:#6f42c1; color:#fff; }
+
+        .badge-outcome { background:#2a2a2a; color:#ccc; border:1px solid #444; }
+
+        .csat-stars { letter-spacing:2px; }
+
+        .tag-chip { background:#222; border:1px solid #444; padding:.15rem .5rem; border-radius:12px; font-size:.75rem; color:#aaa; }
+
+        .panel-close-btn { position:absolute; top:14px; right:16px; }
+
+        #overlay { display:none; position:fixed; inset:0; background:#00000066; z-index:1040; }
+
+        #overlay.show { display:block; }
+
+    </style>
+
+</head>
+
+<body>
+
+
+
+<!-- Sidebar -->
+
+<nav id="sidebar" class="p-3 text-white">
+
+    <a href="/" class="d-flex align-items-center mb-2 text-white text-decoration-none">
+
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+
+        <span class="fs-5 fw-bold">WizzardChat</span>
+
+    </a>
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="flex-fill text-truncate small" id="agentName">–</span>
+        <button class="btn btn-sm btn-outline-secondary" id="btnLogout" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
+    </div>
+    <select class="form-select form-select-sm av-offline mb-2" id="availabilitySelect" title="Set your availability">
+        <option value="available">🟢 Available</option>
+        <option value="admin">🔵 Admin</option>
+        <option value="lunch">🟡 Lunch</option>
+        <option value="break">🟠 Break</option>
+        <option value="training">🟣 Training</option>
+        <option value="meeting">🔵 Meeting</option>
+        <option value="offline" selected>⚫ Offline</option>
+    </select>
+    <hr class="border-secondary">
+
+    <ul class="nav nav-pills flex-column flex-nowrap" style="flex:1 1 0;overflow-y:auto;min-height:0;">
+        <li class="nav-item" style="margin-bottom:4px;"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-monitoring',this)">
+                <span>Monitoring</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-monitoring">
+                <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a href="/wallboard" class="nav-link text-white"><i class="bi bi-display me-2"></i>Wallboard</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-operations',this)">
+                <span>Operations</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-operations">
+                <li class="nav-item"><a href="/interactions" class="nav-link active"><i class="bi bi-chat-square-text me-2"></i>Interactions</a></li>
+                <li class="nav-item"><a href="/flows" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-engagement',this)">
+                <span>Engagement</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-engagement">
+                <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+                <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+                <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+                <li class="nav-item"><a href="/msg-templates" class="nav-link text-white"><i class="bi bi-card-text me-2"></i>Templates</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-usermgmt',this)">
+                <span>User Management</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-usermgmt">
+                <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+                <li class="nav-item"><a href="/groups" class="nav-link text-white"><i class="bi bi-collection me-2"></i>Groups</a></li>
+                <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+                <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-bizsettings',this)">
+                <span>Business Settings</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-bizsettings">
+                <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+                <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+                <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>
+                <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+                <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+                <li class="nav-item"><a href="/audit-log" class="nav-link text-white"><i class="bi bi-journal-text me-2"></i>Audit Log</a></li>
+                <li class="nav-item"><a href="/docs" target="_blank" class="nav-link text-white"><i class="bi bi-code-square me-2"></i>API Docs</a></li>
+            </ul>
+        </li>
+        </ul>
+    </nav>
+
+
+
+<!-- Main -->
+
+<main style="margin-left:220px;padding:24px;min-height:100vh;">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <h4 class="mb-0"><i class="bi bi-chat-square-text me-2"></i>Interaction History</h4>
+
+        <span class="text-secondary" id="totalLabel">Loading…</span>
+
+    </div>
+
+
+
+    <!-- Filter bar -->
+
+    <div class="card border-secondary mb-3">
+
+        <div class="card-body py-2 px-3">
+
+            <div class="row g-2 align-items-end">
+
+                <div class="col-auto">
+
+                    <label class="form-label text-secondary mb-1" style="font-size:.75rem;">From</label>
+
+                    <input type="date" id="filterFrom" class="form-control form-control-sm border-secondary" style="width:135px;">
+
+                </div>
+
+                <div class="col-auto">
+
+                    <label class="form-label text-secondary mb-1" style="font-size:.75rem;">To</label>
+
+                    <input type="date" id="filterTo" class="form-control form-control-sm border-secondary" style="width:135px;">
+
+                </div>
+
+                <div class="col-auto" style="min-width:160px;">
+
+                    <label class="form-label text-secondary mb-1" style="font-size:.75rem;">Connector</label>
+
+                    <select id="filterConnector" class="form-select form-select-sm border-secondary">
+
+                        <option value="">All connectors</option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-auto" style="min-width:160px;">
+
+                    <label class="form-label text-secondary mb-1" style="font-size:.75rem;">Agent</label>
+
+                    <select id="filterAgent" class="form-select form-select-sm border-secondary">
+
+                        <option value="">All agents</option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-auto" style="min-width:140px;">
+
+                    <label class="form-label text-secondary mb-1" style="font-size:.75rem;">Status</label>
+
+                    <select id="filterStatus" class="form-select form-select-sm border-secondary">
+
+                        <option value="">All statuses</option>
+
+                        <option value="active">Active</option>
+
+                        <option value="waiting_agent">Waiting agent</option>
+
+                        <option value="with_agent">With agent</option>
+
+                        <option value="closed">Closed</option>
+
+                    </select>
+
+                </div>
+
+                <div class="col">
+
+                    <label class="form-label text-secondary mb-1" style="font-size:.75rem;">Search session key</label>
+
+                    <input type="text" id="filterSearch" class="form-control form-control-sm border-secondary" placeholder="abc123…">
+
+                </div>
+
+                <div class="col-auto">
+
+                    <button class="btn btn-sm btn-info" onclick="Interactions.load(1)">
+
+                        <i class="bi bi-search me-1"></i>Filter
+
+                    </button>
+
+                    <button class="btn btn-sm btn-outline-secondary ms-1" onclick="Interactions.reset()">
+
+                        <i class="bi bi-x-lg"></i>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Table -->
+
+    <div class="card border-secondary">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover mb-0 align-middle" style="font-size:.855rem;">
+
+                <thead class="table-secondary" style="font-size:.78rem;">
+
+                    <tr>
+
+                        <th>Started</th>
+
+                        <th>Session</th>
+
+                        <th>Connector</th>
+
+                        <th>Agent</th>
+
+                        <th>Status</th>
+
+                        <th>Msgs</th>
+
+                        <th>Outcome</th>
+
+                        <th>CSAT</th>
+
+                        <th>NPS</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="ixTableBody">
+
+                    <tr><td colspan="9" class="text-center text-secondary py-4"><i class="bi bi-hourglass-split me-1"></i>Loading…</td></tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Pagination -->
+
+    <div class="d-flex justify-content-between align-items-center mt-2">
+
+        <span class="text-secondary" id="pageInfo" style="font-size:.8rem;"></span>
+
+        <div class="d-flex gap-1" id="paginationBar"></div>
+
+    </div>
+
+</main>
+
+
+
+<!-- Overlay backdrop -->
+
+<div id="overlay" onclick="Interactions.closeDetail()"></div>
+
+
+
+<!-- Detail slide-in panel -->
+
+<div id="detailPanel">
+
+    <button class="btn btn-sm btn-outline-secondary panel-close-btn" onclick="Interactions.closeDetail()">
+
+        <i class="bi bi-x-lg"></i>
+
+    </button>
+
+    <div id="detailPanelBody">
+
+        <!-- Populated by JS -->
+
+    </div>
+
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+
+<script src="/static/js/interactions.js"></script>
+
+<script>
+
+    // Auth
+
+    const token = localStorage.getItem('wizzardchat_token');
+
+    if (!token) { location.href = '/login'; }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+
+        // Fetch current user display
+
+        try {
+
+            const r = await fetch('/api/v1/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+
+            if (r.ok) {
+
+                const u = await r.json();
+
+                document.getElementById('agentName').textContent = u.email || u.username || 'Agent';
+
+            } else if (r.status === 401) {
+
+                localStorage.removeItem('wizzardchat_token'); location.href = '/login'; return;
+
+            }
+
+        } catch (_) {}
+
+        document.getElementById('btnLogout').addEventListener('click', e => {
+
+            e.preventDefault(); localStorage.removeItem('wizzardchat_token'); location.href = '/login';
+
+        });
+
+        Interactions.init();
+
+    });
+
+</script>
+
+</body>
+
+</html>
+

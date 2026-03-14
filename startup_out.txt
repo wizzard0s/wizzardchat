@@ -1,0 +1,194 @@
+2026-03-14 02:31:47,132 INFO     main: WizzardChat starting — log: C:\Users\nico.debeer\WIZZARDCHAT\wizzardchat.log
+2026-03-14 02:31:47,133 WARNING  config: SECURITY: JWT secret_key is the dev default. Set SECRET_KEY in your .env file before going to production.
+2026-03-14 02:31:47,133 WARNING  config: SECURITY: database_url is the dev default (postgres/postgres). Set DATABASE_URL in your .env file for production.
+2026-03-14 02:31:47,728 INFO     main: WizzardChat starting — log: C:\Users\nico.debeer\WIZZARDCHAT\wizzardchat.log
+2026-03-14 02:31:47,729 WARNING  config: SECURITY: JWT secret_key is the dev default. Set SECRET_KEY in your .env file before going to production.
+2026-03-14 02:31:47,730 WARNING  config: SECURITY: database_url is the dev default (postgres/postgres). Set DATABASE_URL in your .env file for production.
+2026-03-14 02:31:48,069 INFO     uvicorn.error: Started server process [55744]
+2026-03-14 02:31:48,071 INFO     uvicorn.error: Waiting for application startup.
+[WizzardChat] rename users -> chat_users OK
+[WizzardChat] rename teams -> chat_teams OK
+[WizzardChat] rename custom_roles -> chat_custom_roles OK
+[WizzardChat] rename skills -> chat_skills OK
+[WizzardChat] rename queues -> chat_queues OK
+[WizzardChat] rename contacts -> chat_contacts OK
+[WizzardChat] rename contact_lists -> chat_contact_lists OK
+[WizzardChat] rename contact_list_members -> chat_contact_list_members OK
+[WizzardChat] rename flows -> chat_flows OK
+[WizzardChat] rename flow_nodes -> chat_flow_nodes OK
+[WizzardChat] rename flow_edges -> chat_flow_edges OK
+[WizzardChat] rename flow_versions -> chat_flow_versions OK
+[WizzardChat] rename flow_node_stats -> chat_flow_node_stats OK
+[WizzardChat] rename flow_node_visit_log -> chat_flow_node_visit_log OK
+[WizzardChat] rename conversations -> chat_conversations OK
+[WizzardChat] rename messages -> chat_messages OK
+[WizzardChat] rename campaigns -> chat_campaigns OK
+[WizzardChat] rename campaign_attempts -> chat_campaign_attempts OK
+[WizzardChat] rename outcomes -> chat_outcomes OK
+[WizzardChat] rename audit_logs -> chat_audit_logs OK
+[WizzardChat] rename global_settings -> chat_global_settings OK
+[WizzardChat] rename custom_node_types -> chat_custom_node_types OK
+[WizzardChat] rename connectors -> chat_connectors OK
+[WizzardChat] rename interactions -> chat_interactions OK
+[WizzardChat] rename email_connectors -> chat_email_connectors OK
+[WizzardChat] rename whatsapp_connectors -> chat_whatsapp_connectors OK
+[WizzardChat] rename voice_connectors -> chat_voice_connectors OK
+[WizzardChat] rename sms_connectors -> chat_sms_connectors OK
+[WizzardChat] rename survey_submissions -> chat_survey_submissions OK
+[WizzardChat] rename tags -> chat_tags OK
+[WizzardChat] rename office_hours_groups -> chat_office_hours_groups OK
+[WizzardChat] rename office_hours_schedule -> chat_office_hours_schedule OK
+[WizzardChat] rename office_hours_exclusions -> chat_office_hours_exclusions OK
+[WizzardChat] rename team_members -> chat_team_members OK
+[WizzardChat] rename queue_agents -> chat_queue_agents OK
+[WizzardChat] rename user_skills -> chat_user_skills OK
+[WizzardChat] rename campaign_contact_lists -> chat_campaign_contact_lists OK
+[WizzardChat] rename interaction_tags -> chat_interaction_tags OK
+[WizzardChat] rename contact_tags -> chat_contact_tags OK
+[WizzardChat] rename user_tags -> chat_user_tags OK
+[WizzardChat] rename chat_sessions -> chat_interactions OK
+[WizzardChat] Database tables ready (schema: chat)
+[WizzardChat] Migration OK: queues.color
+[WizzardChat] Migration OK: queues.outcomes
+[WizzardChat] Migration OK: queues.campaign_id
+[WizzardChat] Migration OK: campaigns.color
+[WizzardChat] Migration OK: campaigns.is_active
+[WizzardChat] Migration OK: campaigns.campaign_time
+[WizzardChat] Migration OK: campaigns.options
+[WizzardChat] Migration OK: campaigns.outcomes
+[WizzardChat] Migration OK: campaigns.queues
+[WizzardChat] Migration OK: campaigns.agents
+[WizzardChat] Migration OK: connectors.meta_fields
+[WizzardChat] Migration OK: connectors.allowed_origins
+[WizzardChat] Migration OK: connectors.style
+[WizzardChat] Migration OK: interactions.waiting_node_id
+[WizzardChat] Migration OK: interactions.flow_context
+[WizzardChat] Migration OK: interactions.visitor_metadata
+[WizzardChat] Migration OK: interactions.queue_id
+[WizzardChat] Migration OK: interactions.agent_id
+[WizzardChat] Migration OK: interactions.last_activity_at
+[WizzardChat] Migration OK: interactions.message_log
+[WizzardChat] Migration OK: team_members.uq_user
+[WizzardChat] Migration OK: custom_roles.table
+[WizzardChat] Migration OK: contacts.title
+[WizzardChat] Migration OK: contacts.job_title
+[WizzardChat] Migration OK: contacts.address_line1
+[WizzardChat] Migration OK: contacts.city
+[WizzardChat] Migration OK: contacts.state
+[WizzardChat] Migration OK: contacts.postal_code
+[WizzardChat] Migration OK: contacts.country
+[WizzardChat] Migration OK: contacts.date_of_birth
+[WizzardChat] Migration OK: contacts.gender
+[WizzardChat] Migration OK: contacts.language
+[WizzardChat] Migration OK: contacts.source
+[WizzardChat] Migration OK: contacts.notes
+[WizzardChat] Migration OK: contact_lists.color
+[WizzardChat] Migration OK: interactions.visitor_last_seen
+[WizzardChat] Migration OK: interactions.disconnect_outcome
+[WizzardChat] Migration OK: queues.disconnect_timeout_minutes
+[WizzardChat] Migration OK: flows.disconnect_timeout_minutes
+[WizzardChat] Migration skip (queues.disconnect_timeout_seconds): (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.DuplicateColumnError'>: column "disconnect_timeout_seconds" of relation "chat_queues" already exists
+[SQL: ALTER TABLE chat_queues RENAME COLUMN disconnect_timeout_minutes TO disconnect_timeout_seconds]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[WizzardChat] Migration skip (flows.disconnect_timeout_seconds): (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.DuplicateColumnError'>: column "disconnect_timeout_seconds" of relation "chat_flows" already exists
+[SQL: ALTER TABLE chat_flows RENAME COLUMN disconnect_timeout_minutes TO disconnect_timeout_seconds]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[WizzardChat] Migration OK: outcomes.action_type
+[WizzardChat] Migration OK: outcomes.redirect_flow_id
+[WizzardChat] Migration OK: queues.disconnect_outcome_id
+[WizzardChat] Migration OK: flows.disconnect_outcome_id
+[WizzardChat] Migration OK: flow_node_visit_log.from_node_id
+[WizzardChat] Migration OK: flow_node_visit_log.event_type
+[WizzardChat] Migration OK: flows.version_to_varchar
+[WizzardChat] Migration OK: flow_versions.version_number_to_varchar
+[WizzardChat] Migration OK: flows.published_version
+[WizzardChat] Migration OK: flows.is_restored
+[WizzardChat] Migration OK: flows.restored_from_version
+[WizzardChat] Migration OK: flow_versions.is_published_snapshot
+[WizzardChat] Migration OK: interactions.csat_score
+[WizzardChat] Migration OK: interactions.csat_comment
+[WizzardChat] Migration OK: interactions.csat_submitted_at
+[WizzardChat] Migration OK: interactions.nps_score
+[WizzardChat] Migration OK: interactions.nps_reason
+[WizzardChat] Migration OK: interactions.nps_submitted_at
+[WizzardChat] Migration OK: interactions.notes
+[WizzardChat] Migration OK: survey_submissions.table
+[WizzardChat] Migration OK: survey_submissions.ix_interaction
+[WizzardChat] Migration OK: survey_submissions.ix_name
+[WizzardChat] Migration OK: interactions.wrap_started_at
+[WizzardChat] Migration OK: interactions.wrap_time
+[WizzardChat] Migration OK: interactions.segments
+[WizzardChat] Migration OK: interactions.contact_id
+[WizzardChat] Migration OK: interactions.direction
+[WizzardChat] Migration OK: interactions.channel
+[WizzardChat] Migration OK: interactions.handling_type
+[WizzardChat] Migration OK: interactions.ix_contact
+[WizzardChat] Migration OK: interactions.ix_channel
+[WizzardChat] Migration OK: users.languages
+[WizzardChat] Migration OK: connectors.proactive_triggers
+[WizzardChat] Migration OK: contacts.wa_user_id
+[WizzardChat] Migration OK: contacts.ix_wa_user_id
+[WizzardChat] Migration OK: contacts.do_not_call
+[WizzardChat] Migration OK: contacts.do_not_whatsapp
+[WizzardChat] Migration OK: contacts.do_not_sms
+[WizzardChat] Migration OK: contacts.do_not_email
+[WizzardChat] Migration OK: contacts.opt_out_at
+[WizzardChat] Migration OK: contacts.opt_in_channel
+[WizzardChat] Migration OK: contacts.opt_in_at
+[WizzardChat] Migration OK: contacts.opt_in_reference
+[WizzardChat] Migration OK: voice_connectors.twiml_app_sid
+[WizzardChat] Migration OK: voice_connectors.caller_id_override
+[WizzardChat] Migration OK: campaigns.agent_groups
+[WizzardChat] System admin already present — skipping seed.
+[WizzardChat] Global settings ready
+[WizzardChat] Interaction tags ready
+[WizzardChat] Agent online flags reset
+[WizzardChat] CSAT sub-flow template seeded/refreshed
+[WizzardChat] NPS sub-flow template seeded/refreshed
+[WizzardChat] Visitor disconnect sweep task started
+[WizzardChat] Wait/delay resume sweep task started
+2026-03-14 02:31:48,730 INFO     uvicorn.error: Application startup complete.
+2026-03-14 02:31:48,731 INFO     uvicorn.error: Uvicorn running on http://0.0.0.0:8092 (Press CTRL+C to quit)
+2026-03-14 02:32:04,102 INFO     uvicorn.access: 127.0.0.1:56815 - "POST /api/v1/auth/token HTTP/1.1" 404
+2026-03-14 02:32:04,598 INFO     uvicorn.access: 127.0.0.1:56815 - "PUT /api/v1/settings/session_lifetime_minutes HTTP/1.1" 401
+2026-03-14 02:32:04,621 INFO     uvicorn.access: 127.0.0.1:56815 - "PUT /api/v1/settings/password_min_length HTTP/1.1" 401
+2026-03-14 02:32:04,630 INFO     uvicorn.access: 127.0.0.1:56815 - "PUT /api/v1/settings/allow_registration HTTP/1.1" 401
+2026-03-14 02:32:04,641 INFO     uvicorn.access: 127.0.0.1:56815 - "PUT /api/v1/settings/require_2fa HTTP/1.1" 401
+2026-03-14 02:32:04,648 INFO     uvicorn.access: 127.0.0.1:56815 - "PUT /api/v1/settings/audit_log_enabled HTTP/1.1" 401
+2026-03-14 02:32:14,812 INFO     uvicorn.access: 127.0.0.1:56818 - "POST /api/v1/auth/token HTTP/1.1" 404
+2026-03-14 02:32:15,095 INFO     uvicorn.access: 127.0.0.1:56818 - "PUT /api/v1/settings/session_lifetime_minutes HTTP/1.1" 401
+2026-03-14 02:32:15,107 INFO     uvicorn.access: 127.0.0.1:56818 - "PUT /api/v1/settings/password_min_length HTTP/1.1" 401
+2026-03-14 02:32:15,118 INFO     uvicorn.access: 127.0.0.1:56818 - "PUT /api/v1/settings/allow_registration HTTP/1.1" 401
+2026-03-14 02:32:15,126 INFO     uvicorn.access: 127.0.0.1:56818 - "PUT /api/v1/settings/require_2fa HTTP/1.1" 401
+2026-03-14 02:32:15,134 INFO     uvicorn.access: 127.0.0.1:56818 - "PUT /api/v1/settings/audit_log_enabled HTTP/1.1" 401
+2026-03-14 02:32:26,587 INFO     uvicorn.access: 127.0.0.1:64751 - "GET /api/v1/settings HTTP/1.1" 401
+2026-03-14 02:32:30,447 INFO     uvicorn.access: 127.0.0.1:64751 - "GET /health HTTP/1.1" 404
+2026-03-14 02:32:36,720 INFO     uvicorn.access: 127.0.0.1:59091 - "POST /api/v1/auth/token HTTP/1.1" 404
+2026-03-14 02:32:40,458 INFO     uvicorn.access: 127.0.0.1:59095 - "GET /api/v1/health HTTP/1.1" 200
+2026-03-14 02:32:45,853 INFO     uvicorn.access: 127.0.0.1:59091 - "GET /docs HTTP/1.1" 200
+2026-03-14 02:32:57,201 INFO     uvicorn.access: 127.0.0.1:59103 - "POST /api/v1/auth/login HTTP/1.1" 422
+2026-03-14 02:32:57,470 INFO     uvicorn.access: 127.0.0.1:59103 - "PUT /api/v1/settings/session_lifetime_minutes HTTP/1.1" 401
+2026-03-14 02:32:57,500 INFO     uvicorn.access: 127.0.0.1:59103 - "PUT /api/v1/settings/password_min_length HTTP/1.1" 401
+2026-03-14 02:32:57,519 INFO     uvicorn.access: 127.0.0.1:59103 - "PUT /api/v1/settings/allow_registration HTTP/1.1" 401
+2026-03-14 02:32:57,537 INFO     uvicorn.access: 127.0.0.1:59103 - "PUT /api/v1/settings/require_2fa HTTP/1.1" 401
+2026-03-14 02:32:57,556 INFO     uvicorn.access: 127.0.0.1:59103 - "PUT /api/v1/settings/audit_log_enabled HTTP/1.1" 401
+2026-03-14 02:33:03,734 INFO     uvicorn.access: 127.0.0.1:59105 - "POST /api/v1/auth/login HTTP/1.1" 401
+2026-03-14 02:33:03,984 INFO     uvicorn.access: 127.0.0.1:59105 - "PUT /api/v1/settings/session_lifetime_minutes HTTP/1.1" 401
+2026-03-14 02:33:04,024 INFO     uvicorn.access: 127.0.0.1:59105 - "PUT /api/v1/settings/password_min_length HTTP/1.1" 401
+2026-03-14 02:33:04,050 INFO     uvicorn.access: 127.0.0.1:59105 - "PUT /api/v1/settings/allow_registration HTTP/1.1" 401
+2026-03-14 02:33:04,077 INFO     uvicorn.access: 127.0.0.1:59105 - "PUT /api/v1/settings/require_2fa HTTP/1.1" 401
+2026-03-14 02:33:04,101 INFO     uvicorn.access: 127.0.0.1:59105 - "PUT /api/v1/settings/audit_log_enabled HTTP/1.1" 401
+2026-03-14 02:33:18,197 INFO     uvicorn.access: 127.0.0.1:59109 - "POST /api/v1/auth/login HTTP/1.1" 200
+2026-03-14 02:33:18,523 INFO     uvicorn.access: 127.0.0.1:59109 - "PUT /api/v1/settings/session_lifetime_minutes HTTP/1.1" 200
+2026-03-14 02:33:18,572 INFO     uvicorn.access: 127.0.0.1:59109 - "PUT /api/v1/settings/password_min_length HTTP/1.1" 200
+2026-03-14 02:33:18,629 INFO     uvicorn.access: 127.0.0.1:59109 - "PUT /api/v1/settings/allow_registration HTTP/1.1" 200
+2026-03-14 02:33:18,670 INFO     uvicorn.access: 127.0.0.1:59109 - "PUT /api/v1/settings/require_2fa HTTP/1.1" 200
+2026-03-14 02:33:18,733 INFO     uvicorn.access: 127.0.0.1:59109 - "PUT /api/v1/settings/audit_log_enabled HTTP/1.1" 200
+2026-03-14 02:33:26,592 INFO     uvicorn.access: 127.0.0.1:59191 - "PUT /api/v1/settings/session_lifetime_minutes HTTP/1.1" 200
+2026-03-14 02:33:27,105 INFO     uvicorn.access: 127.0.0.1:59441 - "PUT /api/v1/settings/allow_registration HTTP/1.1" 200
+2026-03-14 02:33:27,109 INFO     uvicorn.access: 127.0.0.1:59874 - "PUT /api/v1/settings/require_2fa HTTP/1.1" 200
+2026-03-14 02:33:27,118 INFO     uvicorn.access: 127.0.0.1:51723 - "PUT /api/v1/settings/audit_log_enabled HTTP/1.1" 200
+2026-03-14 02:33:27,122 INFO     uvicorn.access: 127.0.0.1:65405 - "PUT /api/v1/settings/password_min_length HTTP/1.1" 200
+2026-03-14 02:33:39,996 INFO     uvicorn.access: 127.0.0.1:57936 - "GET /api/v1/health HTTP/1.1" 200
+2026-03-14 02:34:41,295 INFO     uvicorn.access: 127.0.0.1:63099 - "GET /api/v1/health HTTP/1.1" 200
+2026-03-14 02:35:38,741 INFO     uvicorn.access: 127.0.0.1:52582 - "GET /api/v1/health HTTP/1.1" 200

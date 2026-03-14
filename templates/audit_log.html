@@ -1,0 +1,347 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="/static/js/theme-init.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <title>WizzardChat – Audit Log</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav id="sidebar" class="p-3 text-white">
+    <a href="/" class="d-flex align-items-center mb-2 text-white text-decoration-none">
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+        <span class="fs-5 fw-bold">WizzardChat</span>
+    </a>
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="flex-fill text-truncate small" id="agentName">–</span>
+        <button class="btn btn-sm btn-outline-secondary" id="btnLogout" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
+    </div>
+    <select class="form-select form-select-sm av-offline mb-2" id="availabilitySelect" title="Set your availability">
+        <option value="available">🟢 Available</option>
+        <option value="admin">🔵 Admin</option>
+        <option value="lunch">🟡 Lunch</option>
+        <option value="break">🟠 Break</option>
+        <option value="training">🟣 Training</option>
+        <option value="meeting">🔵 Meeting</option>
+        <option value="offline" selected>⚫ Offline</option>
+    </select>
+    <hr class="border-secondary">
+    <ul class="nav nav-pills flex-column flex-nowrap" style="flex:1 1 0;overflow-y:auto;min-height:0;">
+        <li class="nav-item" style="margin-bottom:4px;"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-monitoring',this)">
+                <span>Monitoring</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-monitoring">
+                <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a href="/wallboard" class="nav-link text-white"><i class="bi bi-display me-2"></i>Wallboard</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-operations',this)">
+                <span>Operations</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-operations">
+                <li class="nav-item"><a href="/interactions" class="nav-link text-white"><i class="bi bi-chat-square-text me-2"></i>Interactions</a></li>
+                <li class="nav-item"><a href="/flows" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-engagement',this)">
+                <span>Engagement</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-engagement">
+                <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+                <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+                <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+                <li class="nav-item"><a href="/msg-templates" class="nav-link text-white"><i class="bi bi-card-text me-2"></i>Templates</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-usermgmt',this)">
+                <span>User Management</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-usermgmt">
+                <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+                <li class="nav-item"><a href="/groups" class="nav-link text-white"><i class="bi bi-collection me-2"></i>Groups</a></li>
+                <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+                <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-bizsettings',this)">
+                <span>Business Settings</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-bizsettings">
+                <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+                <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+                <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>
+                <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+                <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+                <li class="nav-item"><a href="/audit-log" class="nav-link active"><i class="bi bi-journal-text me-2"></i>Audit Log</a></li>
+                <li class="nav-item"><a href="/docs" target="_blank" class="nav-link text-white"><i class="bi bi-code-square me-2"></i>API Docs</a></li>
+            </ul>
+        </li>
+        </ul>
+    </nav>
+
+<!-- Main -->
+<main style="margin-left:220px;padding:24px;min-height:100vh;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="mb-0"><i class="bi bi-journal-text me-2"></i>Audit Log</h4>
+            <p class="text-muted small mb-0 mt-1">System-wide record of all admin actions — who did what and when.</p>
+        </div>
+        <button class="btn btn-outline-secondary btn-sm" onclick="loadAuditLog()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small mb-1">Action</label>
+                    <select class="form-select form-select-sm" id="filterAction">
+                        <option value="">All actions</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small mb-1">Entity type</label>
+                    <select class="form-select form-select-sm" id="filterEntityType">
+                        <option value="">All entities</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">From</label>
+                    <input type="date" class="form-control form-control-sm" id="filterSince">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">To</label>
+                    <input type="date" class="form-control form-control-sm" id="filterUntil">
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button class="btn btn-primary btn-sm flex-grow-1" onclick="applyFilters()"><i class="bi bi-funnel me-1"></i>Filter</button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()" title="Clear filters"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0 small">
+                <thead class="border-bottom border-secondary">
+                    <tr>
+                        <th style="width:160px">Timestamp</th>
+                        <th style="width:140px">User</th>
+                        <th style="width:160px">Action</th>
+                        <th style="width:120px">Entity</th>
+                        <th>Details</th>
+                        <th style="width:120px">IP Address</th>
+                    </tr>
+                </thead>
+                <tbody id="auditTableBody">
+                    <tr><td colspan="6" class="text-center text-muted py-4">Loading…</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center py-2" id="paginationBar" style="display:none!important;">
+            <span class="text-muted small" id="pageInfo"></span>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-sm" id="btnPrev" onclick="changePage(-1)"><i class="bi bi-chevron-left"></i></button>
+                <button class="btn btn-outline-secondary btn-sm" id="btnNext" onclick="changePage(1)"><i class="bi bi-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>Entry Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <pre id="detailPre" class="text-white small" style="white-space:pre-wrap;word-break:break-word;background:#1a1a2e;padding:16px;border-radius:6px;max-height:400px;overflow-y:auto;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Login modal (required by wizzardchat.js auth) -->
+<div class="modal fade" id="loginModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Sign in to WizzardChat</h5></div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" id="loginUser" autocomplete="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="loginPass" autocomplete="current-password" required>
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePass('loginPass',this)"><i class="bi bi-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="alert alert-danger d-none" id="loginError"></div>
+                    <button type="submit" class="btn btn-primary w-100">Sign in</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+<script src="/static/js/wizzardchat.js"></script>
+<script>
+(function () {
+    let _page = 1;
+    let _filters = {};
+    let _total = 0;
+    const PAGE_SIZE = 50;
+
+    async function apiFetch(url) {
+        const token = localStorage.getItem('wizzardchat_token');
+        const res = await fetch(url, { headers: token ? { Authorization: 'Bearer ' + token } : {} });
+        if (res.status === 401) { location.href = '/login'; throw new Error('Unauthorized'); }
+        return res;
+    }
+
+    window.loadAuditLog = async function () {
+        const tbody = document.getElementById('auditTableBody');
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Loading…</td></tr>';
+
+        const params = new URLSearchParams({ page: _page, page_size: PAGE_SIZE });
+        if (_filters.action)      params.set('action', _filters.action);
+        if (_filters.entity_type) params.set('entity_type', _filters.entity_type);
+        if (_filters.since)       params.set('since', _filters.since + 'T00:00:00');
+        if (_filters.until)       params.set('until', _filters.until + 'T23:59:59');
+
+        try {
+            const res = await apiFetch('/api/v1/audit?' + params.toString());
+            if (!res.ok) throw new Error(await res.text());
+            const data = await res.json();
+            _total = data.total;
+            renderTable(data.items);
+            renderPagination(data.total, data.page, data.page_size);
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${err.message}</td></tr>`;
+        }
+    };
+
+    function renderTable(items) {
+        const tbody = document.getElementById('auditTableBody');
+        if (!items.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No entries found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = items.map(r => {
+            const ts = r.created_at ? new Date(r.created_at).toLocaleString('en-ZA') : '—';
+            const details = r.details && Object.keys(r.details).length
+                ? `<a href="#" class="text-info text-decoration-none" onclick="showDetail(${JSON.stringify(JSON.stringify(r))});return false;"><i class="bi bi-eye"></i></a>`
+                : '<span class="text-muted">—</span>';
+            const actionColor = r.action && r.action.includes('delete') ? 'text-danger' :
+                                r.action && r.action.includes('create') ? 'text-success' : 'text-info';
+            return `<tr>
+                <td class="text-muted">${ts}</td>
+                <td>${r.username || '<span class="text-muted">—</span>'}</td>
+                <td><span class="${actionColor} fw-semibold">${r.action || '—'}</span></td>
+                <td>${r.entity_type ? `<span class="badge bg-secondary">${r.entity_type}</span>` : '<span class="text-muted">—</span>'}</td>
+                <td>${details}</td>
+                <td class="text-muted">${r.ip_address || '—'}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function renderPagination(total, page, page_size) {
+        const bar = document.getElementById('paginationBar');
+        const info = document.getElementById('pageInfo');
+        const pages = Math.ceil(total / page_size);
+        if (total === 0) { bar.style.display = 'none'; return; }
+        bar.style.display = '';
+        const from = (page - 1) * page_size + 1;
+        const to = Math.min(page * page_size, total);
+        info.textContent = `${from}–${to} of ${total} entries`;
+        document.getElementById('btnPrev').disabled = page <= 1;
+        document.getElementById('btnNext').disabled = page >= pages;
+    }
+
+    window.changePage = function (delta) {
+        _page += delta;
+        loadAuditLog();
+    };
+
+    window.applyFilters = function () {
+        _page = 1;
+        _filters = {
+            action:      document.getElementById('filterAction').value,
+            entity_type: document.getElementById('filterEntityType').value,
+            since:       document.getElementById('filterSince').value,
+            until:       document.getElementById('filterUntil').value,
+        };
+        loadAuditLog();
+    };
+
+    window.clearFilters = function () {
+        _page = 1;
+        _filters = {};
+        document.getElementById('filterAction').value = '';
+        document.getElementById('filterEntityType').value = '';
+        document.getElementById('filterSince').value = '';
+        document.getElementById('filterUntil').value = '';
+        loadAuditLog();
+    };
+
+    window.showDetail = function (jsonStr) {
+        const entry = JSON.parse(jsonStr);
+        document.getElementById('detailPre').textContent = JSON.stringify(entry, null, 2);
+        new bootstrap.Modal(document.getElementById('detailModal')).show();
+    };
+
+    async function populateFilters() {
+        try {
+            const [actRes, entRes] = await Promise.all([
+                apiFetch('/api/v1/audit/actions'),
+                apiFetch('/api/v1/audit/entity-types'),
+            ]);
+            const actions = await actRes.json();
+            const entities = await entRes.json();
+            const asel = document.getElementById('filterAction');
+            actions.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; asel.appendChild(o); });
+            const esel = document.getElementById('filterEntityType');
+            entities.forEach(e => { const o = document.createElement('option'); o.value = e; o.textContent = e; esel.appendChild(o); });
+        } catch {}
+    }
+
+    // Wait for wizzardchat.js auth to complete before loading
+    const _authWait = setInterval(() => {
+        if (localStorage.getItem('wizzardchat_token')) {
+            clearInterval(_authWait);
+            populateFilters();
+            loadAuditLog();
+        }
+    }, 100);
+    // Timeout fallback — if still no token after 3s, /login redirect handled by apiFetch
+    setTimeout(() => { clearInterval(_authWait); loadAuditLog(); }, 3000);
+})();
+</script>
+</body>
+</html>

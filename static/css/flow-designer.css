@@ -3,6 +3,57 @@
 /* ─── Palette ─── */
 #nodePalette {
     background: #16213e;
+    width: 240px;
+    min-width: 44px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: width 0.18s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+#nodePalette.collapsed {
+    width: 48px;
+    overflow: hidden;
+}
+
+.palette-header {
+    flex-shrink: 0;
+    background: #16213e;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.palette-toggle {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 2px 4px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.palette-toggle:hover { color: #fff; }
+
+#nodePalette.collapsed .palette-header-text,
+#nodePalette.collapsed .palette-label,
+#nodePalette.collapsed .palette-node-text {
+    display: none;
+}
+
+#nodePalette.collapsed .palette-node {
+    padding: 8px 0;
+    margin: 2px 4px;
+    text-align: center;
+    font-size: 1.05rem;
+    justify-content: center;
+    border-left-width: 3px;
+}
+
+#nodePalette.collapsed .palette-group {
+    margin-bottom: 4px;
 }
 
 .palette-group {
@@ -15,9 +66,14 @@
     color: #6c757d;
     padding: 4px 8px;
     letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .palette-node {
+    display: flex;
+    align-items: center;
+    gap: 7px;
     padding: 6px 10px;
     margin: 2px 4px;
     border-radius: 6px;
@@ -25,13 +81,22 @@
     font-size: 0.82rem;
     background: rgba(255,255,255,.06);
     border: 1px solid rgba(255,255,255,.08);
+    border-left-width: 3px;
     transition: all .15s;
     user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.palette-node i {
+    flex-shrink: 0;
+    font-size: 0.95rem;
 }
 
 .palette-node:hover {
     background: rgba(255,255,255,.12);
     border-color: rgba(100,149,237,.5);
+    border-left-color: inherit;   /* keep colored left border on hover */
 }
 
 .palette-node:active {
@@ -40,7 +105,8 @@
 
 /* ─── Canvas ─── */
 #canvasContainer {
-    background:
+    background-color: #1a1a2e;
+    background-image:
         linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
     background-size: 20px 20px;
@@ -76,6 +142,67 @@
     box-shadow: 0 0 0 3px rgba(110,168,254,.3);
 }
 
+@keyframes node-flash-pulse {
+    0%   { box-shadow: 0 0 0 3px rgba(110,168,254,.3); }
+    25%  { box-shadow: 0 0 0 8px rgba(13,202,240,.8); }
+    50%  { box-shadow: 0 0 0 4px rgba(13,202,240,.4); }
+    75%  { box-shadow: 0 0 0 8px rgba(13,202,240,.8); }
+    100% { box-shadow: 0 0 0 3px rgba(110,168,254,.3); }
+}
+.flow-node.node-flash {
+    animation: node-flash-pulse 0.9s ease-in-out;
+    border-color: #0dcaf0;
+}
+
+/* ── Analytics overlay ──────────────────────────────────────── */
+/* Single 3-part stats strip pinned to the bottom of each node  */
+.analytics-stats-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    display: flex;
+    border-radius: 0 0 6px 6px;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 10;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #fff;
+    box-shadow: inset 0 1px 0 rgba(0,0,0,0.15);
+}
+.analytics-stats-bar .asb-visits {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    min-width: 0;
+    /* background is set inline from heat colour */
+}
+.analytics-stats-bar .asb-abandon {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    background: rgba(234,88,12,0.92);
+    border-left: 1px solid rgba(0,0,0,0.2);
+    gap: 2px;
+}
+.analytics-stats-bar .asb-error {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    background: rgba(220,38,38,0.92);
+    border-left: 1px solid rgba(0,0,0,0.2);
+    gap: 2px;
+}
+
+
 .flow-node .node-header {
     padding: 6px 12px;
     border-radius: 6px 6px 0 0;
@@ -94,6 +221,30 @@
 }
 
 /* Node type colors */
+/* ── Entry Points ─────────────────────────────────────────────────── */
+.flow-node[data-type="start_chat"]      .node-header { background: #0891b2; color: #fff; }
+.flow-node[data-type="start_whatsapp"]  .node-header { background: #128C7E; color: #fff; }
+.flow-node[data-type="start_api"]       .node-header { background: #7c3aed; color: #fff; }
+.flow-node[data-type="start_voice"]     .node-header { background: #c2410c; color: #fff; }
+.flow-node[data-type="start_email"]     .node-header { background: #0369a1; color: #fff; }
+.flow-node[data-type="start_sms"]       .node-header { background: #059669; color: #fff; }
+/* Event / Lifecycle Entry Points */
+.flow-node[data-type="start_chat_ended"]             .node-header { background: #64748b; color: #fff; }
+.flow-node[data-type="start_call_ended"]             .node-header { background: #92400e; color: #fff; }
+.flow-node[data-type="start_internal_call"]          .node-header { background: #1d4ed8; color: #fff; }
+.flow-node[data-type="start_sla_breached"]           .node-header { background: #dc2626; color: #fff; }
+.flow-node[data-type="start_contact_imported"]       .node-header { background: #0891b2; color: #fff; }
+.flow-node[data-type="start_contact_status_changed"] .node-header { background: #7c3aed; color: #fff; }
+/* Third-Party Placeholder Entry Points */
+.flow-node[data-type="start_messenger"]        .node-header { background: #0866ff; color: #fff; }
+.flow-node[data-type="start_instagram_dm"]     .node-header { background: #c13584; color: #fff; }
+.flow-node[data-type="start_instagram_post"]   .node-header { background: #833ab4; color: #fff; }
+.flow-node[data-type="start_facebook_wall"]    .node-header { background: #1877f2; color: #fff; }
+.flow-node[data-type="start_x_dm"]             .node-header { background: #111; color: #fff; }
+.flow-node[data-type="start_x_post"]           .node-header { background: #1da1f2; color: #fff; }
+.flow-node[data-type="start_apple_business"]   .node-header { background: #555; color: #fff; }
+.flow-node[data-type="start_hubspot"]          .node-header { background: #ff7a59; color: #fff; }
+/* ── Flow Control ──────────────────────────────────────────────────── */
 .flow-node[data-type="start"] .node-header { background: #198754; color: #fff; }
 .flow-node[data-type="end"] .node-header { background: #dc3545; color: #fff; }
 .flow-node[data-type="message"] .node-header { background: #0d6efd; color: #fff; }
@@ -112,6 +263,9 @@
 .flow-node[data-type="ai_bot"] .node-header { background: #7c3aed; color: #fff; }
 .flow-node[data-type="goto"] .node-header { background: #6c757d; color: #fff; }
 .flow-node[data-type="sub_flow"] .node-header { background: #087990; color: #fff; }
+.flow-node[data-type="switch"] .node-header { background: #fd7e14; color: #000; }
+.flow-node[data-type="loop"] .node-header { background: #20c997; color: #000; }
+.flow-node[data-type="time_gate"] .node-header { background: #0dcaf0; color: #000; }
 
 /* ─── Ports (connection points) ─── */
 .node-port {
@@ -165,6 +319,82 @@
     transform: translateX(-50%);
     background: #dc3545;
 }
+
+/* Switch / multi-branch node: N dynamically positioned output ports */
+.node-port.port-out-switch {
+    bottom: -6px;
+    background: #fd7e14;
+    transform: translateX(-50%);
+}
+
+.node-port.port-out-switch:hover {
+    transform: translateX(-50%) scale(1.4);
+}
+
+.node-port.port-out-switch.port-out-default {
+    background: #6c757d;
+}
+
+/* A/B split node: two fixed output ports */
+.flow-node[data-type="ab_split"] .node-header { background: #6f42c1; color: #fff; }
+.node-port.port-out-a {
+    bottom: -6px;
+    left: 30%;
+    background: #6f42c1;
+    transform: translateX(-50%);
+}
+.node-port.port-out-b {
+    bottom: -6px;
+    left: 70%;
+    background: #6f42c1;
+    opacity: 0.6;
+    transform: translateX(-50%);
+}
+.node-port.port-out-a:hover { transform: translateX(-50%) scale(1.4); }
+.node-port.port-out-b:hover { transform: translateX(-50%) scale(1.4); }
+
+/* Loop node: loop (body) + done (exit) ports */
+.node-port.port-out-loop {
+    bottom: -6px; left: 30%; background: #20c997; transform: translateX(-50%);
+}
+.node-port.port-out-done {
+    bottom: -6px; left: 70%; background: #6c757d; transform: translateX(-50%);
+}
+.node-port.port-out-loop:hover { transform: translateX(-50%) scale(1.4); }
+.node-port.port-out-done:hover { transform: translateX(-50%) scale(1.4); }
+
+/* Time Gate node: open (green) + closed (red) ports */
+.node-port.port-out-open {
+    bottom: -6px; left: 30%; background: #198754; transform: translateX(-50%);
+}
+.node-port.port-out-closed {
+    bottom: -6px; left: 70%; background: #dc3545; transform: translateX(-50%);
+}
+.node-port.port-out-open:hover  { transform: translateX(-50%) scale(1.4); }
+.node-port.port-out-closed:hover { transform: translateX(-50%) scale(1.4); }
+
+/* HTTP Request node: success (2xx green) + error (non-2xx red) ports */
+.node-port.port-out-success {
+    bottom: -6px; left: 30%; background: #198754; transform: translateX(-50%);
+}
+.node-port.port-out-error {
+    bottom: -6px; left: 70%; background: #dc3545; transform: translateX(-50%);
+}
+.node-port.port-out-success:hover { transform: translateX(-50%) scale(1.4); }
+.node-port.port-out-error:hover   { transform: translateX(-50%) scale(1.4); }
+
+/* Input node: response-received (left) + timeout/max-retries (right orange) ports */
+.node-port.port-out-received {
+    bottom: -6px; left: 30%; background: #6f42c1; transform: translateX(-50%);
+}
+.node-port.port-out-timeout {
+    bottom: -6px; left: 70%; background: #fd7e14; transform: translateX(-50%);
+}
+.node-port.port-out-received:hover { transform: translateX(-50%) scale(1.4); }
+.node-port.port-out-timeout:hover  { transform: translateX(-50%) scale(1.4); }
+
+/* Weekday picker pills */
+.weekday-pill { font-size: 0.72rem; padding: 2px 7px; min-width: 40px; }
 
 /* ─── Edges (SVG) ─── */
 .edge-path {
@@ -584,4 +814,29 @@
     flex-wrap: wrap;
 }
 .sf-field-toolbar .btn { font-size: 0.72rem; padding: 1px 7px; line-height: 1.5; }
+
+/* ─── Properties Panel Resize Handle ─── */
+#propertiesPanel {
+    flex-shrink: 0;
+    min-width: 260px;
+    max-width: 800px;
+    position: relative;
+}
+#panelResizeHandle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    cursor: ew-resize;
+    z-index: 20;
+    background: transparent;
+    transition: background .15s;
+}
+#panelResizeHandle:hover {
+    background: rgba(99,102,241,.35);
+}
+#panelResizeHandle.dragging {
+    background: rgba(99,102,241,.55);
+}
 

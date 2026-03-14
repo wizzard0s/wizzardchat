@@ -1,4 +1,6 @@
 /* WizzardChat – Main dashboard JS */
+/* navToggle, accordion init, availability, and agentName are in sidebar.js */
+
 (function () {
     const API = '';
     let token = localStorage.getItem('wizzardchat_token');
@@ -23,51 +25,32 @@
     }
 
     function showLogin() {
-        new bootstrap.Modal(document.getElementById('loginModal')).show();
+        localStorage.removeItem('wizzardchat_token');
+        window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
     }
 
     function isAdmin() {
         return currentUserData && (currentUserData.role === 'super_admin' || currentUserData.role === 'admin');
     }
 
-    document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const errEl = document.getElementById('loginError');
-        errEl.style.display = 'none';
-        const form = new URLSearchParams();
-        form.append('username', document.getElementById('loginUser').value);
-        form.append('password', document.getElementById('loginPass').value);
-        try {
-            const res = await fetch(API + '/api/v1/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: form
-            });
-            if (!res.ok) {
-                errEl.textContent = 'Invalid credentials';
-                errEl.style.display = 'block';
-                return;
-            }
-            const data = await res.json();
-            token = data.access_token;
-            currentUserData = data.user;
-            localStorage.setItem('wizzardchat_token', token);
-            document.getElementById('currentUser').textContent = data.user.full_name;
-            bootstrap.Modal.getInstance(document.getElementById('loginModal'))?.hide();
-            updateSettingsVisibility();
-            loadDashboard();
-        } catch (err) {
-            errEl.textContent = err.message;
-            errEl.style.display = 'block';
-        }
-    });
+
 
     document.getElementById('btnLogout')?.addEventListener('click', () => {
         token = null;
         currentUserData = null;
         localStorage.removeItem('wizzardchat_token');
-        showLogin();
+        window.location.href = '/login';
     });
+
+    // ──── Availability selector (shared across all non-agent pages) ────
+    // Handled by sidebar.js; initAvailability() kept for post-login refresh
+    function initAvailability() {
+        const sel = document.getElementById('availabilitySelect');
+        if (!sel) return;
+        const stored = localStorage.getItem('wizzardchat_availability') || 'offline';
+        sel.value = stored;
+        sel.className = 'form-select form-select-sm av-' + stored;
+    }
 
     function updateSettingsVisibility() {
         const settingsLink = document.querySelector('[data-section="settings"]');
@@ -146,7 +129,10 @@
         main.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Flows</h4>
-                <button class="btn btn-primary btn-sm" id="btnNewFlow"><i class="bi bi-plus-lg me-1"></i>New Flow</button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary btn-sm" id="btnNewFlow"><i class="bi bi-plus-lg me-1"></i>New Flow</button>
+                    <a class="btn btn-outline-info btn-sm" href="/flow-designer?ai=1" title="Create a flow with AI assistance"><i class="bi bi-stars me-1"></i>AI Assisted</a>
+                </div>
             </div>
 
             <!-- Filters -->
@@ -624,10 +610,27 @@
     // ──── Dashboard data ────
     async function loadDashboard() {
         try {
+            // Stat cards
+            const statsRes = await apiFetch('/api/v1/dashboard/stats');
+            if (statsRes.ok) {
+                const s = await statsRes.json();
+                document.getElementById('statActiveConvos').textContent = s.active_conversations;
+                document.getElementById('statWaiting').textContent = s.waiting_in_queue;
+                document.getElementById('statOnline').textContent = s.agents_online;
+                document.getElementById('statFlows').textContent  = s.active_flows;
+                document.getElementById('chVoice').textContent    = s.channels.voice;
+                document.getElementById('chChat').textContent     = s.channels.chat;
+                document.getElementById('chWhatsapp').textContent = s.channels.whatsapp;
+                document.getElementById('chApp').textContent      = s.channels.app;
+                document.getElementById('chEmail').textContent    = s.channels.email;
+                document.getElementById('chSms').textContent      = s.channels.sms;
+            }
+
             const flowsRes = await apiFetch('/api/v1/flows');
             if (flowsRes.ok) {
                 const flows = await flowsRes.json();
-                document.getElementById('statFlows').textContent = flows.filter(f => f.is_active).length;
+                // statFlows is now populated from /dashboard/stats (active_flows)
+                // Keep the recent-flows list rendering below
                 const recentEl = document.getElementById('recentFlows');
                 if (flows.length === 0) {
                     recentEl.innerHTML = '<p class="text-muted">No flows yet. <a href="/flow-designer">Create one</a></p>';
@@ -635,7 +638,7 @@
                     recentEl.innerHTML = flows.slice(0, 5).map(f => `
                         <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-dark">
                             <a href="/flow-designer/${f.id}" class="text-decoration-none">${f.name}</a>
-                            <span class="badge ${f.is_active ? 'bg-success' : 'bg-secondary'}">${f.is_active ? 'Active' : 'Draft'}</span>
+                            <span class="badge ${f.status === 'active' ? 'bg-success' : 'bg-secondary'}">${f.status === 'active' ? 'Active' : 'Draft'}</span>
                         </div>
                     `).join('');
                 }
@@ -673,16 +676,41 @@
             if (res.ok) {
                 const user = await res.json();
                 currentUserData = user;
-                document.getElementById('currentUser').textContent = user.full_name;
+                document.getElementById('agentName').textContent = user.full_name || user.username;
+                initAvailability();
                 updateSettingsVisibility();
-                loadDashboard();
+                if (window.location.pathname === '/flows') {
+                    loadFlowsSection();
+                } else {
+                    loadDashboard();
+                }
             } else {
                 showLogin();
             }
         } catch {
-            showLogin();
+            // Network error (server down/restarting) — token is still in
+            // localStorage so only show login if it was cleared by a 401.
+            if (!localStorage.getItem('wizzardchat_token')) {
+                showLogin();
+            } else {
+                const main = document.getElementById('mainContent');
+                if (main) main.innerHTML = '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle me-2"></i>Could not reach the server. <a href="#" onclick="location.reload()">Try again</a></div>';
+            }
         }
     }
 
     init();
 })();
+
+// ─── Password visibility toggle ──────────────────────────────────
+function togglePass(id, btn) {
+  const inp = document.getElementById(id);
+  const icon = btn.querySelector('i');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.className = 'bi bi-eye-slash';
+  } else {
+    inp.type = 'password';
+    icon.className = 'bi bi-eye';
+  }
+}

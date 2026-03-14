@@ -1,11 +1,24 @@
-"""API-level smoke tests using httpx (no browser needed)."""
+"""API-level smoke tests using httpx (no browser needed).
 
+Requires a running WizzardChat server. Set env vars before running:
+    WIZZARDCHAT_URL  (default: http://127.0.0.1:8091)
+    WIZZARDCHAT_ADMIN_USER  (default: admin)
+    WIZZARDCHAT_ADMIN_PASS  (required)
+"""
+
+import os
 import httpx
 import pytest
 
-BASE_URL = "http://127.0.0.1:8091"
-ADMIN_USER = "admin"
-ADMIN_PASS = "M@M@5t3r"
+BASE_URL = os.getenv("WIZZARDCHAT_URL", "http://127.0.0.1:8091")
+ADMIN_USER = os.getenv("WIZZARDCHAT_ADMIN_USER", "admin")
+ADMIN_PASS = os.getenv("WIZZARDCHAT_ADMIN_PASS")
+
+if not ADMIN_PASS:
+    pytest.skip(
+        "WIZZARDCHAT_ADMIN_PASS env var not set — skipping integration tests",
+        allow_module_level=True,
+    )
 
 
 @pytest.fixture(scope="module")

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * WizzardChat – Campaigns management page
  */
 (function () {
@@ -14,17 +14,125 @@
     let _allOutcomes = [];
     let _allQueues = [];
     let _allUsers = [];
+    let _allGroups = [];
+    let _allConnectors = [];
+    let _allTemplates  = [];
+    let _waMetaTemplates = [];
+
+    // ─── Shuttle Widget ────────────────────────────────────────────────────────
+    const _sh = {};
+
+    function shuttleCreate(id, items, selectedIds) {
+        _sh[id] = {
+            items:    new Map(items.map(i => [i.id, i])),
+            selected: new Set((selectedIds || []).map(String)),
+        };
+        _shuttleRender(id);
+    }
+
+    function _shuttleRender(id) {
+        const state = _sh[id];
+        if (!state) return;
+        const avail = [...state.items.values()].filter(i => !state.selected.has(i.id));
+        const sel   = [...state.items.values()].filter(i =>  state.selected.has(i.id));
+        const af = (document.getElementById(id + '_avail_search') || {}).value || '';
+        const sf = (document.getElementById(id + '_sel_search')   || {}).value || '';
+        _fillShuttleList(id + '_avail_list', avail, af);
+        _fillShuttleList(id + '_sel_list',   sel,   sf);
+        const ah = document.getElementById(id + '_avail_hdr');
+        const sh = document.getElementById(id + '_sel_hdr');
+        if (ah) ah.textContent = `Available (${avail.length})`;
+        if (sh) sh.textContent = `Selected (${sel.length})`;
+    }
+
+    function _fillShuttleList(listId, items, filter) {
+        const ul = document.getElementById(listId);
+        if (!ul) return;
+        const q = filter.toLowerCase();
+        ul.innerHTML = '';
+        items.filter(i => !q || i.searchText.toLowerCase().includes(q)).forEach(i => {
+            const btn  = document.createElement('button');
+            btn.type   = 'button';
+            btn.className = 'list-group-item list-group-item-action py-1 px-2 border-0 shuttle-item';
+            btn.dataset.id = i.id;
+            btn.innerHTML  = i.html;
+            btn.addEventListener('click', () => btn.classList.toggle('active'));
+            ul.appendChild(btn);
+        });
+    }
+
+    window.shuttleMove = function(id, direction) {
+        const state = _sh[id];
+        if (!state) return;
+        if (direction === 'all_right') {
+            state.items.forEach(i => state.selected.add(i.id));
+        } else if (direction === 'all_left') {
+            state.selected.clear();
+        } else if (direction === 'sel_right') {
+            document.querySelectorAll(`#${id}_avail_list .active`).forEach(el => state.selected.add(el.dataset.id));
+        } else if (direction === 'sel_left') {
+            document.querySelectorAll(`#${id}_sel_list .active`).forEach(el => state.selected.delete(el.dataset.id));
+        }
+        _shuttleRender(id);
+    };
+
+    function shuttleGetSelected(id) {
+        return _sh[id] ? [..._sh[id].selected] : [];
+    }
+
+    function _buildShuttleHtml(id) {
+        return `
+<div class="d-flex flex-column flex-fill" style="min-width:0">
+  <div class="small fw-semibold text-muted mb-1" id="${id}_avail_hdr">Available</div>
+  <input type="search" class="form-control form-control-sm mb-1" id="${id}_avail_search"
+         placeholder="Filter\u2026" oninput="_shuttleRender('${id}')">
+  <div class="list-group list-group-flush overflow-auto shuttle-list" id="${id}_avail_list"></div>
+</div>
+<div class="d-flex flex-column align-items-center justify-content-center gap-1 px-2 flex-shrink-0">
+  <button type="button" class="btn btn-sm btn-outline-primary px-2" title="Add all" onclick="shuttleMove('${id}','all_right')">»</button>
+  <button type="button" class="btn btn-sm btn-outline-primary px-2" title="Add selected" onclick="shuttleMove('${id}','sel_right')">›</button>
+  <button type="button" class="btn btn-sm btn-outline-secondary px-2" title="Remove selected" onclick="shuttleMove('${id}','sel_left')">‹</button>
+  <button type="button" class="btn btn-sm btn-outline-secondary px-2" title="Remove all" onclick="shuttleMove('${id}','all_left')">«</button>
+</div>
+<div class="d-flex flex-column flex-fill" style="min-width:0">
+  <div class="small fw-semibold text-muted mb-1" id="${id}_sel_hdr">Selected</div>
+  <input type="search" class="form-control form-control-sm mb-1" id="${id}_sel_search"
+         placeholder="Filter\u2026" oninput="_shuttleRender('${id}')">
+  <div class="list-group list-group-flush overflow-auto shuttle-list" id="${id}_sel_list"></div>
+</div>`;
+    }
+
+    function _initGroupShuttle(selectedIds) {
+        document.getElementById('groupShuttleWrap').innerHTML = _buildShuttleHtml('campGroups');
+        shuttleCreate('campGroups', _allGroups.map(g => ({
+            id:         g.id,
+            searchText: g.name,
+            html: `<span class="fw-semibold">${esc(g.name)}</span>`
+                  + ` <span class="badge bg-secondary ms-1" style="font-size:.6rem">${g.members?.length ?? 0} members</span>`,
+        })), selectedIds || []);
+    }
+
+    function _initAgentShuttle(selectedIds) {
+        document.getElementById('agentShuttleWrap').innerHTML = _buildShuttleHtml('campAgents');
+        const roleColor = { super_admin: 'danger', admin: 'warning', supervisor: 'info', agent: 'primary', viewer: 'secondary' };
+        shuttleCreate('campAgents', _allUsers.map(u => ({
+            id:         u.id,
+            searchText: (u.full_name || u.username) + ' ' + u.role,
+            html: `<span class="fw-semibold">${esc(u.full_name || u.username)}</span>`
+                  + ` <span class="badge bg-${roleColor[u.role] ?? 'secondary'} ms-1" style="font-size:.6rem">${esc(u.role)}</span>`,
+        })), selectedIds || []);
+    }
 
     const modal    = () => bootstrap.Modal.getOrCreateInstance(document.getElementById('campaignModal'));
     const delModal = () => bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteCModal'));
 
     function _guard() {
-        if (!_token()) { window.location.href = '/'; }
+        if (!_token()) { window.location.href = '/login'; }
     }
 
     async function apiFetch(path, opts = {}) {
         const r = await fetch(API + path, { headers: _headers(), ...opts });
-        if (r.status === 401) { localStorage.removeItem('wizzardchat_token'); window.location.href = '/'; }
+        if (r.status === 401) { localStorage.removeItem('wizzardchat_token'); window.location.href = '/login'; }
         return r;
     }
 
@@ -75,19 +183,32 @@
             const activeBadge = c.is_active
                 ? '<span class="badge bg-success ms-1">Active</span>'
                 : '<span class="badge bg-secondary ms-1">Inactive</span>';
+            const diallerBtn = (c.status === 'running')
+                ? `<button class="btn btn-sm btn-success w-100 mt-2" style="font-size:12px"
+                      onclick="event.stopPropagation();window.location.href='/dialler/${c.id}'">
+                      <i class="bi bi-telephone-outbound me-1"></i>Open Dialler
+                   </button>`
+                : '';
+            const modeLabel = (() => {
+                const m = (c.settings || {}).dialler_mode;
+                if (m === 'progressive') return '<span class="badge bg-warning text-dark ms-1" style="font-size:10px">Progressive</span>';
+                if (m === 'preview') return '<span class="badge bg-info text-dark ms-1" style="font-size:10px">Preview</span>';
+                return '';
+            })();
             col.innerHTML = `
 <div class="card campaign-card h-100" onclick="openCampaignModal('${c.id}')">
     <div class="card-body">
-        <div class="d-flex align-items-center gap-2 mb-2">
+        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
             <span class="camp-color-dot" style="background:${esc(c.color || '#0d6efd')}"></span>
             <span class="fw-semibold text-truncate">${esc(c.name)}</span>
-            ${_statusBadge(c.status)}${activeBadge}
+            ${_statusBadge(c.status)}${activeBadge}${modeLabel}
         </div>
         <p class="text-muted small mb-2">${esc(c.description || '—')}</p>
         <div class="small">
             <span class="badge bg-secondary me-1">${_typeLabel(c.campaign_type)}</span>
             <span class="text-muted"><i class="bi bi-clock me-1"></i>${timeStr}</span>
         </div>
+        ${diallerBtn}
     </div>
     <div class="card-footer d-flex justify-content-between align-items-center py-1 px-2">
         <span class="d-flex gap-2">
@@ -133,9 +254,15 @@
         document.getElementById('cIsActive').checked = true;
         document.getElementById('cAllowTransfer').checked = true;
         document.getElementById('cAllowCallback').checked = false;
+        document.getElementById('cDiallerMode').value = 'preview';
+        document.getElementById('cRingTimeout').value = '45';
+        document.getElementById('cMaxAttempts').value = '3';
+        document.getElementById('cRetryInterval').value = '3600';
         _renderOutcomeCheckboxes('cOutcomeList', 'cOutcomeEmpty', []);
         _renderQueueCheckboxes([]);
-        _renderUserCheckboxes([]);
+        _initGroupShuttle([]);
+        _initAgentShuttle([]);
+        _fillOutboundTab({});
     }
 
     function _fillForm(c) {
@@ -151,12 +278,22 @@
         document.getElementById('cAllowTransfer').checked = opts.allow_transfer !== false;
         document.getElementById('cAllowCallback').checked = !!opts.allow_callback;
 
+        // Dialler settings
+        const ds = c.settings || {};
+        document.getElementById('cDiallerMode').value   = ds.dialler_mode  || 'preview';
+        document.getElementById('cRingTimeout').value   = ds.ring_timeout  || 45;
+        document.getElementById('cMaxAttempts').value   = c.max_attempts   || 3;
+        document.getElementById('cRetryInterval').value = c.retry_interval || 3600;
+
         // Outcomes
         _renderOutcomeCheckboxes('cOutcomeList', 'cOutcomeEmpty', c.outcomes || []);
         // Queues
         _renderQueueCheckboxes(c.queues || []);
-        // Agents
-        _renderUserCheckboxes(c.agents || []);
+        // Groups + individual agents
+        _initGroupShuttle(c.agent_groups || []);
+        _initAgentShuttle(c.agents || []);
+        // Outbound config
+        _fillOutboundTab(c.outbound_config || {});
     }
 
     // ─── Global outcomes ────────────────────────────────────────────────────────
@@ -235,45 +372,15 @@
     function _readQueues() {
         return Array.from(document.querySelectorAll('#cQueueList input[type=checkbox]:checked')).map(el => el.value);
     }
-    // ─── Users / Agents (checkbox selection) ──────────────────────────────────
+    // ─── Users / Agents ────────────────────────────────────────────────────────
     async function loadAllUsers() {
         const r = await apiFetch('/api/v1/users');
         _allUsers = r.ok ? (await r.json()).filter(u => u.is_active !== false) : [];
     }
 
-    function _renderUserCheckboxes(selectedIds) {
-        const list  = document.getElementById('cAgentList');
-        const empty = document.getElementById('cAgentEmpty');
-        list.innerHTML = '';
-        if (!_allUsers.length) {
-            empty.style.display = 'block';
-            return;
-        }
-        empty.style.display = 'none';
-        const roleColor = { super_admin: 'danger', admin: 'warning', supervisor: 'info', agent: 'primary', viewer: 'secondary' };
-        _allUsers.forEach(u => {
-            const checked   = selectedIds.includes(u.id) ? 'checked' : '';
-            const roleBadge = roleColor[u.role] ?? 'secondary';
-            const online    = u.is_online
-                ? '<span class="badge bg-success" style="font-size:.6rem">Online</span>'
-                : '<span class="badge bg-secondary" style="font-size:.6rem">Offline</span>';
-            const col = document.createElement('div');
-            col.className = 'col-md-6';
-            col.innerHTML = `
-<div class="form-check border border-secondary rounded p-2 ms-0">
-    <input class="form-check-input" type="checkbox" value="${u.id}" id="ca_${u.id}" ${checked}>
-    <label class="form-check-label d-flex align-items-center gap-2" for="ca_${u.id}">
-        <span class="fw-semibold">${esc(u.full_name || u.username)}</span>
-        <span class="badge bg-${roleBadge}" style="font-size:.65rem">${esc(u.role)}</span>
-        ${online}
-    </label>
-</div>`;
-            list.appendChild(col);
-        });
-    }
-
-    function _readAgents() {
-        return Array.from(document.querySelectorAll('#cAgentList input[type=checkbox]:checked')).map(el => el.value);
+    async function loadAllGroups() {
+        const r = await apiFetch('/api/v1/agent-groups');
+        _allGroups = r.ok ? await r.json() : [];
     }
     // ─── Save ──────────────────────────────────────────────────────────────────
     window.saveCampaign = async function () {
@@ -293,9 +400,16 @@
                 allow_transfer: document.getElementById('cAllowTransfer').checked,
                 allow_callback: document.getElementById('cAllowCallback').checked,
             },
-            outcomes: _readOutcomes(),
-            queues:   _readQueues(),
-            agents:   _readAgents(),
+            max_attempts:   parseInt(document.getElementById('cMaxAttempts').value, 10) || 3,
+            retry_interval: parseInt(document.getElementById('cRetryInterval').value, 10) || 3600,
+            settings: {
+                dialler_mode: document.getElementById('cDiallerMode').value,
+                ring_timeout: parseInt(document.getElementById('cRingTimeout').value, 10) || 45,
+            },
+            outcomes:     _readOutcomes(),
+            queues:        _readQueues(),
+            agents:        shuttleGetSelected('campAgents'),
+            agent_groups:  shuttleGetSelected('campGroups'),
         };
 
         const url    = _editId ? `/api/v1/campaigns/${_editId}` : '/api/v1/campaigns';
@@ -309,6 +423,17 @@
                 : (e.detail || 'Save failed');
             alert(msg);
             return;
+        }
+
+        // Save outbound config to the dedicated endpoint
+        const savedCampaign = await r.json().catch(() => null);
+        const savedId = savedCampaign?.id || _editId;
+        if (savedId) {
+            const outboundCfg = _readOutboundTab();
+            await apiFetch(`/api/v1/campaigns/${savedId}/outbound-config`, {
+                method: 'PUT',
+                body: JSON.stringify(outboundCfg),
+            });
         }
 
         modal().hide();
@@ -334,11 +459,253 @@
     document.getElementById('btnLogout').addEventListener('click', e => {
         e.preventDefault();
         localStorage.removeItem('wizzardchat_token');
-        window.location.href = '/';
+        window.location.href = '/login';
     });
 
+    // ─── Outbound Config ───────────────────────────────────────────────────────
+
+    async function loadAllConnectors() {
+        const r = await apiFetch('/api/v1/connectors');
+        _allConnectors = r.ok ? await r.json() : [];
+    }
+
+    async function loadAllTemplates() {
+        const r = await apiFetch('/api/v1/templates');
+        _allTemplates = r.ok ? await r.json() : [];
+    }
+
+    function _fillConnectorSelect(selectId, providerTypes) {
+        const sel = document.getElementById(selectId);
+        if (!sel) return;
+        const current = sel.value;
+        sel.innerHTML = '<option value="">— none —</option>';
+        _allConnectors
+            .filter(c => !providerTypes.length || providerTypes.some(t => (c.connector_type || c.type || '').toLowerCase().includes(t)))
+            .forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name || c.id;
+                if (c.id === current) opt.selected = true;
+                sel.appendChild(opt);
+            });
+    }
+
+    function _fillTemplateSelect(selectId, channel) {
+        const sel = document.getElementById(selectId);
+        if (!sel) return;
+        const current = sel.value;
+        sel.innerHTML = '<option value="">— none —</option>';
+        _allTemplates
+            .filter(t => t.channel === channel && t.status === 'active')
+            .forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = t.name;
+                if (t.id === current) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        sel.addEventListener('change', () => _onTemplateSelectChange(selectId, channel, sel.value));
+    }
+
+    // ─── WhatsApp Meta templates ───────────────────────────────────────────────
+    async function _loadWaMetaTemplates(connectorId) {
+        const sel = document.getElementById('ocWaTemplate');
+        if (!sel) return;
+        const wrap = document.getElementById('ocWaVarWrap');
+        if (!connectorId) {
+            sel.innerHTML = '<option value="">— select connector first —</option>';
+            _waMetaTemplates = [];
+            if (wrap) wrap.style.display = 'none';
+            return;
+        }
+        sel.innerHTML = '<option value="">— loading… —</option>';
+        const r = await apiFetch(`/api/v1/whatsapp-connectors/${connectorId}/meta-templates`);
+        if (!r.ok) {
+            sel.innerHTML = '<option value="">— error loading templates —</option>';
+            _waMetaTemplates = [];
+            return;
+        }
+        _waMetaTemplates = await r.json();
+        sel.innerHTML = '<option value="">— none —</option>';
+        _waMetaTemplates
+            .filter(t => t.status === 'APPROVED')
+            .forEach(t => {
+                const opt = document.createElement('option');
+                opt.value           = t.name;
+                opt.textContent     = `${t.name} (${t.language})`;
+                opt.dataset.body    = t.body    || '';
+                opt.dataset.lang    = t.language || 'en';
+                opt.dataset.metaId  = t.id       || '';
+                opt.dataset.varsCount = t.variables_count || 0;
+                sel.appendChild(opt);
+            });
+        sel.onchange = () => _onWaMetaTemplateChange(sel.value);
+    }
+    window.loadWaMetaTemplates = _loadWaMetaTemplates;
+
+    function _onWaMetaTemplateChange(templateName) {
+        const wrap = document.getElementById('ocWaVarWrap');
+        const rows = document.getElementById('ocWaVarRows');
+        if (!templateName) { if (wrap) wrap.style.display = 'none'; return; }
+        const tmpl = _waMetaTemplates.find(t => t.name === templateName);
+        if (!tmpl || !(tmpl.variables_count > 0)) { if (wrap) wrap.style.display = 'none'; return; }
+        if (wrap) wrap.style.display = '';
+        rows.innerHTML = '';
+        const varRe = /\{\{(\d+)\}\}/g;
+        const positions = []; let m;
+        while ((m = varRe.exec(tmpl.body || '')) !== null) {
+            const n = parseInt(m[1], 10);
+            if (!positions.includes(n)) positions.push(n);
+        }
+        positions.sort((a, b) => a - b);
+        positions.forEach(pos => {
+            const div = document.createElement('div');
+            div.className = 'd-flex align-items-center gap-2 mb-1';
+            div.dataset.pos = pos;
+            div.innerHTML = `
+<span class="fw-bold text-warning" style="width:32px;text-align:center">{{${pos}}}</span>
+<span class="text-muted small flex-fill">Variable ${pos}</span>
+<input type="text" class="form-control form-control-sm oc-var-override" style="max-width:180px"
+    placeholder="Override value…" data-pos="${pos}">`;
+            rows.appendChild(div);
+        });
+    }
+
+    function _onTemplateSelectChange(selectId, channel, templateId) {
+        const chanMap = { wa: 'whatsapp', sms: 'sms', email: 'email' };
+        // Determine which var section to update based on selectId
+        let prefix = '';
+        if (selectId === 'ocWaTemplate')    prefix = 'ocWa';
+        if (selectId === 'ocSmsTemplate')   prefix = 'ocSms';
+        if (selectId === 'ocEmailTemplate') prefix = 'ocEmail';
+        if (!prefix) return;
+
+        const wrap = document.getElementById(`${prefix}VarWrap`);
+        const rows = document.getElementById(`${prefix}VarRows`);
+        if (!templateId) {
+            if (wrap) wrap.style.display = 'none';
+            return;
+        }
+        const tmpl = _allTemplates.find(t => t.id === templateId);
+        if (!tmpl || !(tmpl.variables || []).length) {
+            if (wrap) wrap.style.display = 'none';
+            return;
+        }
+        if (wrap) wrap.style.display = '';
+        rows.innerHTML = '';
+        (tmpl.variables || []).forEach(v => {
+            const div = document.createElement('div');
+            div.className = 'd-flex align-items-center gap-2 mb-1';
+            div.dataset.pos = v.pos;
+            div.innerHTML = `
+<span class="fw-bold text-warning" style="width:32px;text-align:center">{{${v.pos}}}</span>
+<span class="text-muted small flex-fill">${esc(v.label || `Variable ${v.pos}`)} · <em>${esc(v.contact_field || 'no binding')}</em></span>
+<input type="text" class="form-control form-control-sm oc-var-override" style="max-width:180px"
+    placeholder="Override value…" data-pos="${v.pos}">`;
+            rows.appendChild(div);
+        });
+    }
+
+    function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+
+    function _readVarOverrides(rowsId) {
+        const out = {};
+        document.querySelectorAll(`#${rowsId} .oc-var-override`).forEach(inp => {
+            if (inp.value.trim()) out[inp.dataset.pos] = inp.value.trim();
+        });
+        return out;
+    }
+
+    function _fillOutboundTab(outbound_config) {
+        const cfg = outbound_config || {};
+
+        // Primary channel
+        const primary = cfg.primary_channel || 'voice';
+        const radio = document.querySelector(`input[name="primaryChannel"][value="${primary}"]`);
+        if (radio) radio.checked = true;
+
+        // Fallback channels
+        ['voice','whatsapp','sms','email'].forEach(ch => {
+            const cb = document.getElementById(`fb${ch.charAt(0).toUpperCase() + ch.slice(1) === 'Whatsapp' ? 'Wa' : ch.charAt(0).toUpperCase() + ch.slice(1)}`);
+        });
+        // cleaner approach
+        const fbMap = { voice: 'fbVoice', whatsapp: 'fbWa', sms: 'fbSms', email: 'fbEmail' };
+        Object.entries(fbMap).forEach(([ch, id]) => {
+            const cb = document.getElementById(id);
+            if (cb) cb.checked = (cfg.fallback_channels || []).includes(ch);
+        });
+
+        // Autodial
+        const adEl = document.getElementById('cAutodial');
+        if (adEl) adEl.checked = !!cfg.autodial;
+
+        // Connector selectors
+        _fillConnectorSelect('ocVoiceConnector', ['voice', 'twilio', 'vici']);
+        _fillConnectorSelect('ocWaConnector',    ['whatsapp']);
+        _fillConnectorSelect('ocSmsConnector',   ['sms', 'bulksms', 'twilio_sms']);
+        _fillConnectorSelect('ocEmailConnector', ['email', 'smtp', 'sendgrid']);
+
+        // Template selectors (WA loaded from Meta via connector; SMS & Email from local DB)
+        _fillTemplateSelect('ocSmsTemplate',   'sms');
+        _fillTemplateSelect('ocEmailTemplate', 'email');
+
+        // Set saved connector values
+        if (cfg.voice_connector_id)  { const el = document.getElementById('ocVoiceConnector');  if (el) el.value = cfg.voice_connector_id;  }
+        if (cfg.sms_connector_id)    { const el = document.getElementById('ocSmsConnector');     if (el) el.value = cfg.sms_connector_id;    }
+        if (cfg.email_connector_id)  { const el = document.getElementById('ocEmailConnector');   if (el) el.value = cfg.email_connector_id;  }
+
+        // WA: load Meta templates from connector then restore saved selection
+        (async () => {
+            const waConnEl = document.getElementById('ocWaConnector');
+            if (waConnEl && cfg.wa_connector_id) {
+                waConnEl.value = cfg.wa_connector_id;
+                await _loadWaMetaTemplates(cfg.wa_connector_id);
+                const waTemplateSel = document.getElementById('ocWaTemplate');
+                if (waTemplateSel && cfg.wa_meta_template_name) {
+                    waTemplateSel.value = cfg.wa_meta_template_name;
+                    _onWaMetaTemplateChange(cfg.wa_meta_template_name);
+                }
+            } else {
+                const waTemplateSel = document.getElementById('ocWaTemplate');
+                if (waTemplateSel) waTemplateSel.innerHTML = '<option value="">— select connector first —</option>';
+            }
+        })();
+
+        // SMS/Email: set saved template + trigger variable mapper
+        if (cfg.sms_template_id)   { const el = document.getElementById('ocSmsTemplate');   if (el) { el.value = cfg.sms_template_id;   _onTemplateSelectChange('ocSmsTemplate',   'sms',   cfg.sms_template_id); } }
+        if (cfg.email_template_id) { const el = document.getElementById('ocEmailTemplate'); if (el) { el.value = cfg.email_template_id; _onTemplateSelectChange('ocEmailTemplate', 'email', cfg.email_template_id); } }
+    }
+
+    function _readOutboundTab() {
+        const primary = (document.querySelector('input[name="primaryChannel"]:checked') || {}).value || 'voice';
+        const fbMap = { voice: 'fbVoice', whatsapp: 'fbWa', sms: 'fbSms', email: 'fbEmail' };
+        const fallbacks = Object.entries(fbMap)
+            .filter(([, id]) => { const el = document.getElementById(id); return el && el.checked; })
+            .map(([ch]) => ch);
+
+        return {
+            primary_channel:   primary,
+            fallback_channels: fallbacks,
+            autodial:          document.getElementById('cAutodial')?.checked || false,
+            voice_connector_id:  document.getElementById('ocVoiceConnector')?.value  || null,
+            wa_connector_id:          document.getElementById('ocWaConnector')?.value || null,
+            wa_meta_template_name:    (() => { const s = document.getElementById('ocWaTemplate'); return s?.value || null; })(),
+            wa_meta_template_lang:    (() => { const s = document.getElementById('ocWaTemplate'); return s?.selectedOptions[0]?.dataset.lang || 'en'; })(),
+            wa_meta_template_body:    (() => { const s = document.getElementById('ocWaTemplate'); return s?.selectedOptions[0]?.dataset.body || null; })(),
+            wa_meta_template_id:      (() => { const s = document.getElementById('ocWaTemplate'); return s?.selectedOptions[0]?.dataset.metaId || null; })(),
+            wa_variable_map:          _readVarOverrides('ocWaVarRows'),
+            sms_connector_id:    document.getElementById('ocSmsConnector')?.value     || null,
+            sms_template_id:     document.getElementById('ocSmsTemplate')?.value      || null,
+            sms_variable_map:    _readVarOverrides('ocSmsVarRows'),
+            email_connector_id:  document.getElementById('ocEmailConnector')?.value   || null,
+            email_template_id:   document.getElementById('ocEmailTemplate')?.value    || null,
+            email_variable_map:  _readVarOverrides('ocEmailVarRows'),
+        };
+    }
+
     // ─── Boot ──────────────────────────────────────────────────────────────────
-    _guard();    loadAllOutcomes();    loadAllQueues();    loadAllUsers();    loadCampaigns();
+    _guard();    loadAllOutcomes();    loadAllQueues();    loadAllUsers();    loadAllGroups();    loadCampaigns();
+    loadAllConnectors();    loadAllTemplates();
 
     (async () => {
         const r = await apiFetch('/api/v1/users/me').catch(() => null);

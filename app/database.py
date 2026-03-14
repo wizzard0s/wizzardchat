@@ -13,7 +13,11 @@ engine = create_async_engine(
     max_overflow=5,
     pool_timeout=10,
     pool_pre_ping=True,   # drop dead connections before using them
+    # asyncpg server_settings persists for the full connection lifetime, including
+    # pooled connections — more reliable than the sync event-listener approach.
+    connect_args={"server_settings": {"search_path": f"{settings.db_schema},public"}},
 )
+
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 

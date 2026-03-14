@@ -12,6 +12,12 @@ from app.database import Base
 import enum
 
 
+def _enum(e):
+    """SAEnum that stores MEMBER NAMES (e.g. 'SUPER_ADMIN') matching the legacy
+    uppercase PostgreSQL enum labels created before values_callable was set."""
+    return SAEnum(e, values_callable=lambda x: [v.name for v in x])
+
+
 # ──────────────────────────── Enums ────────────────────────────
 
 class ChannelType(str, enum.Enum):
@@ -63,6 +69,17 @@ class CampaignType(str, enum.Enum):
     OUTBOUND_WHATSAPP = "outbound_whatsapp"
     OUTBOUND_EMAIL = "outbound_email"
     BLAST = "blast"
+
+
+class AttemptStatus(str, enum.Enum):
+    PENDING   = "pending"
+    DIALLING  = "dialling"
+    CONNECTED = "connected"
+    NO_ANSWER = "no_answer"
+    BUSY      = "busy"
+    FAILED    = "failed"
+    COMPLETED = "completed"
+    SKIPPED   = "skipped"
 
 
 class FlowNodeType(str, enum.Enum):
@@ -124,72 +141,88 @@ class TagType(str, enum.Enum):
 # ─────────────── Association Tables ───────────────
 
 team_members = Table(
-    "team_members",
+    "chat_team_members",
     Base.metadata,
-    Column("team_id", UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), primary_key=True),
-    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+    Column("team_id", UUID(as_uuid=True), ForeignKey("chat_teams.id", ondelete="CASCADE"), primary_key=True),
+    Column("user_id", UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="CASCADE"), primary_key=True),
 )
 
 queue_agents = Table(
-    "queue_agents",
+    "chat_queue_agents",
     Base.metadata,
-    Column("queue_id", UUID(as_uuid=True), ForeignKey("queues.id", ondelete="CASCADE"), primary_key=True),
-    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+    Column("queue_id", UUID(as_uuid=True), ForeignKey("chat_queues.id", ondelete="CASCADE"), primary_key=True),
+    Column("user_id", UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="CASCADE"), primary_key=True),
 )
 
 user_skills = Table(
-    "user_skills",
+    "chat_user_skills",
     Base.metadata,
-    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
-    Column("skill_id", UUID(as_uuid=True), ForeignKey("skills.id", ondelete="CASCADE"), primary_key=True),
+    Column("user_id", UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="CASCADE"), primary_key=True),
+    Column("skill_id", UUID(as_uuid=True), ForeignKey("chat_skills.id", ondelete="CASCADE"), primary_key=True),
     Column("proficiency", Integer, default=100),  # 0-100
 )
 
 campaign_contact_lists = Table(
-    "campaign_contact_lists",
+    "chat_campaign_contact_lists",
     Base.metadata,
-    Column("campaign_id", UUID(as_uuid=True), ForeignKey("campaigns.id", ondelete="CASCADE"), primary_key=True),
-    Column("contact_list_id", UUID(as_uuid=True), ForeignKey("contact_lists.id", ondelete="CASCADE"), primary_key=True),
+    Column("campaign_id", UUID(as_uuid=True), ForeignKey("chat_campaigns.id", ondelete="CASCADE"), primary_key=True),
+    Column("contact_list_id", UUID(as_uuid=True), ForeignKey("chat_contact_lists.id", ondelete="CASCADE"), primary_key=True),
 )
 
 interaction_tags = Table(
-    "interaction_tags",
+    "chat_interaction_tags",
     Base.metadata,
-    Column("interaction_id", UUID(as_uuid=True), ForeignKey("interactions.id", ondelete="CASCADE"), primary_key=True),
-    Column("tag_id", UUID(as_uuid=True), ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True),
+    Column("interaction_id", UUID(as_uuid=True), ForeignKey("chat_interactions.id", ondelete="CASCADE"), primary_key=True),
+    Column("tag_id", UUID(as_uuid=True), ForeignKey("chat_tags.id", ondelete="CASCADE"), primary_key=True),
 )
 
 contact_tags = Table(
-    "contact_tags",
+    "chat_contact_tags",
     Base.metadata,
-    Column("contact_id", UUID(as_uuid=True), ForeignKey("contacts.id", ondelete="CASCADE"), primary_key=True),
-    Column("tag_id", UUID(as_uuid=True), ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True),
+    Column("contact_id", UUID(as_uuid=True), ForeignKey("chat_contacts.id", ondelete="CASCADE"), primary_key=True),
+    Column("tag_id", UUID(as_uuid=True), ForeignKey("chat_tags.id", ondelete="CASCADE"), primary_key=True),
 )
 
 user_tags = Table(
-    "user_tags",
+    "chat_user_tags",
     Base.metadata,
-    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
-    Column("tag_id", UUID(as_uuid=True), ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True),
+    Column("user_id", UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="CASCADE"), primary_key=True),
+    Column("tag_id", UUID(as_uuid=True), ForeignKey("chat_tags.id", ondelete="CASCADE"), primary_key=True),
+)
+
+agent_group_members = Table(
+    "chat_agent_group_members",
+    Base.metadata,
+    Column("group_id", UUID(as_uuid=True), ForeignKey("chat_agent_groups.id", ondelete="CASCADE"), primary_key=True),
+    Column("user_id", UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="CASCADE"), primary_key=True),
 )
 
 
 # ──────────────────────────── Models ────────────────────────────
 
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = "chat_users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
     username = Column(String(100), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=False)
-    role = Column(SAEnum(UserRole), nullable=False, default=UserRole.AGENT)
+    role = Column(_enum(UserRole), nullable=False, default=UserRole.AGENT)
     is_active = Column(Boolean, default=True)
     is_online = Column(Boolean, default=False)
     is_system_account = Column(Boolean, default=False, nullable=False)
-    auth_type = Column(SAEnum(AuthType), nullable=False, default=AuthType.LOCAL)
+    auth_type = Column(_enum(AuthType), nullable=False, default=AuthType.LOCAL)
     max_concurrent_chats = Column(Integer, default=5)
+    # ── Omnichannel capacity (null = inherit business global default) ──────────
+    omni_max            = Column(Integer, nullable=True)   # total across all channels
+    channel_max_voice   = Column(Integer, nullable=True)   # concurrent voice calls (typically 1)
+    channel_max_chat    = Column(Integer, nullable=True)   # concurrent chat sessions
+    channel_max_whatsapp = Column(Integer, nullable=True)  # concurrent WhatsApp sessions
+    channel_max_email   = Column(Integer, nullable=True)   # concurrent email threads
+    channel_max_sms     = Column(Integer, nullable=True)   # concurrent SMS threads
+    capacity_override_active = Column(Boolean, default=False, nullable=False)  # pick-next +1 slot consumed
+    languages = Column(JSONB, default=list, nullable=True)  # ISO 639-1 codes: ["en","af","zu",…]
     avatar_url = Column(String(500))
     phone_number = Column(String(50))
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -200,16 +233,16 @@ class User(Base):
     queues = relationship("Queue", secondary=queue_agents, back_populates="agents")
     conversations = relationship("Conversation", back_populates="agent", foreign_keys="Conversation.agent_id")
     skills = relationship("Skill", secondary=user_skills, back_populates="users")
-    tag_refs = relationship("Tag", secondary="user_tags", back_populates="tagged_users")
+    tag_refs = relationship("Tag", secondary="chat_user_tags", back_populates="tagged_users")
 
 
 class Team(Base):
-    __tablename__ = "teams"
+    __tablename__ = "chat_teams"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), unique=True, nullable=False)
     description = Column(Text)
-    leader_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    leader_id = Column(UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="SET NULL"))
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -219,9 +252,24 @@ class Team(Base):
     members = relationship("User", secondary=team_members, back_populates="teams")
 
 
+class AgentGroup(Base):
+    """Logical grouping of agents for campaign assignment (not related to permissions)."""
+    __tablename__ = "chat_agent_groups"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(255), unique=True, nullable=False)
+    description = Column(Text)
+    color = Column(String(20), default="#6c757d")
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    members = relationship("User", secondary=agent_group_members, backref="agent_groups")
+
+
 class CustomRole(Base):
     """User-manageable roles with granular permissions."""
-    __tablename__ = "custom_roles"
+    __tablename__ = "chat_custom_roles"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(100), unique=True, nullable=False)
@@ -233,7 +281,7 @@ class CustomRole(Base):
 
 
 class Skill(Base):
-    __tablename__ = "skills"
+    __tablename__ = "chat_skills"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(100), unique=True, nullable=False)
@@ -244,22 +292,24 @@ class Skill(Base):
 
 
 class Queue(Base):
-    __tablename__ = "queues"
+    __tablename__ = "chat_queues"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), unique=True, nullable=False)
     description = Column(Text)
-    channel = Column(SAEnum(ChannelType), nullable=False)
-    strategy = Column(SAEnum(QueueStrategy), default=QueueStrategy.ROUND_ROBIN)
+    channel = Column(_enum(ChannelType), nullable=False)
+    strategy = Column(_enum(QueueStrategy), default=QueueStrategy.ROUND_ROBIN)
     priority = Column(Integer, default=0)
     max_wait_time = Column(Integer, default=300)  # seconds
     sla_threshold = Column(Integer, default=30)  # seconds
+    disconnect_timeout_seconds = Column(Integer, nullable=True)  # None = no auto-close
+    disconnect_outcome_id = Column(UUID(as_uuid=True), ForeignKey("chat_outcomes.id", ondelete="SET NULL"), nullable=True)
     color = Column(String(20), default="#fd7e14")
     outcomes = Column(JSONB, default=list)  # [{key, label, description}]
     is_active = Column(Boolean, default=True)
-    overflow_queue_id = Column(UUID(as_uuid=True), ForeignKey("queues.id", ondelete="SET NULL"))
-    flow_id = Column(UUID(as_uuid=True), ForeignKey("flows.id", ondelete="SET NULL"))
-    campaign_id = Column(UUID(as_uuid=True), ForeignKey("campaigns.id", ondelete="SET NULL"), nullable=True)
+    overflow_queue_id = Column(UUID(as_uuid=True), ForeignKey("chat_queues.id", ondelete="SET NULL"))
+    flow_id = Column(UUID(as_uuid=True), ForeignKey("chat_flows.id", ondelete="SET NULL"))
+    campaign_id = Column(UUID(as_uuid=True), ForeignKey("chat_campaigns.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -267,6 +317,7 @@ class Queue(Base):
     agents = relationship("User", secondary=queue_agents, back_populates="queues")
     overflow_queue = relationship("Queue", remote_side="Queue.id")
     flow = relationship("Flow", foreign_keys=[flow_id])
+    disconnect_outcome = relationship("Outcome", foreign_keys=[disconnect_outcome_id])
     campaign = relationship("Campaign", foreign_keys=[campaign_id])
     conversations = relationship("Conversation", back_populates="queue")
 
@@ -274,7 +325,7 @@ class Queue(Base):
 # ──────────────── Contacts & Lists ────────────────
 
 class Contact(Base):
-    __tablename__ = "contacts"
+    __tablename__ = "chat_contacts"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # ── Identity ──
@@ -287,6 +338,16 @@ class Contact(Base):
     email = Column(String(255), index=True)
     phone = Column(String(50), index=True)
     whatsapp_id = Column(String(50), index=True)
+    wa_user_id = Column(String(128), nullable=True, index=True)  # Meta BSUID — set when phone is absent
+    # ── CPA / ECTA compliance ──
+    do_not_call        = Column(Boolean, default=False, nullable=False)     # DMASA DNC or customer opt-out
+    do_not_whatsapp    = Column(Boolean, default=False, nullable=False)     # WhatsApp opt-out
+    do_not_sms         = Column(Boolean, default=False, nullable=False)     # SMS opt-out
+    do_not_email       = Column(Boolean, default=False, nullable=False)     # Email opt-out
+    opt_out_at         = Column(DateTime, nullable=True)                    # Timestamp of most recent opt-out
+    opt_in_channel     = Column(String(50), nullable=True)                  # Source of consent: web/import/call/whatsapp
+    opt_in_at          = Column(DateTime, nullable=True)                    # Timestamp of consent capture
+    opt_in_reference   = Column(String(255), nullable=True)                 # Reference / evidence (URL, doc ID)
     # ── Address ──
     address_line1 = Column(String(255))
     city = Column(String(100))
@@ -298,7 +359,7 @@ class Contact(Base):
     gender = Column(String(20))                      # male/female/other/prefer_not_to_say
     language = Column(String(20), default="en")      # ISO-639-1 code
     # ── Classification ──
-    status = Column(SAEnum(ContactStatus), default=ContactStatus.ACTIVE)
+    status = Column(_enum(ContactStatus), default=ContactStatus.ACTIVE)
     source = Column(String(100))                     # web/import/api/manual/campaign
     tags = Column(JSONB, default=list)
     custom_fields = Column(JSONB, default=dict)
@@ -310,11 +371,11 @@ class Contact(Base):
     # Relationships
     list_memberships = relationship("ContactListMember", back_populates="contact")
     conversations = relationship("Conversation", back_populates="contact")
-    tag_refs = relationship("Tag", secondary="contact_tags", back_populates="tagged_contacts")
+    tag_refs = relationship("Tag", secondary="chat_contact_tags", back_populates="tagged_contacts")
 
 
 class ContactList(Base):
-    __tablename__ = "contact_lists"
+    __tablename__ = "chat_contact_lists"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)
@@ -331,11 +392,11 @@ class ContactList(Base):
 
 
 class ContactListMember(Base):
-    __tablename__ = "contact_list_members"
+    __tablename__ = "chat_contact_list_members"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    contact_list_id = Column(UUID(as_uuid=True), ForeignKey("contact_lists.id", ondelete="CASCADE"), nullable=False)
-    contact_id = Column(UUID(as_uuid=True), ForeignKey("contacts.id", ondelete="CASCADE"), nullable=False)
+    contact_list_id = Column(UUID(as_uuid=True), ForeignKey("chat_contact_lists.id", ondelete="CASCADE"), nullable=False)
+    contact_id = Column(UUID(as_uuid=True), ForeignKey("chat_contacts.id", ondelete="CASCADE"), nullable=False)
     added_at = Column(DateTime, default=datetime.utcnow)
 
     __table_args__ = (UniqueConstraint("contact_list_id", "contact_id"),)
@@ -347,19 +408,24 @@ class ContactListMember(Base):
 # ──────────────── Flows (IVR / Bot / Routing) ────────────────
 
 class Flow(Base):
-    __tablename__ = "flows"
+    __tablename__ = "chat_flows"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)
     description = Column(Text)
-    channel = Column(SAEnum(ChannelType))
-    flow_type = Column(SAEnum(FlowType), nullable=False, default=FlowType.MAIN_FLOW)
-    status = Column(SAEnum(FlowStatus), nullable=False, default=FlowStatus.DRAFT)
+    channel = Column(_enum(ChannelType))
+    flow_type = Column(_enum(FlowType), nullable=False, default=FlowType.MAIN_FLOW)
+    status = Column(_enum(FlowStatus), nullable=False, default=FlowStatus.DRAFT)
     is_active = Column(Boolean, default=False)
     is_published = Column(Boolean, default=False)
-    version = Column(Integer, default=1)
-    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
-    updated_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    published_version = Column(String(50), nullable=True)      # version string at last publish
+    disconnect_timeout_seconds = Column(Integer, nullable=True)  # None = no auto-close
+    disconnect_outcome_id = Column(UUID(as_uuid=True), ForeignKey("chat_outcomes.id", ondelete="SET NULL"), nullable=True)
+    version = Column(String(50), default="1.0")               # major.minor — major++ on publish, minor++ on save
+    is_restored = Column(Boolean, default=False)              # True when canvas was last set by a restore
+    restored_from_version = Column(String(50), nullable=True) # version string of the snapshot restored from
+    created_by = Column(UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="SET NULL"))
+    updated_by = Column(UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="SET NULL"))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -370,10 +436,10 @@ class Flow(Base):
 
 
 class FlowNode(Base):
-    __tablename__ = "flow_nodes"
+    __tablename__ = "chat_flow_nodes"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    flow_id = Column(UUID(as_uuid=True), ForeignKey("flows.id", ondelete="CASCADE"), nullable=False)
+    flow_id = Column(UUID(as_uuid=True), ForeignKey("chat_flows.id", ondelete="CASCADE"), nullable=False)
     node_type = Column(String(50), nullable=False)  # built-in key or custom key
     label = Column(String(255), default="")
     position_x = Column(Float, default=0)
@@ -393,12 +459,12 @@ class FlowNode(Base):
 
 
 class FlowEdge(Base):
-    __tablename__ = "flow_edges"
+    __tablename__ = "chat_flow_edges"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    flow_id = Column(UUID(as_uuid=True), ForeignKey("flows.id", ondelete="CASCADE"), nullable=False)
-    source_node_id = Column(UUID(as_uuid=True), ForeignKey("flow_nodes.id", ondelete="CASCADE"), nullable=False)
-    target_node_id = Column(UUID(as_uuid=True), ForeignKey("flow_nodes.id", ondelete="CASCADE"), nullable=False)
+    flow_id = Column(UUID(as_uuid=True), ForeignKey("chat_flows.id", ondelete="CASCADE"), nullable=False)
+    source_node_id = Column(UUID(as_uuid=True), ForeignKey("chat_flow_nodes.id", ondelete="CASCADE"), nullable=False)
+    target_node_id = Column(UUID(as_uuid=True), ForeignKey("chat_flow_nodes.id", ondelete="CASCADE"), nullable=False)
     source_handle = Column(String(50), default="default")  # which output port
     label = Column(String(255), default="")
     condition = Column(JSONB)  # Condition to traverse this edge
@@ -412,18 +478,71 @@ class FlowEdge(Base):
     target_node = relationship("FlowNode", foreign_keys=[target_node_id], back_populates="incoming_edges")
 
 
+class FlowVersion(Base):
+    """Immutable snapshot of a flow's nodes and edges, saved on each designer PUT."""
+    __tablename__ = "chat_flow_versions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    flow_id = Column(UUID(as_uuid=True), ForeignKey("chat_flows.id", ondelete="CASCADE"), nullable=False)
+    version_number = Column(String(50), nullable=False)       # e.g. "1.3" — string label of that snapshot
+    is_published_snapshot = Column(Boolean, default=False)   # True when this snapshot was created by a publish
+    label = Column(String(255), default="")          # optional user label
+    snapshot = Column(JSONB, nullable=False)          # {nodes: [...], edges: [...]}
+    saved_at = Column(DateTime, default=datetime.utcnow)
+    saved_by = Column(UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="SET NULL"), nullable=True)
+
+    __table_args__ = (Index("ix_flow_versions_flow_id", "flow_id"),)
+
+    flow = relationship("Flow")
+    saver = relationship("User", foreign_keys=[saved_by])
+
+
+class FlowNodeStats(Base):
+    """Cumulative visit counters per node — reset when the flow is re-saved."""
+    __tablename__ = "chat_flow_node_stats"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    flow_id = Column(UUID(as_uuid=True), ForeignKey("chat_flows.id", ondelete="CASCADE"), nullable=False)
+    node_id = Column(UUID(as_uuid=True), nullable=False)   # not a FK — survives re-save
+    node_label = Column(String(255), default="")
+    node_type = Column(String(50), default="")
+    visit_count = Column(Integer, default=0)
+    last_visited_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("flow_id", "node_id", name="uq_flow_node_stats"),
+        Index("ix_flow_node_stats_flow_id", "flow_id"),
+    )
+
+class FlowNodeVisitLog(Base):
+    """Append-only per-visit log — used for time-windowed analytics."""
+    __tablename__ = "chat_flow_node_visit_log"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    flow_id = Column(UUID(as_uuid=True), ForeignKey("chat_flows.id", ondelete="CASCADE"), nullable=False)
+    node_id = Column(UUID(as_uuid=True), nullable=False)
+    node_label = Column(String(255), default="")
+    node_type = Column(String(50), default="")
+    from_node_id = Column(UUID(as_uuid=True), nullable=True)   # which node transitioned to this one
+    event_type = Column(String(20), nullable=False, server_default='visit')  # visit | error | abandon
+    visited_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    __table_args__ = (
+        Index("ix_flow_node_visit_log_flow_time", "flow_id", "visited_at"),
+    )
+
 # ──────────────── Conversations ────────────────
 
 class Conversation(Base):
-    __tablename__ = "conversations"
+    __tablename__ = "chat_conversations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    channel = Column(SAEnum(ChannelType), nullable=False)
-    status = Column(SAEnum(ConversationStatus), default=ConversationStatus.WAITING)
-    contact_id = Column(UUID(as_uuid=True), ForeignKey("contacts.id", ondelete="SET NULL"))
-    agent_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
-    queue_id = Column(UUID(as_uuid=True), ForeignKey("queues.id", ondelete="SET NULL"))
-    campaign_id = Column(UUID(as_uuid=True), ForeignKey("campaigns.id", ondelete="SET NULL"))
+    channel = Column(_enum(ChannelType), nullable=False)
+    status = Column(_enum(ConversationStatus), default=ConversationStatus.WAITING)
+    contact_id = Column(UUID(as_uuid=True), ForeignKey("chat_contacts.id", ondelete="SET NULL"))
+    agent_id = Column(UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="SET NULL"))
+    queue_id = Column(UUID(as_uuid=True), ForeignKey("chat_queues.id", ondelete="SET NULL"))
+    campaign_id = Column(UUID(as_uuid=True), ForeignKey("chat_campaigns.id", ondelete="SET NULL"))
     external_id = Column(String(255))  # e.g. WhatsApp conversation ID
     direction = Column(String(10), default="inbound")  # inbound / outbound
     priority = Column(Integer, default=0)
@@ -454,10 +573,10 @@ class Conversation(Base):
 
 
 class Message(Base):
-    __tablename__ = "messages"
+    __tablename__ = "chat_messages"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    conversation_id = Column(UUID(as_uuid=True), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False)
+    conversation_id = Column(UUID(as_uuid=True), ForeignKey("chat_conversations.id", ondelete="CASCADE"), nullable=False)
     sender_type = Column(String(20), nullable=False)  # agent / contact / system / bot
     sender_id = Column(UUID(as_uuid=True))
     content_type = Column(String(50), default="text")  # text / image / audio / video / file / template
@@ -475,22 +594,23 @@ class Message(Base):
 # ──────────────── Campaigns ────────────────
 
 class Campaign(Base):
-    __tablename__ = "campaigns"
+    __tablename__ = "chat_campaigns"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)
     description = Column(Text)
-    campaign_type = Column(SAEnum(CampaignType), nullable=False)
-    status = Column(SAEnum(CampaignStatus), default=CampaignStatus.DRAFT)
+    campaign_type = Column(_enum(CampaignType), nullable=False)
+    status = Column(_enum(CampaignStatus), default=CampaignStatus.DRAFT)
     is_active = Column(Boolean, default=True)
     color = Column(String(20), default="#0d6efd")
     campaign_time = Column(JSONB, default=lambda: {"start": "08:00", "end": "17:00"})  # daily hours
     options = Column(JSONB, default=lambda: {"allow_transfer": True, "allow_callback": False})  # feature flags
     outcomes = Column(JSONB, default=list)  # [{key, label, description}]
     queues = Column(JSONB, default=list)    # list of Queue UUIDs assigned to this campaign
-    agents = Column(JSONB, default=list)    # list of User UUIDs assigned to work this campaign
-    queue_id = Column(UUID(as_uuid=True), ForeignKey("queues.id", ondelete="SET NULL"))
-    flow_id = Column(UUID(as_uuid=True), ForeignKey("flows.id", ondelete="SET NULL"))
+    agents = Column(JSONB, default=list)         # individual User UUIDs overrides / additions
+    agent_groups = Column(JSONB, default=list)   # list of AgentGroup UUIDs assigned to this campaign
+    queue_id = Column(UUID(as_uuid=True), ForeignKey("chat_queues.id", ondelete="SET NULL"))
+    flow_id = Column(UUID(as_uuid=True), ForeignKey("chat_flows.id", ondelete="SET NULL"))
     scheduled_start = Column(DateTime)
     scheduled_end = Column(DateTime)
     max_attempts = Column(Integer, default=3)
@@ -498,8 +618,15 @@ class Campaign(Base):
     caller_id = Column(String(50))
     message_template = Column(Text)
     settings = Column(JSONB, default=dict)
+    # Outbound dialler configuration (multi-channel)
+    # Keys: primary_channel, fallback_channels, autodial, dialler_mode,
+    #       wa_template_id, wa_variable_map, wa_connector_id,
+    #       sms_template_id, sms_variable_map, sms_connector_id,
+    #       email_template_id, email_variable_map, email_connector_id,
+    #       voice_connector_id, calling_hours, max_attempts, retry_interval_hours
+    outbound_config = Column(JSONB, default=dict)
     stats = Column(JSONB, default=dict)  # {total, attempted, connected, completed, failed}
-    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    created_by = Column(UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="SET NULL"))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -511,16 +638,57 @@ class Campaign(Base):
     creator = relationship("User", foreign_keys=[created_by])
 
 
+# ──────────────── Campaign Attempts ────────────────
+
+class CampaignAttempt(Base):
+    """One dial / message attempt against a single contact in a campaign."""
+    __tablename__ = "chat_campaign_attempts"
+
+    id              = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    campaign_id     = Column(UUID(as_uuid=True), ForeignKey("chat_campaigns.id", ondelete="CASCADE"),  nullable=False)
+    contact_id      = Column(UUID(as_uuid=True), ForeignKey("chat_contacts.id",  ondelete="CASCADE"),  nullable=False)
+    agent_id        = Column(UUID(as_uuid=True), ForeignKey("chat_users.id",     ondelete="SET NULL"), nullable=True)
+    conversation_id = Column(UUID(as_uuid=True), ForeignKey("chat_conversations.id", ondelete="SET NULL"), nullable=True)
+    attempt_number  = Column(Integer, default=1)
+    status          = Column(_enum(AttemptStatus), default=AttemptStatus.PENDING)
+    outcome_code    = Column(String(100))
+    notes           = Column(Text)
+    # WhatsApp 24-hour free-messaging window flag.
+    # True  = last inbound WA message from this contact was within 24 h — agent can send free text.
+    # False = window expired — agent MUST use the campaign message_template (HSM).
+    # None  = not a WhatsApp campaign.
+    wa_window_open  = Column(Boolean, nullable=True)
+    dialled_at      = Column(DateTime)
+    connected_at    = Column(DateTime)
+    ended_at        = Column(DateTime)
+    ring_duration   = Column(Integer)   # seconds: dialled_at → answer/no_answer
+    handle_duration = Column(Integer)   # seconds: connected_at → ended_at
+    created_at      = Column(DateTime, default=datetime.utcnow)
+    updated_at      = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        Index("ix_campaign_attempts_campaign", "campaign_id"),
+        Index("ix_campaign_attempts_contact",  "contact_id"),
+    )
+
+    campaign     = relationship("Campaign",     foreign_keys=[campaign_id])
+    contact      = relationship("Contact",      foreign_keys=[contact_id])
+    agent        = relationship("User",         foreign_keys=[agent_id])
+    conversation = relationship("Conversation", foreign_keys=[conversation_id])
+
+
 # ──────────────── Global Outcomes ────────────────
 
 class Outcome(Base):
     """System-wide outcome codes agents use to close sessions."""
-    __tablename__ = "outcomes"
+    __tablename__ = "chat_outcomes"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     code = Column(String(50), unique=True, nullable=False, index=True)   # machine key e.g. "resolved"
     label = Column(String(100), nullable=False)                          # display name e.g. "Resolved"
     outcome_type = Column(String(50), default="neutral")                 # positive / negative / neutral / escalation
+    action_type = Column(String(30), default="end_interaction")          # end_interaction | flow_redirect
+    redirect_flow_id = Column(UUID(as_uuid=True), ForeignKey("chat_flows.id", ondelete="SET NULL"), nullable=True)
     description = Column(Text)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -530,10 +698,10 @@ class Outcome(Base):
 # ──────────────── Audit Log ────────────────
 
 class AuditLog(Base):
-    __tablename__ = "audit_logs"
+    __tablename__ = "chat_audit_logs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="SET NULL"))
     action = Column(String(100), nullable=False)
     entity_type = Column(String(100))
     entity_id = Column(UUID(as_uuid=True))
@@ -547,13 +715,13 @@ class AuditLog(Base):
 # ──────────────── Global Settings ────────────────
 
 class GlobalSettings(Base):
-    __tablename__ = "global_settings"
+    __tablename__ = "chat_global_settings"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     key = Column(String(100), unique=True, nullable=False, index=True)
     value = Column(Text, nullable=False)
     description = Column(Text)
-    updated_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    updated_by = Column(UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="SET NULL"))
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
@@ -561,7 +729,7 @@ class GlobalSettings(Base):
 
 class CustomNodeType(Base):
     """User-defined node types that extend the built-in palette."""
-    __tablename__ = "custom_node_types"
+    __tablename__ = "chat_custom_node_types"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     key = Column(String(50), unique=True, nullable=False, index=True)      # e.g. "crm_lookup"
@@ -573,7 +741,7 @@ class CustomNodeType(Base):
     has_output = Column(Boolean, default=True)                             # Has output port (default)
     config_schema = Column(JSONB, default=list)                            # Array of field definitions
     description = Column(Text)
-    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    created_by = Column(UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="SET NULL"))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -582,16 +750,17 @@ class CustomNodeType(Base):
 
 class Connector(Base):
     """Connector – links an external channel (chat, voice, WhatsApp…) to a flow."""
-    __tablename__ = "connectors"
+    __tablename__ = "chat_connectors"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)
     description = Column(Text)
     api_key = Column(String(64), unique=True, nullable=False, index=True)
-    flow_id = Column(UUID(as_uuid=True), ForeignKey("flows.id", ondelete="SET NULL"))
+    flow_id = Column(UUID(as_uuid=True), ForeignKey("chat_flows.id", ondelete="SET NULL"))
     allowed_origins = Column(JSONB, default=lambda: ["*"])
     style = Column(JSONB, default=dict)
     meta_fields = Column(JSONB, default=list)  # [{name, label, required, map_to_variable}]
+    proactive_triggers = Column(JSONB, default=dict)  # {enabled, triggers:[{type, value, selector, repeat}], nudge:{enabled, message, auto_open, delay_seconds}}
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -602,39 +771,206 @@ class Connector(Base):
 
 class Interaction(Base):
     """In-progress interaction (chat, voice, WhatsApp…) from a visitor or call."""
-    __tablename__ = "interactions"
+    __tablename__ = "chat_interactions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    connector_id = Column(UUID(as_uuid=True), ForeignKey("connectors.id", ondelete="CASCADE"), nullable=False)
+    connector_id = Column(UUID(as_uuid=True), ForeignKey("chat_connectors.id", ondelete="CASCADE"), nullable=False)
     session_key = Column(String(128), unique=True, nullable=False, index=True)
     visitor_metadata = Column(JSONB, default=dict)
     flow_context = Column(JSONB, default=dict)
     waiting_node_id = Column(String(128))          # node ID flow is paused at (waiting for input)
-    queue_id = Column(UUID(as_uuid=True), ForeignKey("queues.id", ondelete="SET NULL"), nullable=True)
+    queue_id = Column(UUID(as_uuid=True), ForeignKey("chat_queues.id", ondelete="SET NULL"), nullable=True)
     status = Column(String(30), default="active")  # active | waiting_agent | with_agent | closed
-    agent_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    agent_id = Column(UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="SET NULL"))
     message_log = Column(JSONB, default=list)         # [{from, text, ts, subtype}] full transcript
+    # Interaction classification — set on create / update when context is known
+    contact_id     = Column(UUID(as_uuid=True), ForeignKey("chat_contacts.id", ondelete="SET NULL"), nullable=True, index=True)
+    direction      = Column(String(10), nullable=True)   # inbound | outbound
+    channel        = Column(String(30), nullable=True)   # voice | chat | whatsapp | email | sms
+    handling_type  = Column(String(20), nullable=True)   # human | flow | blended | bot_only
     created_at = Column(DateTime, default=datetime.utcnow)
     last_activity_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    visitor_last_seen = Column(DateTime, nullable=True)  # NULL = connected; set on SSE disconnect
+    disconnect_outcome = Column(String(200), nullable=True)  # outcome to record when auto-closed
+    csat_score = Column(Integer, nullable=True)           # 1–5 rating submitted via CSAT sub-flow
+    csat_comment = Column(Text, nullable=True)            # optional free-text feedback
+    csat_submitted_at = Column(DateTime, nullable=True)  # populated when visitor submits score
+    nps_score = Column(Integer, nullable=True)            # 0–10 Net Promoter Score
+    nps_reason = Column(Text, nullable=True)              # optional reason text
+    nps_submitted_at = Column(DateTime, nullable=True)   # populated when visitor submits NPS
+    notes = Column(Text, nullable=True)                  # AI-generated session summary (filled on close)
+    wrap_started_at = Column(DateTime, nullable=True)    # when visitor left and wrap-up clock started
+    wrap_time = Column(Integer, nullable=True)           # seconds agent spent in wrap-up before submitting outcome
+    # Lifecycle segments — one entry per logical phase the session passed through:
+    # [{type, started_at, ended_at, summary, agent_id?, queue_id?, flow_id?, waited_seconds?}]
+    segments = Column(JSONB, default=list, nullable=True)
 
-    __table_args__ = (Index("ix_interactions_status", "status"),)
+    __table_args__ = (
+        Index("ix_interactions_status", "status"),
+        Index("ix_interactions_contact", "contact_id"),
+        Index("ix_interactions_channel", "channel"),
+    )
 
     connector = relationship("Connector", back_populates="interactions")
     agent = relationship("User", foreign_keys=[agent_id])
+    contact = relationship("Contact", foreign_keys=[contact_id])
     queue = relationship("Queue", foreign_keys=[queue_id])
-    tag_refs = relationship("Tag", secondary="interaction_tags", back_populates="tagged_interactions")
+    tag_refs = relationship("Tag", secondary="chat_interaction_tags", back_populates="tagged_interactions")
+    survey_submissions = relationship("SurveySubmission", back_populates="interaction", cascade="all, delete-orphan")
+
+
+# ──────────── Email Connector ────────────────────────────────────────────────
+
+class EmailConnector(Base):
+    """IMAP/SMTP connector — polls inbound email and routes threads into flows/queues."""
+    __tablename__ = "chat_email_connectors"
+
+    id               = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name             = Column(String(255), nullable=False)
+    description      = Column(Text)
+    # IMAP inbound
+    imap_host        = Column(String(255))
+    imap_port        = Column(Integer, default=993)
+    imap_username    = Column(String(255))
+    imap_password    = Column(String(255))          # store encrypted in production
+    imap_use_ssl     = Column(Boolean, default=True)
+    imap_folder      = Column(String(100), default="INBOX")
+    poll_interval_seconds = Column(Integer, default=60)
+    # SMTP outbound
+    smtp_host        = Column(String(255))
+    smtp_port        = Column(Integer, default=587)
+    smtp_username    = Column(String(255))
+    smtp_password    = Column(String(255))
+    smtp_use_tls     = Column(Boolean, default=True)
+    from_address     = Column(String(255))
+    from_name        = Column(String(255))
+    # Routing
+    flow_id          = Column(UUID(as_uuid=True), ForeignKey("chat_flows.id", ondelete="SET NULL"), nullable=True)
+    queue_id         = Column(UUID(as_uuid=True), ForeignKey("chat_queues.id", ondelete="SET NULL"), nullable=True)
+    is_active        = Column(Boolean, default=True)
+    last_poll_at     = Column(DateTime, nullable=True)
+    created_at       = Column(DateTime, default=datetime.utcnow)
+    updated_at       = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    flow  = relationship("Flow",  foreign_keys=[flow_id])
+    queue = relationship("Queue", foreign_keys=[queue_id])
+
+
+# ──────────── WhatsApp Connector ─────────────────────────────────────────────
+
+class WhatsAppConnector(Base):
+    """WhatsApp Business API connector — supports Meta Cloud API, Twilio, 360dialog and generic webhooks."""
+    __tablename__ = "chat_whatsapp_connectors"
+
+    id                   = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name                 = Column(String(255), nullable=False)
+    description          = Column(Text)
+    provider             = Column(String(50), default="meta_cloud")  # meta_cloud | twilio | 360dialog | vonage | generic
+    business_phone_number = Column(String(50))                        # E.164 number customers message
+    # Meta Cloud API
+    phone_number_id      = Column(String(100))     # Meta: phone number ID
+    waba_id              = Column(String(100))     # Meta: WhatsApp Business Account ID
+    access_token         = Column(String(512))     # Meta: permanent access token
+    verify_token         = Column(String(128))     # Meta: webhook verification token
+    # Twilio / generic
+    account_sid          = Column(String(100))     # Twilio account SID
+    auth_token           = Column(String(100))     # Twilio auth token
+    api_key              = Column(String(256))     # Generic API key
+    # Routing
+    flow_id              = Column(UUID(as_uuid=True), ForeignKey("chat_flows.id", ondelete="SET NULL"), nullable=True)
+    queue_id             = Column(UUID(as_uuid=True), ForeignKey("chat_queues.id", ondelete="SET NULL"), nullable=True)
+    is_active            = Column(Boolean, default=True)
+    created_at           = Column(DateTime, default=datetime.utcnow)
+    updated_at           = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    flow  = relationship("Flow",  foreign_keys=[flow_id])
+    queue = relationship("Queue", foreign_keys=[queue_id])
+
+
+# ──────────── Voice Connector ─────────────────────────────────────────────────
+
+class VoiceConnector(Base):
+    """Telephony / SIP connector — supports Twilio, Vonage, Asterisk ARI and generic SIP webhooks."""
+    __tablename__ = "chat_voice_connectors"
+
+    id            = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name          = Column(String(255), nullable=False)
+    description   = Column(Text)
+    provider      = Column(String(50), default="generic")  # twilio | vonage | telnyx | africastalking | freeswitch | 3cx | asterisk | generic
+    # Provider credentials
+    account_sid   = Column(String(100))   # Twilio/Vonage/Telnyx account SID or profile ID; 3CX OAuth client_id; Asterisk/FS ESL username
+    auth_token    = Column(String(100))   # Twilio/Telnyx auth token; 3CX OAuth client_secret; Asterisk/FS ESL password
+    api_key       = Column(String(256))   # Vonage / Africa's Talking / generic key; Asterisk Stasis app; FreeSWITCH SIP gateway; 3CX agent extension
+    api_secret    = Column(String(256))   # Vonage / Telnyx / generic secret; FreeSWITCH outbound caller_id (fallback)
+    sip_domain    = Column(String(255))   # SIP domain, trunk address, or PBX host:port
+    twiml_app_sid = Column(String(100))   # Twilio TwiML App SID (APxxx) for browser WebRTC agent leg
+    caller_id_override = Column(String(50))  # Outbound caller ID override for on-premise PBX providers
+    # DID management
+    did_numbers   = Column(JSONB, default=list)  # List of E.164 DID numbers for this connector
+    # Routing
+    flow_id       = Column(UUID(as_uuid=True), ForeignKey("chat_flows.id", ondelete="SET NULL"), nullable=True)
+    queue_id      = Column(UUID(as_uuid=True), ForeignKey("chat_queues.id", ondelete="SET NULL"), nullable=True)
+    is_active     = Column(Boolean, default=True)
+    created_at    = Column(DateTime, default=datetime.utcnow)
+    updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    flow  = relationship("Flow",  foreign_keys=[flow_id])
+    queue = relationship("Queue", foreign_keys=[queue_id])
+
+
+class SmsConnector(Base):
+    """SMS gateway connector — supports Twilio, Vonage, Africa's Talking and generic HTTP gateways."""
+    __tablename__ = "chat_sms_connectors"
+
+    id            = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name          = Column(String(255), nullable=False)
+    description   = Column(Text)
+    provider      = Column(String(50), default="generic")  # twilio | vonage | africastalking | generic
+    # Provider credentials
+    account_sid   = Column(String(100))   # Twilio account SID
+    auth_token    = Column(String(100))   # Twilio auth token / Africa's Talking API key
+    api_key       = Column(String(256))   # Vonage / generic key
+    api_secret    = Column(String(256))   # Vonage / generic secret
+    from_number   = Column(String(50))    # Sender ID or number, e.g. +27821234567 or 'WizzardChat'
+    # Routing
+    flow_id       = Column(UUID(as_uuid=True), ForeignKey("chat_flows.id", ondelete="SET NULL"), nullable=True)
+    queue_id      = Column(UUID(as_uuid=True), ForeignKey("chat_queues.id", ondelete="SET NULL"), nullable=True)
+    is_active     = Column(Boolean, default=True)
+    created_at    = Column(DateTime, default=datetime.utcnow)
+    updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    flow  = relationship("Flow",  foreign_keys=[flow_id])
+    queue = relationship("Queue", foreign_keys=[queue_id])
+
+
+class SurveySubmission(Base):
+    """One row per survey submitted during an interaction.
+
+    `survey_name` is a free string set on the save_survey flow node (e.g. 'csat', 'nps',
+    'post_call_feedback').  `responses` is a JSONB object whose keys are the field names
+    configured on that node and whose values are the raw strings captured from the visitor.
+    """
+    __tablename__ = "chat_survey_submissions"
+
+    id             = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    interaction_id = Column(UUID(as_uuid=True), ForeignKey("chat_interactions.id", ondelete="CASCADE"), nullable=False, index=True)
+    survey_name    = Column(String(120), nullable=False, index=True)   # e.g. 'csat', 'nps', 'onboarding'
+    responses      = Column(JSONB, default=dict)                        # {"score": "4", "comment": "Great!"}
+    submitted_at   = Column(DateTime, default=datetime.utcnow)
+
+    interaction = relationship("Interaction", back_populates="survey_submissions")
 
 
 # ──────────────── Tags ────────────────
 
 class Tag(Base):
     """Managed tags that can be applied to interactions, contacts, or users."""
-    __tablename__ = "tags"
+    __tablename__ = "chat_tags"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(100), nullable=False)
     slug = Column(String(100), nullable=False, index=True)  # lowercase dash-separated for lookups
-    tag_type = Column(SAEnum(TagType), nullable=False, index=True)
+    tag_type = Column(_enum(TagType), nullable=False, index=True)
     color = Column(String(20), default="#6c757d")
     description = Column(Text)
     is_active = Column(Boolean, default=True)
@@ -643,16 +979,16 @@ class Tag(Base):
 
     __table_args__ = (UniqueConstraint("slug", "tag_type", name="uq_tag_slug_type"),)
 
-    tagged_interactions = relationship("Interaction", secondary="interaction_tags", back_populates="tag_refs")
-    tagged_contacts = relationship("Contact", secondary="contact_tags", back_populates="tag_refs")
-    tagged_users = relationship("User", secondary="user_tags", back_populates="tag_refs")
+    tagged_interactions = relationship("Interaction", secondary="chat_interaction_tags", back_populates="tag_refs")
+    tagged_contacts = relationship("Contact", secondary="chat_contact_tags", back_populates="tag_refs")
+    tagged_users = relationship("User", secondary="chat_user_tags", back_populates="tag_refs")
 
 
 # ──────────────── Office Hours ────────────────
 
 class OfficeHoursGroup(Base):
     """A named set of operating hours (e.g. 'Main Office', 'After-Hours Support')."""
-    __tablename__ = "office_hours_groups"
+    __tablename__ = "chat_office_hours_groups"
 
     id          = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name        = Column(String(120), nullable=False, unique=True)
@@ -674,10 +1010,10 @@ class OfficeHoursSchedule(Base):
     day_of_week: 0 = Monday … 6 = Sunday
     open_time / close_time stored as 'HH:MM' strings (local time per group timezone).
     """
-    __tablename__ = "office_hours_schedule"
+    __tablename__ = "chat_office_hours_schedule"
 
     id           = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    group_id     = Column(UUID(as_uuid=True), ForeignKey("office_hours_groups.id", ondelete="CASCADE"), nullable=False)
+    group_id     = Column(UUID(as_uuid=True), ForeignKey("chat_office_hours_groups.id", ondelete="CASCADE"), nullable=False)
     day_of_week  = Column(Integer, nullable=False)   # 0=Mon, 6=Sun
     is_open      = Column(Boolean, default=True)
     open_time    = Column(String(5), default="08:00")  # HH:MM
@@ -695,10 +1031,10 @@ class OfficeHoursExclusion(Base):
     If is_open=False the business is closed all day regardless of schedule.
     If is_open=True the override_open / override_close times are used instead.
     """
-    __tablename__ = "office_hours_exclusions"
+    __tablename__ = "chat_office_hours_exclusions"
 
     id             = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    group_id       = Column(UUID(as_uuid=True), ForeignKey("office_hours_groups.id", ondelete="CASCADE"), nullable=False)
+    group_id       = Column(UUID(as_uuid=True), ForeignKey("chat_office_hours_groups.id", ondelete="CASCADE"), nullable=False)
     date           = Column(Date, nullable=False)          # e.g. 2026-01-01
     label          = Column(String(120))                   # e.g. "New Year's Day"
     is_open        = Column(Boolean, default=False)        # False = closed all day
@@ -709,3 +1045,47 @@ class OfficeHoursExclusion(Base):
     __table_args__ = (UniqueConstraint("group_id", "date", name="uq_oh_exclusion_group_date"),)
 
     group = relationship("OfficeHoursGroup", back_populates="exclusions")
+
+
+# ──────────────── Message Templates ────────────────
+
+class MessageTemplate(Base):
+    """Reusable outbound-message templates for WhatsApp (HSM), SMS, and Email.
+
+    Variables are referenced as ``{{1}}``, ``{{2}}`` etc. in the body text
+    (matching WhatsApp HSM convention).  The ``variables`` JSONB column maps
+    each positional variable to a label and, optionally, a Contact field name
+    so the dialler can auto-fill them from the contact record.
+
+    Example variables list::
+
+        [{"pos": 1, "label": "First name", "contact_field": "first_name"},
+         {"pos": 2, "label": "Renewal date", "contact_field": null}]
+    """
+    __tablename__ = "chat_message_templates"
+
+    id              = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name            = Column(String(255), nullable=False)
+    channel         = Column(String(20),  nullable=False)   # whatsapp | sms | email
+    # Approval / lifecycle
+    status          = Column(String(20), default="active")  # active | draft | archived
+    # WhatsApp-specific
+    wa_template_name    = Column(String(255))   # approved name on Meta / WhatsApp Business
+    wa_language         = Column(String(10), default="en")
+    wa_approval_status  = Column(String(20), default="pending")  # approved | pending | rejected
+    wa_category         = Column(String(50))    # MARKETING | UTILITY | AUTHENTICATION
+    # Content
+    subject         = Column(String(500))   # email subject line only
+    body            = Column(Text, nullable=False)
+    # Variable mapping — list of {pos, label, contact_field, default}
+    variables       = Column(JSONB, default=list)
+    # Email extras
+    from_name       = Column(String(100))
+    reply_to        = Column(String(255))
+    # Metadata
+    created_by      = Column(UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="SET NULL"), nullable=True)
+    created_at      = Column(DateTime, default=datetime.utcnow)
+    updated_at      = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    creator = relationship("User", foreign_keys=[created_by])
+

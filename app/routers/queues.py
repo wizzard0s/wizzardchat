@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from app.database import get_db
 from app.models import Queue, User, queue_agents
 from app.schemas import QueueCreate, QueueOut
-from app.auth import get_current_user
+from app.auth import get_current_user, require_permission
 
 router = APIRouter(
     prefix="/api/v1/queues",
@@ -27,7 +27,11 @@ async def list_queues(db: AsyncSession = Depends(get_db)):
 
 
 @router.post("", response_model=QueueOut, status_code=201)
-async def create_queue(body: QueueCreate, db: AsyncSession = Depends(get_db)):
+async def create_queue(
+    body: QueueCreate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("queues.create")),
+):
     q = Queue(**body.model_dump())
     db.add(q)
     await db.flush()
@@ -45,7 +49,12 @@ async def get_queue(queue_id: UUID, db: AsyncSession = Depends(get_db)):
 
 
 @router.put("/{queue_id}", response_model=QueueOut)
-async def update_queue(queue_id: UUID, body: QueueCreate, db: AsyncSession = Depends(get_db)):
+async def update_queue(
+    queue_id: UUID,
+    body: QueueCreate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("queues.edit")),
+):
     result = await db.execute(select(Queue).where(Queue.id == queue_id))
     q = result.scalar_one_or_none()
     if not q:
@@ -58,7 +67,11 @@ async def update_queue(queue_id: UUID, body: QueueCreate, db: AsyncSession = Dep
 
 
 @router.delete("/{queue_id}", status_code=204)
-async def delete_queue(queue_id: UUID, db: AsyncSession = Depends(get_db)):
+async def delete_queue(
+    queue_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("queues.delete")),
+):
     result = await db.execute(select(Queue).where(Queue.id == queue_id))
     q = result.scalar_one_or_none()
     if not q:
@@ -67,12 +80,22 @@ async def delete_queue(queue_id: UUID, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/{queue_id}/agents/{user_id}", status_code=204)
-async def add_agent_to_queue(queue_id: UUID, user_id: UUID, db: AsyncSession = Depends(get_db)):
+async def add_agent_to_queue(
+    queue_id: UUID,
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("queues.edit")),
+):
     await db.execute(queue_agents.insert().values(queue_id=queue_id, user_id=user_id))
 
 
 @router.delete("/{queue_id}/agents/{user_id}", status_code=204)
-async def remove_agent_from_queue(queue_id: UUID, user_id: UUID, db: AsyncSession = Depends(get_db)):
+async def remove_agent_from_queue(
+    queue_id: UUID,
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("queues.edit")),
+):
     await db.execute(
         queue_agents.delete().where(
             (queue_agents.c.queue_id == queue_id) & (queue_agents.c.user_id == user_id)

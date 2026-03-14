@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tags – WizzardChat</title>
+    <title>Tags â€“ WizzardChat</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="/static/css/wizzardchat.css" rel="stylesheet">
@@ -33,40 +33,92 @@
 </head>
 <body>
 <!-- Sidebar -->
-<nav id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark" style="width:220px;height:100vh;position:fixed;">
-    <a href="/" class="d-flex align-items-center mb-3 text-white text-decoration-none">
+<nav id="sidebar" class="p-3 text-white">
+    <a href="/" class="d-flex align-items-center mb-2 text-white text-decoration-none">
         <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
         <span class="fs-5 fw-bold">WizzardChat</span>
     </a>
-    <hr>
-    <ul class="nav nav-pills flex-column mb-auto">
-        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
-        <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
-        <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
-        <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
-        <li class="nav-item"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
-        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">User Management</li>
-        <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
-        <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
-        <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
-        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">Business Settings</li>
-        <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
-        <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
-        <li class="nav-item"><a href="/tags" class="nav-link active"><i class="bi bi-tags me-2"></i>Tags</a></li>
-        <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
-        <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
-    </ul>
-    <hr>
-    <div class="dropdown">
-        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-            <i class="bi bi-person-circle me-2"></i><strong id="currentUser">Agent</strong>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-            <li><a class="dropdown-item" href="#" id="btnLogout">Sign out</a></li>
-        </ul>
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="flex-fill text-truncate small" id="agentName">â€“</span>
+        <button class="btn btn-sm btn-outline-secondary" id="btnLogout" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
     </div>
+    <select class="form-select form-select-sm av-offline mb-2" id="availabilitySelect" title="Set your availability">
+        <option value="available">ðŸŸ¢ Available</option>
+        <option value="admin">ðŸ”µ Admin</option>
+        <option value="lunch">ðŸŸ¡ Lunch</option>
+        <option value="break">ðŸŸ  Break</option>
+        <option value="training">ðŸŸ£ Training</option>
+        <option value="meeting">ðŸ”µ Meeting</option>
+        <option value="offline" selected>âš« Offline</option>
+    </select>
+    <hr class="border-secondary">
+    <ul class="nav nav-pills flex-column flex-nowrap" style="flex:1 1 0;overflow-y:auto;min-height:0;">
+        <li class="nav-item" style="margin-bottom:4px;"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-monitoring',this)">
+                <span>Monitoring</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-monitoring">
+                <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a href="/wallboard" class="nav-link text-white"><i class="bi bi-display me-2"></i>Wallboard</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-operations',this)">
+                <span>Operations</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-operations">
+                <li class="nav-item"><a href="/interactions" class="nav-link text-white"><i class="bi bi-chat-square-text me-2"></i>Interactions</a></li>
+                <li class="nav-item"><a href="/flows" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-engagement',this)">
+                <span>Engagement</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-engagement">
+                <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+                <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+                <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+                <li class="nav-item"><a href="/msg-templates" class="nav-link text-white"><i class="bi bi-card-text me-2"></i>Templates</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-usermgmt',this)">
+                <span>User Management</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-usermgmt">
+                <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+                <li class="nav-item"><a href="/groups" class="nav-link text-white"><i class="bi bi-collection me-2"></i>Groups</a></li>
+                <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+                <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-bizsettings',this)">
+                <span>Business Settings</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-bizsettings">
+                <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+                <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+                <li class="nav-item"><a href="/tags" class="active"><i class="bi bi-tags me-2"></i>Tags</a></li>
+                <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+                <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+                <li class="nav-item"><a href="/audit-log" class="nav-link text-white"><i class="bi bi-journal-text me-2"></i>Audit Log</a></li>
+                <li class="nav-item"><a href="/docs" target="_blank" class="nav-link text-white"><i class="bi bi-code-square me-2"></i>API Docs</a></li>
+            </ul>
+        </li>
+    </ul>
 </nav>
+
+
+
+
 
 <!-- Main -->
 <main style="margin-left:220px;padding:24px;min-height:100vh;">
@@ -81,19 +133,19 @@
     <div class="row g-3 mb-4">
         <div class="col-sm-4">
             <div class="card bg-body-secondary border-0 p-3 text-center">
-                <div class="fs-2 fw-bold text-info" id="statInteraction">–</div>
+                <div class="fs-2 fw-bold text-info" id="statInteraction">â€“</div>
                 <div class="small text-muted"><i class="bi bi-chat-left-dots me-1"></i>Interaction Tags</div>
             </div>
         </div>
         <div class="col-sm-4">
             <div class="card bg-body-secondary border-0 p-3 text-center">
-                <div class="fs-2 fw-bold text-success" id="statContact">–</div>
+                <div class="fs-2 fw-bold text-success" id="statContact">â€“</div>
                 <div class="small text-muted"><i class="bi bi-person-lines-fill me-1"></i>Contact Tags</div>
             </div>
         </div>
         <div class="col-sm-4">
             <div class="card bg-body-secondary border-0 p-3 text-center">
-                <div class="fs-2 fw-bold text-purple" style="color:#a78bfa" id="statUser">–</div>
+                <div class="fs-2 fw-bold text-purple" style="color:#a78bfa" id="statUser">â€“</div>
                 <div class="small text-muted"><i class="bi bi-person-badge me-1"></i>User Tags</div>
             </div>
         </div>
@@ -159,7 +211,7 @@
     </div>
 </main>
 
-<!-- ─── Tag Create/Edit Modal ──────────────────────────────────────────────── -->
+<!-- â”€â”€â”€ Tag Create/Edit Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 <div class="modal fade" id="tagModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -235,6 +287,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/sidebar.js"></script>
 <script>
 const TOKEN_KEY = 'wizzardchat_token';
 const token = () => localStorage.getItem(TOKEN_KEY);
@@ -265,11 +318,11 @@ async function apiDelete(url) {
     return null;
 }
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let allTags = [];
 let editingTagId = null;
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.addEventListener('DOMContentLoaded', async () => {
     if (!token()) { location.href = '/'; return; }
 
@@ -308,7 +361,7 @@ function updateColorPreview(color) {
     document.getElementById('tagPreviewDot').style.background = color;
 }
 
-// ── Load ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Load â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadTags() {
     try {
         const data = await apiGet('/api/v1/tags');
@@ -368,7 +421,7 @@ function renderTagArea(type, tags) {
     area.appendChild(wrap);
 }
 
-// ── Modal ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function openTagModal(preType = null) {
     editingTagId = null;
     document.getElementById('tagModalTitle').innerHTML = '<i class="bi bi-tag me-2"></i>New Tag';
@@ -397,7 +450,7 @@ function editTag(tag) {
     new bootstrap.Modal(document.getElementById('tagModal')).show();
 }
 
-// ── Save ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Save â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function saveTag() {
     const name = document.getElementById('tagName').value.trim();
     if (!name) { document.getElementById('tagName').focus(); return; }
@@ -423,7 +476,7 @@ async function saveTag() {
     }
 }
 
-// ── Delete ────────────────────────────────────────────────────────────────────
+// â”€â”€ Delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function deleteTag(id, name) {
     if (!confirm(`Delete tag "${name}"? It will be removed from all assigned entities.`)) return;
     try {
@@ -434,7 +487,7 @@ async function deleteTag(id, name) {
     }
 }
 
-// ── Utility ───────────────────────────────────────────────────────────────────
+// â”€â”€ Utility â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }

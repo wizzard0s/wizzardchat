@@ -55,6 +55,7 @@ async def register(
         max_concurrent_chats=body.max_concurrent_chats,
         phone_number=body.phone_number,
         auth_type=body.auth_type,
+        languages=body.languages or [],
     )
     db.add(user)
     await db.flush()
@@ -64,4 +65,9 @@ async def register(
 
 @router.get("/me", response_model=UserOut)
 async def me(current_user: User = Depends(get_current_user)):
-    return UserOut.model_validate(current_user)
+    try:
+        return UserOut.model_validate(current_user)
+    except Exception as exc:
+        import traceback, logging
+        logging.getLogger("auth").error("GET /me serialization error: %s\n%s", exc, traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Profile serialization error: {exc}")

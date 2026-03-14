@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- WizzardChat — teal speech bubble with dots -->
+  <rect width="32" height="32" rx="6" fill="#0f766e"/>
+  <path d="M5 8 Q5 5 8 5 L24 5 Q27 5 27 8 L27 19 Q27 22 24 22 L18 22 L12 28 L12 22 L8 22 Q5 22 5 19 Z" fill="white"/>
+  <circle cx="11" cy="14" r="1.8" fill="#0f766e"/>
+  <circle cx="16" cy="14" r="1.8" fill="#0f766e"/>
+  <circle cx="21" cy="14" r="1.8" fill="#0f766e"/>
+</svg>

@@ -1,0 +1,332 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="/static/js/theme-init.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <title>WizzardChat â€“ Message Templates</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+    <style>
+        .template-card-item {
+            background: var(--bs-tertiary-bg);
+            border: 1px solid var(--bs-border-color);
+            border-radius: 10px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: border-color .15s, background .15s;
+        }
+        .template-card-item:hover { border-color: #0d6efd88; background: var(--bs-secondary-bg); }
+        .template-body-preview {
+            font-size: 12px; color: var(--bs-secondary-color);
+            white-space: pre-wrap; overflow: hidden;
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+        }
+        .var-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+        .var-pos  { width: 28px; text-align: center; font-weight: 700; color: #f59e0b; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav id="sidebar" class="p-3 text-white">
+    <a href="/" class="d-flex align-items-center mb-2 text-white text-decoration-none">
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+        <span class="fs-5 fw-bold">WizzardChat</span>
+    </a>
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="flex-fill text-truncate small" id="agentName">â€“</span>
+        <button class="btn btn-sm btn-outline-secondary" id="btnLogout" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
+    </div>
+    <select class="form-select form-select-sm av-offline mb-2" id="availabilitySelect" title="Set your availability">
+        <option value="available">ðŸŸ¢ Available</option>
+        <option value="admin">ðŸ”µ Admin</option>
+        <option value="lunch">ðŸŸ¡ Lunch</option>
+        <option value="break">ðŸŸ  Break</option>
+        <option value="training">ðŸŸ£ Training</option>
+        <option value="meeting">ðŸ”µ Meeting</option>
+        <option value="offline" selected>âš« Offline</option>
+    </select>
+    <hr class="border-secondary">
+    <ul class="nav nav-pills flex-column flex-nowrap" style="flex:1 1 0;overflow-y:auto;min-height:0;">
+        <li class="nav-item" style="margin-bottom:4px;"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-monitoring',this)">
+                <span>Monitoring</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-monitoring">
+                <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a href="/wallboard" class="nav-link text-white"><i class="bi bi-display me-2"></i>Wallboard</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-operations',this)">
+                <span>Operations</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-operations">
+                <li class="nav-item"><a href="/interactions" class="nav-link text-white"><i class="bi bi-chat-square-text me-2"></i>Interactions</a></li>
+                <li class="nav-item"><a href="/flows" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-engagement',this)">
+                <span>Engagement</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-engagement">
+                <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+                <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+                <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+                <li class="nav-item"><a href="/msg-templates" class="nav-link active"><i class="bi bi-card-text me-2"></i>Templates</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-usermgmt',this)">
+                <span>User Management</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-usermgmt">
+                <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+                <li class="nav-item"><a href="/groups" class="nav-link text-white"><i class="bi bi-collection me-2"></i>Groups</a></li>
+                <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+                <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-bizsettings',this)">
+                <span>Business Settings</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-bizsettings">
+                <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+                <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+                <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>
+                <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+                <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+                <li class="nav-item"><a href="/audit-log" class="nav-link text-white"><i class="bi bi-journal-text me-2"></i>Audit Log</a></li>
+                <li class="nav-item"><a href="/docs" target="_blank" class="nav-link text-white"><i class="bi bi-code-square me-2"></i>API Docs</a></li>
+            </ul>
+        </li>
+    </ul>
+</nav>
+
+<!-- Main -->
+<main style="margin-left:220px;padding:24px;min-height:100vh;">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0"><i class="bi bi-card-text me-2"></i>Message Templates</h4>
+            <p class="text-muted small mb-0 mt-1">Manage WhatsApp HSM, SMS body, and email templates for outbound campaigns.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openTemplateModal()">
+            <i class="bi bi-plus-lg me-1"></i>New Template
+        </button>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="card bg-body-secondary border-0 p-3 text-center">
+                <div class="fs-2 fw-bold text-success" id="statWa">â€“</div>
+                <div class="small text-muted"><i class="bi bi-whatsapp me-1"></i>WhatsApp <span class="badge bg-success ms-1" style="font-size:9px">via Meta</span></div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card bg-body-secondary border-0 p-3 text-center">
+                <div class="fs-2 fw-bold text-info" id="statSms">â€“</div>
+                <div class="small text-muted"><i class="bi bi-phone me-1"></i>SMS</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card bg-body-secondary border-0 p-3 text-center">
+                <div class="fs-2 fw-bold text-warning" id="statEmail">â€“</div>
+                <div class="small text-muted"><i class="bi bi-envelope me-1"></i>Email</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Channel tabs -->
+    <ul class="nav nav-tabs mb-3" id="channelTabs">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabAll">All</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabWa">
+            <i class="bi bi-whatsapp me-1 text-success"></i>WhatsApp
+        </button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabSms">
+            <i class="bi bi-phone me-1 text-info"></i>SMS
+        </button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabEmail">
+            <i class="bi bi-envelope me-1 text-warning"></i>Email
+        </button></li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="tabAll">
+            <div class="row g-3" id="gridAll">
+                <div class="col-12 text-center text-muted py-4" id="emptyAll">Loadingâ€¦</div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="tabWa">
+            <div class="d-flex align-items-end gap-3 mb-4 flex-wrap">
+                <div>
+                    <label class="form-label small fw-semibold mb-1">WhatsApp connector</label>
+                    <select id="waConnectorSel" class="form-select form-select-sm" style="min-width:260px"
+                            onchange="loadWaMetaTab(this.value)">
+                        <option value="">â€” select connector â€”</option>
+                    </select>
+                </div>
+                <div class="text-muted small pb-1">
+                    <i class="bi bi-info-circle me-1"></i>Read-only. Manage templates in Meta Business Manager.
+                </div>
+            </div>
+            <div class="row g-3" id="gridWaMeta">
+                <div class="col-12 text-center text-muted py-4" id="emptyWaMeta">Select a WhatsApp connector to view approved templates.</div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="tabSms">
+            <div class="row g-3" id="gridSms">
+                <div class="col-12 text-center text-muted py-4" id="emptySms">No SMS templates</div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="tabEmail">
+            <div class="row g-3" id="gridEmail">
+                <div class="col-12 text-center text-muted py-4" id="emptyEmail">No Email templates</div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- â•â•â• Create / Edit Modal â•â•â• -->
+<div class="modal fade" id="templateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tmplModalTitle"><i class="bi bi-card-text me-2"></i>New Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs mb-3" id="tmplTabs">
+                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tmplTabBasic">Basic</button></li>
+                    <li class="nav-item" id="tmplTabWaLi" style="display:none"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tmplTabWaExtra">WhatsApp</button></li>
+                    <li class="nav-item" id="tmplTabEmailLi" style="display:none"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tmplTabEmailExtra">Email</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tmplTabVars">Variables</button></li>
+                </ul>
+                <div class="tab-content">
+
+                    <!-- Basic tab -->
+                    <div class="tab-pane fade show active" id="tmplTabBasic">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Template name <span class="text-danger">*</span></label>
+                                <input type="text" id="tmplName" class="form-control" placeholder="e.g. Debt reminder WA">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Channel <span class="text-danger">*</span></label>
+                                <select id="tmplChannel" class="form-select" onchange="tmplChannelChange()">
+                                    <option value="sms">SMS</option>
+                                    <option value="email">Email</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select id="tmplStatus" class="form-select">
+                                    <option value="active">Active</option>
+                                    <option value="draft">Draft</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">
+                                    Body
+                                    <span class="text-muted small ms-2">Use <code>{{1}}</code>, <code>{{2}}</code>â€¦ for dynamic values</span>
+                                </label>
+                                <textarea id="tmplBody" class="form-control font-monospace" rows="6"
+                                    placeholder="Hello {{1}}, your account balance is R {{2}}â€¦"
+                                    oninput="tmplScanVars()"></textarea>
+                                <div class="form-text">
+                                    <span id="tmplVarCount" class="text-info"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- WhatsApp extra tab -->
+                    <div class="tab-pane fade" id="tmplTabWaExtra">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">WhatsApp Template Name</label>
+                                <input type="text" id="tmplWaName" class="form-control" placeholder="debt_reminder_v1">
+                                <div class="form-text">Exact name registered with Meta.</div>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Language</label>
+                                <input type="text" id="tmplWaLang" class="form-control" value="en">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Approval status</label>
+                                <select id="tmplWaApproval" class="form-select">
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Category</label>
+                                <select id="tmplWaCategory" class="form-select">
+                                    <option value="">â€” select â€”</option>
+                                    <option value="UTILITY">Utility</option>
+                                    <option value="MARKETING">Marketing</option>
+                                    <option value="AUTHENTICATION">Authentication</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email extra tab -->
+                    <div class="tab-pane fade" id="tmplTabEmailExtra">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Subject</label>
+                                <input type="text" id="tmplEmailSubject" class="form-control" placeholder="Your account statement â€“ {{1}}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">From name</label>
+                                <input type="text" id="tmplEmailFrom" class="form-control" placeholder="WizzardChat Team">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Reply-to</label>
+                                <input type="email" id="tmplEmailReplyTo" class="form-control" placeholder="noreply@example.com">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Variables tab -->
+                    <div class="tab-pane fade" id="tmplTabVars">
+                        <p class="text-muted small mb-3">
+                            Map each <code>{{N}}</code> placeholder to a contact field so the dialler can resolve values automatically.
+                        </p>
+                        <div id="varMapperRows">
+                            <div class="text-muted fst-italic small">No <code>{{N}}</code> placeholders detected in the body yet.</div>
+                        </div>
+                    </div>
+
+                </div><!-- tab-content -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger me-auto" id="btnDeleteTemplate" onclick="deleteTemplate()" style="display:none">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveTemplate()">
+                    <i class="bi bi-floppy me-1"></i>Save Template
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+<script src="/static/js/wizzardchat.js"></script>
+<script src="/static/js/msg_templates.js?v=2"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * WizzardChat – Queues management page
  */
 (function () {
@@ -18,13 +18,13 @@
 
     // ─── Auth guard ────────────────────────────────────────────────────────────
     function _guard() {
-        if (!_token()) { window.location.href = '/'; }
+        if (!_token()) { window.location.href = '/login'; }
     }
 
     // ─── Helpers ───────────────────────────────────────────────────────────────
     async function apiFetch(path, opts = {}) {
         const r = await fetch(API + path, { headers: _headers(), ...opts });
-        if (r.status === 401) { localStorage.removeItem('wizzardchat_token'); window.location.href = '/'; }
+        if (r.status === 401) { localStorage.removeItem('wizzardchat_token'); window.location.href = '/login'; }
         return r;
     }
 
@@ -39,6 +39,21 @@
     async function loadAllOutcomes() {
         const r = await apiFetch('/api/v1/outcomes?active_only=true');
         _allOutcomes = r.ok ? await r.json() : [];
+    }
+
+    function _fillDisconnectOutcomeSelect(selectedId) {
+        const sel = document.getElementById('qDisconnectOutcome');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">&#8212; None / just close &#8212;</option>';
+        const actionLabel = { end_interaction: 'End', flow_redirect: 'Redirect' };
+        _allOutcomes.forEach(o => {
+            const opt = document.createElement('option');
+            opt.value = o.id;
+            const tag = actionLabel[o.action_type] || o.action_type || 'End';
+            opt.textContent = `${o.label} [${tag}]`;
+            if (String(o.id) === String(selectedId)) opt.selected = true;
+            sel.appendChild(opt);
+        });
     }
 
     function _renderOutcomeCheckboxes(listId, emptyId, selectedIds) {
@@ -152,6 +167,8 @@
         document.getElementById('qPriority').value = 0;
         document.getElementById('qMaxWait').value = 300;
         document.getElementById('qSla').value = 30;
+        document.getElementById('qDisconnectTimeout').value = '';
+        _fillDisconnectOutcomeSelect(null);
         _renderOutcomeCheckboxes('qOutcomeList', 'qOutcomeEmpty', []);
     }
 
@@ -165,6 +182,8 @@
         document.getElementById('qPriority').value = q.priority ?? 0;
         document.getElementById('qMaxWait').value = q.max_wait_time ?? 300;
         document.getElementById('qSla').value = q.sla_threshold ?? 30;
+        document.getElementById('qDisconnectTimeout').value = q.disconnect_timeout_seconds ?? '';
+        _fillDisconnectOutcomeSelect(q.disconnect_outcome_id);
 
         // Outcomes
         _renderOutcomeCheckboxes('qOutcomeList', 'qOutcomeEmpty', q.outcomes || []);
@@ -190,6 +209,8 @@
             priority:       parseInt(document.getElementById('qPriority').value) || 0,
             max_wait_time:  parseInt(document.getElementById('qMaxWait').value) || 300,
             sla_threshold:  parseInt(document.getElementById('qSla').value) || 30,
+            disconnect_timeout_seconds: parseInt(document.getElementById('qDisconnectTimeout').value) || null,
+            disconnect_outcome_id: document.getElementById('qDisconnectOutcome').value || null,
             outcomes:       _readOutcomes(),
         };
 
@@ -229,11 +250,13 @@
     document.getElementById('btnLogout').addEventListener('click', e => {
         e.preventDefault();
         localStorage.removeItem('wizzardchat_token');
-        window.location.href = '/';
+        window.location.href = '/login';
     });
 
     // ─── Boot ──────────────────────────────────────────────────────────────────
-    _guard();    loadAllOutcomes();    loadQueues();
+    _guard();
+    loadAllOutcomes().then(() => { _fillDisconnectOutcomeSelect(null); });
+    loadQueues();
 
     // Show username
     (async () => {

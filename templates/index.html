@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
@@ -10,42 +10,92 @@
 </head>
 <body>
     <!-- Sidebar -->
-    <nav id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark" style="width:220px;height:100vh;position:fixed;">
-        <a href="/" class="d-flex align-items-center mb-3 text-white text-decoration-none">
-            <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
-            <span class="fs-5 fw-bold">WizzardChat</span>
-        </a>
-        <hr>
-        <ul class="nav nav-pills flex-column mb-auto">
-            <li class="nav-item"><a href="/" class="nav-link active"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-            <li class="nav-item"><a href="#" class="nav-link text-white" data-section="flows"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
-            <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
-            <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
-            <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
-            <li class="nav-item"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
-            <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">User Management</li>
-            <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
-            <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
-            <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
-            <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">Business Settings</li>
-            <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
-            <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
-            <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>
-            <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
-            <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
-        </ul>
-        <hr>
-        <div class="dropdown">
-            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" id="userDropdown">
-                <i class="bi bi-person-circle me-2"></i><strong id="currentUser">Admin</strong>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-                <li><a class="dropdown-item" href="#">Profile</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#" id="btnLogout">Sign out</a></li>
+<nav id="sidebar" class="p-3 text-white">
+    <a href="/" class="d-flex align-items-center mb-2 text-white text-decoration-none">
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+        <span class="fs-5 fw-bold">WizzardChat</span>
+    </a>
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="flex-fill text-truncate small" id="agentName">â€“</span>
+        <button class="btn btn-sm btn-outline-secondary" id="btnLogout" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
+    </div>
+    <select class="form-select form-select-sm av-offline mb-2" id="availabilitySelect" title="Set your availability">
+        <option value="available">ðŸŸ¢ Available</option>
+        <option value="admin">ðŸ”µ Admin</option>
+        <option value="lunch">ðŸŸ¡ Lunch</option>
+        <option value="break">ðŸŸ  Break</option>
+        <option value="training">ðŸŸ£ Training</option>
+        <option value="meeting">ðŸ”µ Meeting</option>
+        <option value="offline" selected>âš« Offline</option>
+    </select>
+    <hr class="border-secondary">
+    <ul class="nav nav-pills flex-column flex-nowrap" style="flex:1 1 0;overflow-y:auto;min-height:0;">
+        <li class="nav-item" style="margin-bottom:4px;"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-monitoring',this)">
+                <span>Monitoring</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-monitoring">
+                <li class="nav-item"><a href="/" class="active"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a href="/wallboard" class="nav-link text-white"><i class="bi bi-display me-2"></i>Wallboard</a></li>
             </ul>
-        </div>
-    </nav>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-operations',this)">
+                <span>Operations</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-operations">
+                <li class="nav-item"><a href="/interactions" class="nav-link text-white"><i class="bi bi-chat-square-text me-2"></i>Interactions</a></li>
+                <li class="nav-item"><a href="/flows" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-engagement',this)">
+                <span>Engagement</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-engagement">
+                <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+                <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+                <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+                <li class="nav-item"><a href="/msg-templates" class="nav-link text-white"><i class="bi bi-card-text me-2"></i>Templates</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-usermgmt',this)">
+                <span>User Management</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-usermgmt">
+                <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+                <li class="nav-item"><a href="/groups" class="nav-link text-white"><i class="bi bi-collection me-2"></i>Groups</a></li>
+                <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+                <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-bizsettings',this)">
+                <span>Business Settings</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-bizsettings">
+                <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+                <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+                <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>
+                <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+                <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+                <li class="nav-item"><a href="/audit-log" class="nav-link text-white"><i class="bi bi-journal-text me-2"></i>Audit Log</a></li>
+                <li class="nav-item"><a href="/docs" target="_blank" class="nav-link text-white"><i class="bi bi-code-square me-2"></i>API Docs</a></li>
+            </ul>
+        </li>
+    </ul>
+</nav>
+
+
+
+
 
     <!-- Main content -->
     <main style="margin-left:220px;padding:24px;min-height:100vh;">
@@ -145,6 +195,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/sidebar.js"></script>
     <script src="/static/js/wizzardchat.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 """Authentication & authorization utilities."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Callable
 import bcrypt
 from jose import JWTError, jwt
@@ -14,6 +14,7 @@ from app.models import User, CustomRole
 
 settings = get_settings()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
 
 def hash_password(password: str) -> str:
@@ -26,7 +27,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.access_token_expire_minutes))
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=settings.access_token_expire_minutes))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
 
@@ -53,6 +54,25 @@ async def get_current_user(
     if user is None or not user.is_active:
         raise credentials_exception
     return user
+
+
+async def optional_current_user(
+    token: Optional[str] = Depends(oauth2_scheme_optional),
+    db: AsyncSession = Depends(get_db),
+) -> Optional[User]:
+    """Like get_current_user but returns None instead of raising 401 when no token is provided."""
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            return None
+    except JWTError:
+        return None
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    return user if (user and user.is_active) else None
 
 
 async def _get_user_permissions(user: User, db: AsyncSession) -> dict:

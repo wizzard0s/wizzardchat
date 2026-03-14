@@ -1,4 +1,4 @@
-/**
+﻿/**
  * WizzardChat – Outcomes management page
  */
 (function () {
@@ -9,26 +9,83 @@
     const _headers = () => ({ 'Authorization': 'Bearer ' + _token(), 'Content-Type': 'application/json' });
 
     let _outcomes = [];
+    let _allFlows  = [];
     let _editId = null;
     let _deleteId = null;
 
     const modal    = () => bootstrap.Modal.getOrCreateInstance(document.getElementById('outcomeModal'));
     const delModal = () => bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteOModal'));
 
-    function _guard() { if (!_token()) { window.location.href = '/'; } }
+    function _guard() { if (!_token()) { window.location.href = '/login'; } }
 
     async function apiFetch(path, opts = {}) {
         const r = await fetch(API + path, { headers: _headers(), ...opts });
-        if (r.status === 401) { localStorage.removeItem('wizzardchat_token'); window.location.href = '/'; }
+        if (r.status === 401) { localStorage.removeItem('wizzardchat_token'); window.location.href = '/login'; }
         return r;
     }
 
     function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-    const TYPE_LABELS = { positive: 'Positive', negative: 'Negative', neutral: 'Neutral', escalation: 'Escalation' };
-    const TYPE_CLASS  = { positive: 'type-badge-positive', negative: 'type-badge-negative', neutral: 'type-badge-neutral', escalation: 'type-badge-escalation' };
+    const TYPE_LABELS  = { positive: 'Positive', negative: 'Negative', neutral: 'Neutral', escalation: 'Escalation' };
+    const TYPE_CLASS   = { positive: 'type-badge-positive', negative: 'type-badge-negative', neutral: 'type-badge-neutral', escalation: 'type-badge-escalation' };
+    const ACTION_LABELS = { end_interaction: 'End interaction', flow_redirect: 'Redirect to flow' };
+    const ACTION_CLASS  = { end_interaction: 'action-badge-end', flow_redirect: 'action-badge-redirect' };
 
     // ─── Load / Render ──────────────────────────────────────────────────────────
+    async function loadFlows() {
+        const r = await apiFetch('/api/v1/flows?include_sub_flows=true');
+        if (r.ok) {
+            const all = await r.json();
+            // Include active flows AND published sub-flows (for templates like CSAT)
+            _allFlows = (Array.isArray(all) ? all : (all.items || [])).filter(
+                f => f.status === 'active' || f.is_published
+            );
+        }
+    }
+
+    function _fillFlowSelect(selectedId) {
+        const sel = document.getElementById('oRedirectFlow');
+        sel.innerHTML = '<option value="">&#8212; Select a flow &#8212;</option>';
+        _allFlows.forEach(f => {
+            const o = document.createElement('option');
+            o.value = f.id; o.textContent = f.name;
+            if (String(f.id) === String(selectedId)) o.selected = true;
+            sel.appendChild(o);
+        });
+    }
+
+    function _updateFlowRowVisibility() {
+        const v = document.getElementById('oActionType').value;
+        document.getElementById('oRedirectFlowRow').style.display = v === 'flow_redirect' ? '' : 'none';
+    }
+
+    // ─── CSAT hint ──────────────────────────────────────────────────────────────
+    function _getCSATTemplateFlow() {
+        return _allFlows.find(f => f.name === '__template__csat_survey');
+    }
+
+    function _updateCsatHint() {
+        let banner = document.getElementById('csatHintBanner');
+        const isPositive = document.getElementById('oType').value === 'positive';
+        const tpl = _getCSATTemplateFlow();
+
+        if (!banner) return;
+        if (isPositive && tpl) {
+            banner.style.display = '';
+        } else {
+            banner.style.display = 'none';
+        }
+    }
+
+    window._applyCsatTemplate = function () {
+        const tpl = _getCSATTemplateFlow();
+        if (!tpl) return;
+        document.getElementById('oActionType').value = 'flow_redirect';
+        _updateFlowRowVisibility();
+        _fillFlowSelect(tpl.id);
+        _updateCsatHint();
+    };
+
     async function loadOutcomes() {
         const r = await apiFetch('/api/v1/outcomes');
         _outcomes = r.ok ? await r.json() : [];
@@ -83,16 +140,22 @@
             document.getElementById('oCode').value        = o.code || '';
             document.getElementById('oLabel').value       = o.label || '';
             document.getElementById('oType').value        = o.outcome_type || 'neutral';
+            document.getElementById('oActionType').value  = o.action_type || 'end_interaction';
             document.getElementById('oIsActive').checked  = !!o.is_active;
             document.getElementById('oDescription').value = o.description || '';
+            _fillFlowSelect(o.redirect_flow_id);
         } else {
             title.innerHTML = `<i class="bi bi-flag me-2"></i>New Outcome`;
             document.getElementById('oCode').value        = '';
             document.getElementById('oLabel').value       = '';
             document.getElementById('oType').value        = 'neutral';
+            document.getElementById('oActionType').value  = 'end_interaction';
             document.getElementById('oIsActive').checked  = true;
             document.getElementById('oDescription').value = '';
+            _fillFlowSelect(null);
         }
+        _updateFlowRowVisibility();
+        _updateCsatHint();
         modal().show();
     };
 
@@ -116,9 +179,11 @@
         const body = {
             code,
             label,
-            outcome_type: document.getElementById('oType').value,
-            is_active:    document.getElementById('oIsActive').checked,
-            description:  document.getElementById('oDescription').value.trim() || null,
+            outcome_type:      document.getElementById('oType').value,
+            action_type:       document.getElementById('oActionType').value,
+            redirect_flow_id:  document.getElementById('oRedirectFlow').value || null,
+            is_active:         document.getElementById('oIsActive').checked,
+            description:       document.getElementById('oDescription').value.trim() || null,
         };
 
         const url    = _editId ? `/api/v1/outcomes/${_editId}` : '/api/v1/outcomes';
@@ -156,11 +221,14 @@
     document.getElementById('btnLogout').addEventListener('click', e => {
         e.preventDefault();
         localStorage.removeItem('wizzardchat_token');
-        window.location.href = '/';
+        window.location.href = '/login';
     });
 
     // ─── Boot ───────────────────────────────────────────────────────────────────
     _guard();
+    document.getElementById('oActionType').addEventListener('change', _updateFlowRowVisibility);
+    document.getElementById('oType').addEventListener('change', _updateCsatHint);
+    loadFlows().then(_updateCsatHint);
     loadOutcomes();
 
     (async () => {

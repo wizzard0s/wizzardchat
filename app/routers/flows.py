@@ -4,19 +4,22 @@ import copy
 import re
 from uuid import UUID
 from typing import Any, Dict, List
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select, delete
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy import select, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.models import Flow, FlowNode, FlowEdge, User, FlowType, FlowStatus
+from datetime import datetime, timedelta
+from app.models import Flow, FlowNode, FlowEdge, FlowVersion, FlowNodeStats, FlowNodeVisitLog, User, FlowType, FlowStatus, Connector, Campaign, Outcome
+from app.routers.node_types import ENTRY_NODE_KEYS
 from app.schemas import (
     FlowCreate, FlowUpdate, FlowOut, FlowDetail,
     FlowNodeCreate, FlowNodeUpdate, FlowNodeOut,
     FlowEdgeCreate, FlowEdgeOut,
     FlowDesignerSave, DesignerEdgeRef,
     FlowSimulateRequest, FlowSimulateResponse, SimulateStep,
+    FlowVersionOut,
 )
 from app.auth import get_current_user
 
@@ -27,6 +30,26 @@ router = APIRouter(
 )
 
 
+# ──────────── Version helpers ────────────
+
+def _next_save_version(version: str) -> str:
+    """Increment the minor part of a 'major.minor' version string."""
+    try:
+        major, minor = version.split(".")
+        return f"{int(major)}.{int(minor) + 1}"
+    except Exception:
+        return "1.1"  # fallback for malformed legacy values
+
+
+def _next_publish_version(version: str) -> str:
+    """Increment the major part and reset minor to 0."""
+    try:
+        major = version.split(".")[0]
+        return f"{int(major) + 1}.0"
+    except Exception:
+        return "2.0"
+
+
 # ──────────── Flow CRUD ────────────
 
 @router.get("", response_model=List[FlowOut])
@@ -34,6 +57,7 @@ async def list_flows(
     name: str | None = None,
     status: FlowStatus | None = None,
     flow_type: FlowType | None = None,
+    published_only: bool = False,
     db: AsyncSession = Depends(get_db),
 ):
     query = select(Flow)
@@ -43,6 +67,8 @@ async def list_flows(
         query = query.where(Flow.status == status)
     if flow_type:
         query = query.where(Flow.flow_type == flow_type)
+    if published_only:
+        query = query.where(Flow.is_published == True)
     result = await db.execute(query.order_by(Flow.updated_at.desc()))
     return [FlowOut.model_validate(f) for f in result.scalars().all()]
 
@@ -89,6 +115,57 @@ async def update_flow(flow_id: UUID, body: FlowUpdate, db: AsyncSession = Depend
     return FlowOut.model_validate(flow)
 
 
+@router.get("/{flow_id}/usage")
+async def get_flow_usage(flow_id: UUID, db: AsyncSession = Depends(get_db)):
+    """Return every entity that references this flow so the UI can warn before deletion."""
+    # Connectors that route to this flow
+    conn_result = await db.execute(
+        select(Connector.id, Connector.name, Connector.is_active)
+        .where(Connector.flow_id == flow_id)
+    )
+    connectors = [
+        {"id": str(r.id), "name": r.name, "is_active": r.is_active}
+        for r in conn_result.all()
+    ]
+
+    # Flows that contain a sub_flow node pointing to this flow.
+    # config is JSONB so we use the ->> operator via text().
+    from sqlalchemy import text as sa_text
+    subflow_result = await db.execute(
+        select(Flow.id, Flow.name, FlowNode.label)
+        .join(FlowNode, FlowNode.flow_id == Flow.id)
+        .where(
+            FlowNode.node_type == "sub_flow",
+            sa_text("flow_nodes.config->>'flow_id' = :fid").bindparams(fid=str(flow_id)),
+        )
+    )
+    sub_flow_parents = [
+        {"flow_id": str(r.id), "flow_name": r.name, "node_label": r.label or "(unlabelled)"}
+        for r in subflow_result.all()
+    ]
+
+    # Campaigns that directly reference this flow
+    camp_result = await db.execute(
+        select(Campaign.id, Campaign.name)
+        .where(Campaign.flow_id == flow_id)
+    )
+    campaigns = [{"id": str(r.id), "name": r.name} for r in camp_result.all()]
+
+    # Outcomes that redirect to this flow
+    outcome_result = await db.execute(
+        select(Outcome.id, Outcome.label)
+        .where(Outcome.redirect_flow_id == flow_id)
+    )
+    outcomes = [{"id": str(r.id), "label": r.label} for r in outcome_result.all()]
+
+    return {
+        "connectors": connectors,
+        "sub_flow_parents": sub_flow_parents,
+        "campaigns": campaigns,
+        "outcomes": outcomes,
+    }
+
+
 @router.delete("/{flow_id}", status_code=204)
 async def delete_flow(flow_id: UUID, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Flow).where(Flow.id == flow_id))
@@ -96,6 +173,80 @@ async def delete_flow(flow_id: UUID, db: AsyncSession = Depends(get_db)):
     if not flow:
         raise HTTPException(status_code=404, detail="Flow not found")
     await db.delete(flow)
+    await db.commit()
+
+
+@router.post("/{flow_id}/clone", response_model=FlowDetail, status_code=201)
+async def clone_flow(
+    flow_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Create a full copy of a flow with all its nodes and edges."""
+    result = await db.execute(
+        select(Flow).where(Flow.id == flow_id)
+        .options(selectinload(Flow.nodes), selectinload(Flow.edges))
+    )
+    src = result.scalar_one_or_none()
+    if not src:
+        raise HTTPException(status_code=404, detail="Flow not found")
+
+    # Create new flow record (start fresh: draft, not published)
+    clone = Flow(
+        name=f"{src.name} (copy)",
+        description=src.description,
+        channel=src.channel,
+        flow_type=src.flow_type,
+        status=FlowStatus.DRAFT,
+        is_active=False,
+        is_published=False,
+        version="1.0",
+        disconnect_timeout_seconds=src.disconnect_timeout_seconds,
+        disconnect_outcome_id=src.disconnect_outcome_id,
+        created_by=user.id,
+    )
+    db.add(clone)
+    await db.flush()
+    await db.refresh(clone)
+
+    # Copy nodes and build old-id → new-id map for edge resolution
+    id_map: dict[str, str] = {}
+    for n in src.nodes:
+        new_node = FlowNode(
+            flow_id=clone.id,
+            node_type=n.node_type,
+            label=n.label,
+            position_x=n.position_x,
+            position_y=n.position_y,
+            position=n.position,
+            config=n.config,
+        )
+        db.add(new_node)
+        await db.flush()
+        await db.refresh(new_node)
+        id_map[str(n.id)] = str(new_node.id)
+
+    # Copy edges using the id map
+    for e in src.edges:
+        src_id = id_map.get(str(e.source_node_id))
+        tgt_id = id_map.get(str(e.target_node_id))
+        if src_id and tgt_id:
+            db.add(FlowEdge(
+                flow_id=clone.id,
+                source_node_id=src_id,
+                target_node_id=tgt_id,
+                source_handle=e.source_handle,
+                label=e.label,
+                condition=e.condition,
+                priority=e.priority,
+            ))
+
+    await db.flush()
+    result2 = await db.execute(
+        select(Flow).where(Flow.id == clone.id)
+        .options(selectinload(Flow.nodes), selectinload(Flow.edges))
+    )
+    return FlowDetail.model_validate(result2.scalar_one())
 
 
 # ──────────── Bulk save from designer ────────────
@@ -124,7 +275,41 @@ async def save_flow_from_designer(
         flow.channel = body.channel
 
     flow.updated_by = user.id
-    flow.version += 1
+    old_version = flow.version  # capture before bumping
+    flow.version = _next_save_version(old_version)
+    flow.is_restored = False     # a fresh save clears the restored marker
+
+    # ── Snapshot current nodes+edges BEFORE overwriting ──────────────────────
+    snapshot_nodes = [
+        {
+            "id": str(n.id), "node_type": n.node_type, "label": n.label,
+            "position_x": n.position_x, "position_y": n.position_y,
+            "position": n.position, "config": n.config,
+        }
+        for n in flow.nodes
+    ]
+    snapshot_edges = [
+        {
+            "id": str(e.id), "source_node_id": str(e.source_node_id),
+            "target_node_id": str(e.target_node_id),
+            "source_handle": e.source_handle, "label": e.label,
+            "condition": e.condition, "priority": e.priority,
+        }
+        for e in flow.edges
+    ]
+    if snapshot_nodes:  # don't snapshot an empty flow
+        version_record = FlowVersion(
+            flow_id=flow_id,
+            version_number=old_version,  # label with the version we're replacing
+            label=flow.name,
+            snapshot={"nodes": snapshot_nodes, "edges": snapshot_edges},
+            saved_at=datetime.utcnow(),
+            saved_by=user.id,
+        )
+        db.add(version_record)
+
+    # Clear stale node stats — IDs change on every save
+    await db.execute(delete(FlowNodeStats).where(FlowNodeStats.flow_id == flow_id))
 
     # Delete old nodes & edges
     await db.execute(delete(FlowEdge).where(FlowEdge.flow_id == flow_id))
@@ -201,7 +386,11 @@ async def publish_flow(flow_id: UUID, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Flow needs at least a start and one other node")
     flow.is_published = True
     flow.is_active = True
-    await db.flush()
+    flow.status = FlowStatus.ACTIVE
+    flow.version = _next_publish_version(flow.version)
+    flow.published_version = flow.version
+    flow.is_restored = False
+    await db.commit()
     await db.refresh(flow)
     return FlowOut.model_validate(flow)
 
@@ -357,6 +546,18 @@ def _evaluate_condition(ctx: dict, config: dict) -> bool:
         return actual is None or actual == "" or actual == [] or actual == {}
     if operator == "is_not_empty":
         return not (actual is None or actual == "" or actual == [] or actual == {})
+    if operator == "is_array":
+        return isinstance(actual, list)
+    if operator == "is_not_array":
+        return not isinstance(actual, list)
+    if operator == "is_object":
+        return isinstance(actual, dict)
+    if operator == "is_not_object":
+        return not isinstance(actual, dict)
+    if operator == "is_true":
+        return actual is True or str(actual).lower() in ("true", "1", "yes")
+    if operator == "is_false":
+        return actual is False or actual is None or str(actual).lower() in ("false", "0", "no", "")
 
     actual_str = str(actual).lower() if actual is not None else ""
     compare_str = str(compare_value).lower()
@@ -459,10 +660,18 @@ async def simulate_flow(
         src = str(e.source_node_id)
         edges_from.setdefault(src, []).append(e)
 
-    # Find start node
-    start_node = next((n for n in flow.nodes if n.node_type == "start"), None)
-    if not start_node:
-        raise HTTPException(status_code=400, detail="Flow has no start node")
+    # Find start node — accepts any entry-point node type
+    # If entry_node_id is provided, use that specific node; otherwise fall back to first entry node
+    entry_nodes = [n for n in flow.nodes if n.node_type in ENTRY_NODE_KEYS]
+    if not entry_nodes:
+        raise HTTPException(status_code=400, detail="Flow has no entry node (start, start_chat, start_whatsapp, start_api, or start_voice)")
+
+    if body.entry_node_id:
+        start_node = next((n for n in entry_nodes if str(n.id) == body.entry_node_id), None)
+        if not start_node:
+            raise HTTPException(status_code=400, detail=f"Entry node '{body.entry_node_id}' not found in this flow")
+    else:
+        start_node = entry_nodes[0]  # Default: first entry node
 
     context: dict = copy.deepcopy(body.context)
     inputs: dict = dict(body.inputs)
@@ -487,9 +696,31 @@ async def simulate_flow(
         halt = False
 
         # ── Node-type handling ──────────────────────────────────────────────
-        if ntype == "start":
-            trigger = cfg.get("trigger", "inbound_call")
-            note = f"Flow started — trigger: {trigger}"
+        if ntype in ENTRY_NODE_KEYS:
+            if ntype == "start":
+                trigger = cfg.get("trigger", "inbound_call")
+                note = f"Flow started — trigger: {trigger}"
+            elif ntype == "start_chat":
+                label = cfg.get("entry_label") or "Chat Entry"
+                connector = cfg.get("connector_id") or "any connector"
+                note = f"Flow started — inbound chat via {label} (connector: {connector})"
+            elif ntype == "start_whatsapp":
+                label = cfg.get("entry_label") or "WhatsApp Entry"
+                note = f"Flow started — inbound WhatsApp message via {label}"
+            elif ntype == "start_api":
+                key = cfg.get("trigger_key") or "(no key set)"
+                note = f"Flow started — API trigger key: {key}"
+            elif ntype == "start_voice":
+                label = cfg.get("entry_label") or "Voice Entry"
+                did = cfg.get("did_number") or "any DID"
+                note = f"Flow started — inbound voice call via {label} (DID: {did})"
+                # Pre-populate caller variables for simulation
+                if cfg.get("caller_id_variable"):
+                    context.setdefault(cfg["caller_id_variable"], "+27 00 000 0000")
+                if cfg.get("dialled_variable"):
+                    context.setdefault(cfg["dialled_variable"], did)
+            else:
+                note = f"Flow started — entry: {ntype}"
 
         elif ntype == "end":
             step_status = "end"
@@ -500,23 +731,35 @@ async def simulate_flow(
             halt = True
 
         elif ntype == "message":
-            text = _resolve_template(cfg.get("text", ""), context)
-            output = text
+            text = _resolve_template(cfg.get("text") or cfg.get("message", ""), context)
+            output = text or None
             note = "Message sent to contact"
 
         elif ntype == "input":
             var = cfg.get("variable", "user_input")
             prompt = cfg.get("prompt", "")
+            max_retries = int(cfg.get("max_retries", 3) or 3)
+            retry_key = f"_retries_{nid}"
             if nid in inputs:
                 context[var] = inputs[nid]
+                context.pop(retry_key, None)  # reset counter on successful input
                 output = prompt
-                note = f"User responded: {inputs[nid]!r}  →  saved to {var!r}"
+                note = f"User responded: {inputs[nid]!r}  →  saved to {var!r}  →  edge 'default'"
             else:
-                step_status = "needs_input"
-                note = f"Waiting for user input — prompt: {prompt!r}  →  variable: {var!r}"
-                sim_status = "blocked"
-                sim_message = f"'{label}' needs input for variable '{var}'"
-                halt = True
+                retries = context.get(retry_key, 0)
+                if retries >= max_retries:
+                    context.pop(retry_key, None)
+                    edge_taken = "timeout"
+                    note = (f"Input retry limit reached ({max_retries})  →  edge 'timeout' "
+                            f"(no valid response for {var!r})")
+                else:
+                    context[retry_key] = retries + 1
+                    step_status = "needs_input"
+                    note = (f"Waiting for user input — prompt: {prompt!r}  →  variable: {var!r} "
+                            f"(attempt {retries + 1}/{max_retries})")
+                    sim_status = "blocked"
+                    sim_message = f"'{label}' needs input for variable '{var}'"
+                    halt = True
 
         elif ntype == "menu":
             prompt = cfg.get("prompt", "")
@@ -559,7 +802,105 @@ async def simulate_flow(
             val = resolved_cfg["value"]
             actual = _resolve_path(context, var)
             note = f"Condition: {var!r} ({actual!r}) {op} {val!r}  →  {result_bool} → edge '{edge_taken}'"
-
+        elif ntype == "ab_split":
+            import random as _random
+            split_percent = float(cfg.get("split_percent", 50))
+            tag_a = cfg.get("tag_a") or "branch_a"
+            tag_b = cfg.get("tag_b") or "branch_b"
+            if _random.random() * 100 < split_percent:
+                edge_taken = "branch_a"
+                context["_ab_variant"] = tag_a
+                note = f"A/B Split: rolled into Branch A ({split_percent}%) → tag set to {tag_a!r}"
+            else:
+                edge_taken = "branch_b"
+                context["_ab_variant"] = tag_b
+                note = f"A/B Split: rolled into Branch B ({100 - split_percent}%) → tag set to {tag_b!r}"
+        elif ntype == "loop":
+            array_var = cfg.get("array_variable", "")
+            item_var = cfg.get("item_variable", "item") or "item"
+            index_var = cfg.get("index_variable", "loop_index") or "loop_index"
+            max_iter = int(cfg.get("max_iterations", 50) or 50)
+            state_key = f"_loop_{nid}"
+            arr = _resolve_path(context, array_var)
+            if not isinstance(arr, list):
+                context.pop(state_key, None)
+                edge_taken = "done"
+                note = f"Loop: '{array_var}' is not an array → skipping to 'done'"
+            else:
+                idx = context.get(state_key, 0)
+                if idx >= len(arr) or idx >= max_iter:
+                    context.pop(state_key, None)
+                    edge_taken = "done"
+                    note = f"Loop: completed all {idx} iteration(s) → 'done'"
+                else:
+                    context[item_var] = arr[idx]
+                    context[index_var] = idx
+                    context[state_key] = idx + 1
+                    edge_taken = "loop"
+                    note = f"Loop: iteration {idx + 1}/{len(arr)} — {item_var}={arr[idx]!r}, {index_var}={idx}"
+        elif ntype == "time_gate":
+            from datetime import datetime as _dt
+            from zoneinfo import ZoneInfo as _ZI
+            tz_name = cfg.get("timezone", "Africa/Johannesburg") or "Africa/Johannesburg"
+            try:
+                _tz = _ZI(tz_name)
+            except Exception:
+                _tz = _ZI("Africa/Johannesburg")
+            _now = _dt.now(_tz)
+            _day_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri", 5: "Sat", 6: "Sun"}
+            _today = _day_map[_now.weekday()]
+            _raw_days = cfg.get("days", "Mon,Tue,Wed,Thu,Fri") or "Mon,Tue,Wed,Thu,Fri"
+            _allowed = [d.strip() for d in _raw_days.split(",") if d.strip()]
+            try:
+                _sh, _sm = (int(x) for x in cfg.get("start_time", "08:00").split(":"))
+                _eh, _em = (int(x) for x in cfg.get("end_time", "17:00").split(":"))
+                _now_m = _now.hour * 60 + _now.minute
+                _is_open = _today in _allowed and (_sh * 60 + _sm) <= _now_m < (_eh * 60 + _em)
+            except Exception:
+                _is_open = False
+            edge_taken = "open" if _is_open else "closed"
+            note = (f"Time Gate: {_today} {_now.strftime('%H:%M')} {tz_name} → "
+                    f"schedule {cfg.get('days', 'Mon-Fri')} "
+                    f"{cfg.get('start_time','08:00')}-{cfg.get('end_time','17:00')} "
+                    f"→ '{edge_taken}'")
+        elif ntype == "switch":
+            cases = cfg.get("cases") or []
+            chosen_handle = "default"
+            matched_label = None
+            for idx, case_def in enumerate(cases):
+                conditions = case_def.get("conditions")
+                if conditions:
+                    var_conditions = [c for c in conditions if c.get("variable")]
+                    case_matched = bool(var_conditions) and all(
+                        _evaluate_condition(context, {
+                            "variable": cond.get("variable", ""),
+                            "operator": cond.get("operator", "equals"),
+                            "value": _resolve_template(str(cond.get("value", "")), context),
+                        })
+                        for cond in var_conditions
+                    )
+                else:  # legacy single-condition
+                    legacy_var = cfg.get("variable", "")
+                    case_matched = _evaluate_condition(context, {
+                        "variable": legacy_var,
+                        "operator": case_def.get("operator", "equals"),
+                        "value": _resolve_template(str(case_def.get("value", "")), context),
+                    })
+                if case_matched:
+                    chosen_handle = f"case_{idx}"
+                    matched_label = case_def.get("label", f"case_{idx}")
+                    break
+            edge_taken = chosen_handle
+            if chosen_handle == "default":
+                note = "Switch: no case matched \u2192 edge 'default'"
+            else:
+                case_idx_num = int(chosen_handle.split('_')[1])
+                cond_parts = cases[case_idx_num].get('conditions') or []
+                cond_summary = "; ".join(
+                    f"{c.get('variable')} {c.get('operator')} {c.get('value','')!r}"
+                    for c in cond_parts if c.get('variable')
+                )
+                note = f"Switch: case '{matched_label}' matched ({cond_summary}) \u2192 edge '{chosen_handle}'"
         elif ntype == "set_variable":
             context = _apply_set_variable(context, cfg)
             fields = cfg.get("fields", [])
@@ -580,16 +921,36 @@ async def simulate_flow(
             context[var] = "__simulated_recording.wav"
             note = f"Recording simulated ({duration}s max)  →  {var!r}"
 
-        elif ntype in ("http_request", "webhook"):
+        elif ntype == "http_request":
             method = cfg.get("method", "GET")
             url = _resolve_template(cfg.get("url", ""), context)
             resp_var = cfg.get("response_var", "") or cfg.get("response_variable", "")
-            if resp_var:
-                context[resp_var] = {"__simulated": True, "status": 200, "body": {}}
+            err_var = cfg.get("error_variable", "")
+            # Simulation always succeeds (200) so the happy path is exercised by default
+            sim_status_code = 200
+            if sim_status_code >= 200 and sim_status_code < 300:
+                edge_taken = "success"
+                if resp_var:
+                    context[resp_var] = {"__simulated": True, "status": sim_status_code, "body": {}}
+                step_status = "external"
+                note = f"HTTP {method} {url!r}  →  simulated {sim_status_code} → edge 'success'"
+                if resp_var:
+                    note += f"  →  {resp_var!r} set to simulated response"
+            else:
+                edge_taken = "error"
+                if err_var:
+                    context[err_var] = {"__simulated": True, "status": sim_status_code,
+                                        "error": f"HTTP {sim_status_code}"}
+                step_status = "external"
+                note = f"HTTP {method} {url!r}  →  simulated {sim_status_code} → edge 'error'"
+                if err_var:
+                    note += f"  →  {err_var!r} set to error details"
+
+        elif ntype == "webhook":
+            method = cfg.get("method", "POST")
+            url = _resolve_template(cfg.get("url", ""), context)
             step_status = "external"
-            note = f"HTTP {method} {url!r}  →  not called in simulation"
-            if resp_var:
-                note += f"  →  {resp_var!r} set to simulated response"
+            note = f"Webhook {method} {url!r}  →  not called in simulation"
 
         elif ntype == "ai_bot":
             model = cfg.get("model", "gpt-4o")
@@ -598,6 +959,23 @@ async def simulate_flow(
                 context[out_var] = "[AI response — simulated]"
             step_status = "external"
             note = f"AI Bot ({model}) simulated"
+
+        elif ntype == "kb_search":
+            query_var  = cfg.get("query_variable", "user_input")
+            result_var = cfg.get("result_variable", "kb_result")
+            found_var  = cfg.get("found_variable", "kb_found")
+            query_val  = context.get(query_var, query_var)
+            context[result_var] = {
+                "__simulated": True,
+                "title":   "Simulated KB Article",
+                "url":     "https://help.mweb.co.za/hc/en-us/articles/example",
+                "excerpt": "This is a simulated knowledge-base result.",
+            }
+            context[found_var] = True
+            note = (
+                f"KB search: {query_var}={query_val!r} "
+                f"→ {result_var!r} set to simulated article, {found_var!r}=True"
+            )
 
         elif ntype == "queue":
             queue_name = cfg.get("queue_name", "")
@@ -622,6 +1000,31 @@ async def simulate_flow(
         elif ntype == "goto":
             target = cfg.get("target_node", "")
             note = f"GoTo node '{target}'"
+
+        elif ntype == "translate":
+            mode       = cfg.get("mode", "translate")
+            input_var  = cfg.get("input_variable", "message")
+            result_var = cfg.get("result_variable", "translated_text")
+            lang_var   = cfg.get("language_variable", "contact.language")
+            target_lang = _resolve_template(cfg.get("target_language", "en"), context)
+            input_text  = str(_resolve_path(context, input_var) or "").strip() or "sample text"
+            if mode == "detect_only":
+                _set_path(context, lang_var, "en")
+                edge_taken = "success"
+                step_status = "external"
+                note = (
+                    f"Detect-only: {input_var}={input_text!r:.40} "
+                    f"→ {lang_var!r}='en' (simulated)"
+                )
+            else:
+                _set_path(context, result_var, f"[Translated to {target_lang}: {input_text[:40]}]")
+                _set_path(context, lang_var, "en")  # simulated detected source
+                edge_taken = "success"
+                step_status = "external"
+                note = (
+                    f"Translate {input_var}={input_text!r:.40} → {target_lang!r} "
+                    f"→ {result_var!r} set (simulated), {lang_var!r}='en'"
+                )
 
         else:
             note = f"Unknown node type '{ntype}' — skipped"
@@ -674,3 +1077,214 @@ async def simulate_flow(
         status=sim_status,
         message=sim_message,
     )
+
+
+# ──────────── Version history ────────────
+
+@router.get("/{flow_id}/versions", response_model=List[FlowVersionOut])
+async def list_flow_versions(flow_id: UUID, db: AsyncSession = Depends(get_db)):
+    """Return all saved snapshots for a flow, newest first."""
+    result = await db.execute(
+        select(FlowVersion)
+        .where(FlowVersion.flow_id == flow_id)
+        .order_by(FlowVersion.saved_at.desc())
+    )
+    return [FlowVersionOut.model_validate(v) for v in result.scalars().all()]
+
+
+@router.post("/{flow_id}/versions/{version_id}/restore", response_model=FlowDetail)
+async def restore_flow_version(
+    flow_id: UUID,
+    version_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Restore a flow to the state stored in a snapshot."""
+    ver_result = await db.execute(
+        select(FlowVersion).where(FlowVersion.id == version_id, FlowVersion.flow_id == flow_id)
+    )
+    version = ver_result.scalar_one_or_none()
+    if not version:
+        raise HTTPException(status_code=404, detail="Version not found")
+
+    flow_result = await db.execute(
+        select(Flow).where(Flow.id == flow_id)
+        .options(selectinload(Flow.nodes), selectinload(Flow.edges))
+    )
+    flow = flow_result.scalar_one_or_none()
+    if not flow:
+        raise HTTPException(status_code=404, detail="Flow not found")
+
+    # Save current state as a new snapshot before overwriting
+    cur_nodes = [
+        {"id": str(n.id), "node_type": n.node_type, "label": n.label,
+         "position_x": n.position_x, "position_y": n.position_y,
+         "position": n.position, "config": n.config}
+        for n in flow.nodes
+    ]
+    cur_edges = [
+        {"id": str(e.id), "source_node_id": str(e.source_node_id),
+         "target_node_id": str(e.target_node_id), "source_handle": e.source_handle,
+         "label": e.label, "condition": e.condition, "priority": e.priority}
+        for e in flow.edges
+    ]
+    if cur_nodes:
+        old_version = flow.version
+        flow.version = _next_save_version(old_version)
+        pre_restore_snap = FlowVersion(
+            flow_id=flow_id,
+            version_number=old_version,
+            label=f"{flow.name} (pre-restore)",
+            snapshot={"nodes": cur_nodes, "edges": cur_edges},
+            saved_at=datetime.utcnow(),
+            saved_by=user.id,
+        )
+        db.add(pre_restore_snap)
+
+    # Flag the flow as a restore so the UI can show the indicator
+    flow.is_restored = True
+    flow.restored_from_version = version.version_number
+
+    # Wipe current state
+    await db.execute(delete(FlowEdge).where(FlowEdge.flow_id == flow_id))
+    await db.execute(delete(FlowNode).where(FlowNode.flow_id == flow_id))
+    await db.execute(delete(FlowNodeStats).where(FlowNodeStats.flow_id == flow_id))
+    await db.flush()
+
+    # Replay snapshot — build a new id map so edges resolve correctly
+    snap = version.snapshot
+    id_map: dict[str, str] = {}
+    for n_data in snap.get("nodes", []):
+        new_node = FlowNode(
+            flow_id=flow_id,
+            node_type=n_data["node_type"],
+            label=n_data.get("label", ""),
+            position_x=n_data.get("position_x", 0),
+            position_y=n_data.get("position_y", 0),
+            position=n_data.get("position", 0),
+            config=n_data.get("config") or {},
+        )
+        db.add(new_node)
+        await db.flush()
+        await db.refresh(new_node)
+        id_map[n_data["id"]] = str(new_node.id)
+
+    for e_data in snap.get("edges", []):
+        src = id_map.get(e_data["source_node_id"])
+        tgt = id_map.get(e_data["target_node_id"])
+        if src and tgt:
+            db.add(FlowEdge(
+                flow_id=flow_id,
+                source_node_id=src,
+                target_node_id=tgt,
+                source_handle=e_data.get("source_handle", "default"),
+                label=e_data.get("label", ""),
+                condition=e_data.get("condition"),
+                priority=e_data.get("priority", 0),
+            ))
+
+    flow.updated_by = user.id
+    await db.flush()
+
+    result2 = await db.execute(
+        select(Flow).where(Flow.id == flow_id)
+        .options(selectinload(Flow.nodes), selectinload(Flow.edges))
+    )
+    return FlowDetail.model_validate(result2.scalar_one())
+
+
+# ──────────── Flow Analytics ────────────
+
+@router.get("/{flow_id}/analytics")
+async def get_flow_analytics(
+    flow_id: UUID,
+    window: int = Query(60, description="Time window in minutes; 0 = all-time cumulative"),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return per-node visit counts + per-edge transition counts for the analytics overlay.
+
+    ``window`` filters by the visit log (recent traffic).
+    ``window=0`` falls back to the all-time cumulative counter table (nodes only).
+    """
+    if window > 0:
+        cutoff = datetime.utcnow() - timedelta(minutes=window)
+        base_where = (
+            FlowNodeVisitLog.flow_id == flow_id,
+            FlowNodeVisitLog.visited_at >= cutoff,
+        )
+        # ── Per-node counts ──
+        node_result = await db.execute(
+            select(
+                FlowNodeVisitLog.node_id,
+                FlowNodeVisitLog.node_label,
+                FlowNodeVisitLog.node_type,
+                func.count(FlowNodeVisitLog.id).filter(
+                    FlowNodeVisitLog.event_type == 'visit'
+                ).label("visit_count"),
+                func.count(FlowNodeVisitLog.id).filter(
+                    FlowNodeVisitLog.event_type == 'error'
+                ).label("error_count"),
+                func.count(FlowNodeVisitLog.id).filter(
+                    FlowNodeVisitLog.event_type == 'abandon'
+                ).label("abandon_count"),
+                func.max(FlowNodeVisitLog.visited_at).label("last_visited_at"),
+            )
+            .where(*base_where)
+            .group_by(
+                FlowNodeVisitLog.node_id,
+                FlowNodeVisitLog.node_label,
+                FlowNodeVisitLog.node_type,
+            )
+            .order_by(func.count(FlowNodeVisitLog.id).desc())
+        )
+        nodes_out = [
+            {
+                "node_id": str(row.node_id),
+                "node_label": row.node_label,
+                "node_type": row.node_type,
+                "visit_count": row.visit_count,
+                "error_count": row.error_count,
+                "abandon_count": row.abandon_count,
+                "last_visited_at": row.last_visited_at.isoformat() if row.last_visited_at else None,
+            }
+            for row in node_result.all()
+        ]
+        # ── Per-edge transition counts (from_node_id → node_id) ──
+        edge_result = await db.execute(
+            select(
+                FlowNodeVisitLog.from_node_id,
+                FlowNodeVisitLog.node_id,
+                func.count(FlowNodeVisitLog.id).label("count"),
+            )
+            .where(*base_where)
+            .where(FlowNodeVisitLog.from_node_id.isnot(None))
+            .group_by(FlowNodeVisitLog.from_node_id, FlowNodeVisitLog.node_id)
+        )
+        edges_out = [
+            {
+                "source_id": str(row.from_node_id),
+                "target_id": str(row.node_id),
+                "count": row.count,
+            }
+            for row in edge_result.all()
+        ]
+        return {"nodes": nodes_out, "edges": edges_out}
+    else:
+        # window=0 → all-time from cumulative counter table (no per-edge data)
+        result = await db.execute(
+            select(FlowNodeStats)
+            .where(FlowNodeStats.flow_id == flow_id)
+            .order_by(FlowNodeStats.visit_count.desc())
+        )
+        stats = result.scalars().all()
+        nodes_out = [
+            {
+                "node_id": str(s.node_id),
+                "node_label": s.node_label,
+                "node_type": s.node_type,
+                "visit_count": s.visit_count,
+                "last_visited_at": s.last_visited_at.isoformat() if s.last_visited_at else None,
+            }
+            for s in stats
+        ]
+        return {"nodes": nodes_out, "edges": []}

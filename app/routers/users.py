@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models import User, Campaign
 from app.schemas import UserCreate, UserUpdate, UserOut, CampaignOut
-from app.auth import hash_password, get_current_user
+from app.auth import hash_password, get_current_user, require_permission
 
 router = APIRouter(
     prefix="/api/v1/users",
@@ -40,7 +40,12 @@ async def get_user(user_id: UUID, db: AsyncSession = Depends(get_db)):
 
 
 @router.patch("/{user_id}", response_model=UserOut)
-async def update_user(user_id: UUID, body: UserUpdate, db: AsyncSession = Depends(get_db)):
+async def update_user(
+    user_id: UUID,
+    body: UserUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("users.edit")),
+):
     result = await db.execute(
         _visible_users.where(User.id == user_id)
     )
@@ -64,7 +69,7 @@ async def update_user(user_id: UUID, body: UserUpdate, db: AsyncSession = Depend
 async def delete_user(
     user_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("users.delete")),
 ):
     if str(current_user.id) == str(user_id):
         raise HTTPException(status_code=400, detail="Cannot delete yourself")
@@ -98,6 +103,7 @@ async def set_user_campaigns(
     user_id: UUID,
     body: CampaignAssignBody,
     db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_permission("users.edit")),
 ):
     """Sync this user's campaign assignments.
 

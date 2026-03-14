@@ -1,4 +1,4 @@
-/**
+﻿/**
  * WizzardChat – Users management page
  */
 (function () {
@@ -8,19 +8,20 @@
     const _token  = () => localStorage.getItem('wizzardchat_token');
     const _headers = () => ({ 'Authorization': 'Bearer ' + _token(), 'Content-Type': 'application/json' });
 
-    let _users       = [];
-    let _editId      = null;
-    let _deleteId    = null;
-    let _allCampaigns = [];
+    let _users            = [];
+    let _editId           = null;
+    let _deleteId         = null;
+    let _allCampaigns     = [];
+    let _globalCapDefs    = {};   // default_omni_max, default_channel_max_*, etc.
 
     const modal    = () => bootstrap.Modal.getOrCreateInstance(document.getElementById('userModal'));
     const delModal = () => bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteUModal'));
 
-    function _guard() { if (!_token()) window.location.href = '/'; }
+    function _guard() { if (!_token()) window.location.href = '/login'; }
 
     async function apiFetch(path, opts = {}) {
         const r = await fetch(API + path, { headers: _headers(), ...opts });
-        if (r.status === 401) { localStorage.removeItem('wizzardchat_token'); window.location.href = '/'; }
+        if (r.status === 401) { localStorage.removeItem('wizzardchat_token'); window.location.href = '/login'; }
         return r;
     }
 
@@ -45,6 +46,40 @@
         let n = 0;
         for (const c of String(id)) n += c.charCodeAt(0);
         return AVATAR_COLORS[n % AVATAR_COLORS.length];
+    }
+
+    // ─── Global capacity defaults ──────────────────────────────────────────────
+    async function loadGlobalCapacityDefaults() {
+        const r = await apiFetch('/api/v1/settings');
+        if (!r.ok) return;
+        const settings = await r.json();   // [{key, value}, …]
+        const CAP_KEYS = [
+            'default_omni_max',
+            'default_channel_max_voice',
+            'default_channel_max_chat',
+            'default_channel_max_whatsapp',
+            'default_channel_max_email',
+            'default_channel_max_sms',
+        ];
+        for (const s of settings) {
+            if (CAP_KEYS.includes(s.key)) _globalCapDefs[s.key] = s.value;
+        }
+        _applyCapacityPlaceholders();
+    }
+
+    function _applyCapacityPlaceholders() {
+        const MAP = [
+            ['uLimOmni',  'default_omni_max'],
+            ['uLimVoice', 'default_channel_max_voice'],
+            ['uLimChat',  'default_channel_max_chat'],
+            ['uLimWa',    'default_channel_max_whatsapp'],
+            ['uLimEmail', 'default_channel_max_email'],
+            ['uLimSms',   'default_channel_max_sms'],
+        ];
+        for (const [id, key] of MAP) {
+            const el = document.getElementById(id);
+            if (el) el.placeholder = _globalCapDefs[key] ?? '–';
+        }
     }
 
     // ─── Load / Render ─────────────────────────────────────────────────────────
@@ -173,6 +208,8 @@
             _fillForm(u);
             // Load campaign checkboxes for this user
             loadUserCampaignAssignments(_editId);
+            // Load per-agent capacity (fills fields with custom values or leaves blank for global defaults)
+            loadAgentCapacity(_editId);
         } else {
             title.innerHTML = `<i class="bi bi-person-plus me-2"></i>New User`;
             pwNote.textContent = '';
@@ -180,6 +217,8 @@
             // Show empty campaign checkboxes (no assignments yet)
             _renderCampaignCheckboxes([]);
             document.getElementById('uCampaignLoading').style.display = 'none';
+            // New user: clear capacity fields (will use global defaults)
+            _clearCapacityFields();
         }
 
         bootstrap.Tab.getOrCreateInstance(document.querySelector('#userTabs .nav-link')).show();
@@ -195,6 +234,7 @@
         document.getElementById('uMaxChats').value     = '5';
         document.getElementById('uPassword').value     = '';
         document.getElementById('uIsActive').checked   = true;
+        _setLanguages([]);
     }
 
     function _fillForm(u) {
@@ -206,6 +246,56 @@
         document.getElementById('uMaxChats').value     = u.max_concurrent_chats ?? 5;
         document.getElementById('uPassword').value     = '';
         document.getElementById('uIsActive').checked   = !!u.is_active;
+        _setLanguages(u.languages || []);
+    }
+
+    async function loadAgentCapacity(userId) {
+        const r = await apiFetch(`/api/v1/agents/${userId}/capacity`);
+        if (!r.ok) { _clearCapacityFields(); return; }
+        const cap = await r.json();
+        // Only populate when a custom override is set; leave blank to show global default placeholder
+        document.getElementById('uLimOmni').value  = cap.omni_max_is_custom             ? cap.omni_max             : '';
+        document.getElementById('uLimVoice').value = cap.channel_max_voice_is_custom    ? cap.channel_max_voice    : '';
+        document.getElementById('uLimChat').value  = cap.channel_max_chat_is_custom     ? cap.channel_max_chat     : '';
+        document.getElementById('uLimWa').value    = cap.channel_max_whatsapp_is_custom ? cap.channel_max_whatsapp : '';
+        document.getElementById('uLimEmail').value = cap.channel_max_email_is_custom    ? cap.channel_max_email    : '';
+        document.getElementById('uLimSms').value   = cap.channel_max_sms_is_custom      ? cap.channel_max_sms      : '';
+        _applyCapacityPlaceholders();
+    }
+
+    function _clearCapacityFields() {
+        ['uLimOmni','uLimVoice','uLimChat','uLimWa','uLimEmail','uLimSms']
+            .forEach(id => { document.getElementById(id).value = ''; });
+        _applyCapacityPlaceholders();
+    }
+
+    window.resetCapacityToDefaults = function () { _clearCapacityFields(); };
+
+    function _readCapacity() {
+        function _parseOpt(id) {
+            const v = document.getElementById(id).value.trim();
+            return v === '' ? null : parseInt(v, 10);
+        }
+        return {
+            omni_max:             _parseOpt('uLimOmni'),
+            channel_max_voice:    _parseOpt('uLimVoice'),
+            channel_max_chat:     _parseOpt('uLimChat'),
+            channel_max_whatsapp: _parseOpt('uLimWa'),
+            channel_max_email:    _parseOpt('uLimEmail'),
+            channel_max_sms:      _parseOpt('uLimSms'),
+        };
+    }
+
+    function _setLanguages(langs) {
+        document.querySelectorAll('#uLanguageChips input[type=checkbox]').forEach(cb => {
+            cb.checked = langs.includes(cb.value);
+        });
+    }
+
+    function _readLanguages() {
+        return Array.from(
+            document.querySelectorAll('#uLanguageChips input[type=checkbox]:checked')
+        ).map(cb => cb.value);
     }
 
     // ─── Save ──────────────────────────────────────────────────────────────────
@@ -235,6 +325,7 @@
                 role:                 document.getElementById('uRole').value,
                 max_concurrent_chats: parseInt(document.getElementById('uMaxChats').value, 10) || 5,
                 is_active:            document.getElementById('uIsActive').checked,
+                languages:            _readLanguages(),
             };
             if (password) patchBody.password = password;
 
@@ -258,6 +349,7 @@
                 role:                 document.getElementById('uRole').value,
                 max_concurrent_chats: parseInt(document.getElementById('uMaxChats').value, 10) || 5,
                 auth_type:            'local',
+                languages:            _readLanguages(),
             };
             const r = await apiFetch('/api/v1/auth/register', {
                 method: 'POST',
@@ -285,6 +377,18 @@
             }
         }
 
+        // Save capacity overrides (null values reset to global default)
+        if (savedUserId) {
+            const rl = await apiFetch(`/api/v1/agents/${savedUserId}/limits`, {
+                method: 'PATCH',
+                body: JSON.stringify(_readCapacity()),
+            });
+            if (!rl.ok) {
+                const e = await rl.json().catch(() => ({}));
+                console.warn('Capacity save failed:', e.detail);
+            }
+        }
+
         modal().hide();
         await loadUsers();
     };
@@ -308,12 +412,13 @@
     document.getElementById('btnLogout').addEventListener('click', e => {
         e.preventDefault();
         localStorage.removeItem('wizzardchat_token');
-        window.location.href = '/';
+        window.location.href = '/login';
     });
 
     // ─── Boot ──────────────────────────────────────────────────────────────────
     _guard();
     loadAllCampaigns();
+    loadGlobalCapacityDefaults();
     loadUsers();
 
     (async () => {

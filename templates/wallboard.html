@@ -1,0 +1,1210 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <script src="/static/js/theme-init.js"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+
+    <title>WizzardChat – Wallboard</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+
+    <style>
+
+        /* -- layout -- */
+
+        body { background: #0f1117; }
+
+        .wb-view { display: none; }
+
+        .wb-view.active { display: block; }
+
+
+
+        /* -- stat cards -- */
+
+        .stat-card {
+
+            border-radius: 10px;
+
+            padding: 18px 22px;
+
+            background: #1a1d27;
+
+            border: 1px solid rgba(255,255,255,.06);
+
+        }
+
+        .stat-card .stat-val {
+
+            font-size: 2.4rem;
+
+            font-weight: 700;
+
+            line-height: 1;
+
+            margin-bottom: 4px;
+
+        }
+
+        .stat-card .stat-lbl { font-size: .78rem; color: #889; text-transform: uppercase; letter-spacing: .06em; }
+
+
+
+        /* -- queue cards -- */
+
+        .queue-card {
+
+            background: #1a1d27;
+
+            border: 1px solid rgba(255,255,255,.07);
+
+            border-radius: 10px;
+
+            padding: 16px;
+
+            transition: box-shadow .15s;
+
+        }
+
+        .queue-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.35); }
+
+        .queue-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+        .sla-ok   { color: #20c997; }
+
+        .sla-warn { color: #ffc107; }
+
+        .sla-breach { color: #dc3545; }
+
+
+
+        /* -- channel pills -- */
+
+        .ch-voice    { background: #6f42c1; }
+
+        .ch-chat     { background: #0d6efd; }
+
+        .ch-whatsapp { background: #198754; }
+
+        .ch-email    { background: #0dcaf0; color: #000; }
+
+        .ch-sms      { background: #fd7e14; }
+
+        .ch-app      { background: #6c757d; }
+
+
+
+        /* -- agent row -- */
+
+        .agent-row { background: #1a1d27; border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; }
+
+        .agent-row .load-bar { height: 6px; border-radius: 3px; background: #2d3140; overflow: hidden; }
+
+        .agent-row .load-fill { height: 100%; border-radius: 3px; background: #0d6efd; transition: width .3s; }
+
+
+
+        /* -- team member grid -- */
+
+        .member-card {
+
+            background: #1a1d27;
+
+            border: 1px solid rgba(255,255,255,.07);
+
+            border-radius: 10px;
+
+            padding: 14px;
+
+            min-height: 110px;
+
+        }
+
+        .member-card.offline { opacity: .5; }
+
+        .presence-dot {
+
+            width: 10px; height: 10px; border-radius: 50%;
+
+            display: inline-block; flex-shrink: 0;
+
+        }
+
+        .presence-dot.online  { background: #20c997; box-shadow: 0 0 0 2px rgba(32,201,151,.35); }
+
+        .presence-dot.offline { background: #6c757d; }
+
+
+
+        /* -- refresh ticker -- */
+
+        #refreshTick { font-size: .72rem; color: #556; }
+
+
+
+        /* -- filter bar -- */
+
+        .filter-bar { background: #13161f; border-radius: 8px; padding: 12px 16px; }
+
+    </style>
+
+</head>
+
+<body>
+
+
+
+<!-- ---------------------- Sidebar ---------------------- -->
+
+<nav id="sidebar" class="p-3 text-white">
+
+    <a href="/" class="d-flex align-items-center mb-2 text-white text-decoration-none">
+
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+
+        <span class="fs-5 fw-bold">WizzardChat</span>
+
+    </a>
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="flex-fill text-truncate small" id="agentName">–</span>
+        <button class="btn btn-sm btn-outline-secondary" id="btnLogout" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
+    </div>
+    <select class="form-select form-select-sm av-offline mb-2" id="availabilitySelect" title="Set your availability">
+        <option value="available">🟢 Available</option>
+        <option value="admin">🔵 Admin</option>
+        <option value="lunch">🟡 Lunch</option>
+        <option value="break">🟠 Break</option>
+        <option value="training">🟣 Training</option>
+        <option value="meeting">🔵 Meeting</option>
+        <option value="offline" selected>⚫ Offline</option>
+    </select>
+    <hr class="border-secondary">
+
+    <ul class="nav nav-pills flex-column flex-nowrap" style="flex:1 1 0;overflow-y:auto;min-height:0;">
+        <li class="nav-item" style="margin-bottom:4px;"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-monitoring',this)">
+                <span>Monitoring</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-monitoring">
+                <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a href="/wallboard" class="nav-link active"><i class="bi bi-display me-2"></i>Wallboard</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-operations',this)">
+                <span>Operations</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-operations">
+                <li class="nav-item"><a href="/interactions" class="nav-link text-white"><i class="bi bi-chat-square-text me-2"></i>Interactions</a></li>
+                <li class="nav-item"><a href="/flows" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-engagement',this)">
+                <span>Engagement</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-engagement">
+                <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+                <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+                <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+                <li class="nav-item"><a href="/msg-templates" class="nav-link text-white"><i class="bi bi-card-text me-2"></i>Templates</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-usermgmt',this)">
+                <span>User Management</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-usermgmt">
+                <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+                <li class="nav-item"><a href="/groups" class="nav-link text-white"><i class="bi bi-collection me-2"></i>Groups</a></li>
+                <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+                <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-bizsettings',this)">
+                <span>Business Settings</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-bizsettings">
+                <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+                <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+                <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>
+                <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+                <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+                <li class="nav-item"><a href="/audit-log" class="nav-link text-white"><i class="bi bi-journal-text me-2"></i>Audit Log</a></li>
+                <li class="nav-item"><a href="/docs" target="_blank" class="nav-link text-white"><i class="bi bi-code-square me-2"></i>API Docs</a></li>
+            </ul>
+        </li>
+        </ul>
+    </nav>
+
+
+
+<!-- ---------------------- Main ---------------------- -->
+
+<main style="margin-left:220px;padding:24px;min-height:100vh;">
+
+
+
+    <!-- Header -->
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <h4 class="mb-0"><i class="bi bi-display me-2"></i>Supervisor Wallboard</h4>
+
+        <span id="refreshTick"><i class="bi bi-arrow-clockwise me-1"></i>Refresh in <span id="countdown">30</span>s</span>
+
+    </div>
+
+
+
+    <!-- View tabs -->
+
+    <ul class="nav nav-tabs mb-4" id="wbTabs">
+
+        <li class="nav-item">
+
+            <button class="nav-link active" data-view="campaign">
+
+                <i class="bi bi-megaphone me-1"></i>Campaign
+
+            </button>
+
+        </li>
+        <li class="nav-item">
+
+            <button class="nav-link" data-view="queues">
+
+                <i class="bi bi-people me-1"></i>Queues
+
+            </button>
+
+        </li>
+        <li class="nav-item">
+
+            <button class="nav-link" data-view="team">
+
+                <i class="bi bi-people-fill me-1"></i>Team
+
+            </button>
+
+        </li>
+
+    </ul>
+
+
+
+    <!-- ----------- VIEW: Campaign ----------- -->
+
+    <div class="wb-view active" id="view-campaign">
+
+
+
+        <!-- Campaign selector -->
+
+        <div class="filter-bar d-flex align-items-center gap-3 mb-4">
+
+            <label class="form-label mb-0 text-secondary" style="white-space:nowrap;">Campaign</label>
+
+            <select id="campaignSelect" class="form-select form-select-sm" style="max-width:320px;">
+
+                <option value="">— select a campaign —</option>
+
+            </select>
+
+            <span id="campStatusBadge" class="badge"></span>
+
+        </div>
+
+
+
+        <!-- Summary stat cards -->
+
+        <div id="campSummary" class="row g-3 mb-4" style="display:none!important;">
+
+            <div class="col-6 col-md-2">
+
+                <div class="stat-card">
+
+                    <div class="stat-val text-warning" id="cvWaiting">0</div>
+
+                    <div class="stat-lbl">Waiting</div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-md-2">
+
+                <div class="stat-card">
+
+                    <div class="stat-val text-primary" id="cvActive">0</div>
+
+                    <div class="stat-lbl">Active</div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-md-2">
+
+                <div class="stat-card">
+
+                    <div class="stat-val text-success" id="cvAgentsOnline">0</div>
+
+                    <div class="stat-lbl">Agents online</div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-md-2">
+
+                <div class="stat-card">
+
+                    <div class="stat-val text-info" id="cvAgentsTotal">0</div>
+
+                    <div class="stat-lbl">Agents total</div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-md-2">
+
+                <div class="stat-card">
+
+                    <div class="stat-val" id="cvQueues">0</div>
+
+                    <div class="stat-lbl">Queues</div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-md-2">
+
+                <div class="stat-card">
+
+                    <div class="stat-val text-danger" id="cvSLABreached">0</div>
+
+                    <div class="stat-lbl">SLA breached</div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Queues + agents split -->
+
+        <div class="row g-4" id="campDetail">
+
+            <div class="col-lg-7">
+
+                <h6 class="text-secondary text-uppercase mb-3" style="font-size:.72rem;letter-spacing:.08em;">Queues</h6>
+
+                <div id="campQueues">
+
+                    <p class="text-muted small">Select a campaign to see its queues.</p>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-5">
+
+                <h6 class="text-secondary text-uppercase mb-3" style="font-size:.72rem;letter-spacing:.08em;">Agents</h6>
+
+                <div id="campAgents">
+
+                    <p class="text-muted small">Select a campaign to see its agents.</p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ----------- VIEW: Queues ----------- -->
+
+    <div class="wb-view" id="view-queues">
+
+
+
+        <div class="filter-bar d-flex flex-wrap align-items-center gap-3 mb-4">
+
+            <label class="form-label mb-0 text-secondary">Filter by campaign</label>
+
+            <select id="qFilterCampaign" class="form-select form-select-sm" style="max-width:260px;">
+
+                <option value="">All campaigns</option>
+
+            </select>
+
+            <label class="form-label mb-0 text-secondary">Channel</label>
+
+            <select id="qFilterChannel" class="form-select form-select-sm" style="max-width:160px;">
+
+                <option value="">All channels</option>
+
+                <option value="chat">Chat</option>
+
+                <option value="voice">Voice</option>
+
+                <option value="whatsapp">WhatsApp</option>
+
+                <option value="email">Email</option>
+
+                <option value="sms">SMS</option>
+
+                <option value="app">App</option>
+
+            </select>
+
+            <button class="btn btn-sm btn-outline-secondary" onclick="loadQueuesView()">
+
+                <i class="bi bi-funnel me-1"></i>Apply
+
+            </button>
+
+        </div>
+
+
+
+        <div id="globalQueues" class="row g-3">
+
+            <div class="col-12 text-muted small">Loading queues…</div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ----------- VIEW: Team ----------- -->
+
+    <div class="wb-view" id="view-team">
+
+
+
+        <div class="filter-bar d-flex align-items-center gap-3 mb-4">
+
+            <label class="form-label mb-0 text-secondary">Team</label>
+
+            <select id="teamSelect" class="form-select form-select-sm" style="max-width:280px;">
+
+                <option value="">— select a team —</option>
+
+            </select>
+
+        </div>
+
+
+
+        <!-- Team summary -->
+
+        <div id="teamSummary" class="row g-3 mb-4" style="display:none!important;">
+
+            <div class="col-4">
+
+                <div class="stat-card">
+
+                    <div class="stat-val" id="tmTotal">0</div>
+
+                    <div class="stat-lbl">Members</div>
+
+                </div>
+
+            </div>
+
+            <div class="col-4">
+
+                <div class="stat-card">
+
+                    <div class="stat-val text-success" id="tmOnline">0</div>
+
+                    <div class="stat-lbl">Online</div>
+
+                </div>
+
+            </div>
+
+            <div class="col-4">
+
+                <div class="stat-card">
+
+                    <div class="stat-val text-primary" id="tmBusy">0</div>
+
+                    <div class="stat-lbl">Handling</div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <div id="teamMembers" class="row g-3">
+
+            <div class="col-12 text-muted small">Select a team to see its members.</div>
+
+        </div>
+
+    </div>
+
+
+
+</main>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+
+<script>
+
+/* -----------------------------------------------------------
+
+   Wallboard — client-side logic
+
+------------------------------------------------------------ */
+
+
+
+const API = '/api/v1';
+
+let _token = localStorage.getItem('wizzardchat_token') || '';
+
+let _refreshTimer = null;
+
+let _countdownValue = 30;
+
+let _currentView = 'campaign';
+
+
+
+// -- Auth helper ---------------------------------------------------------------
+
+async function apiFetch(url, opts = {}) {
+
+    const res = await fetch(url, {
+
+        ...opts,
+
+        headers: { 'Authorization': `Bearer ${_token}`, ...(opts.headers || {}) },
+
+    });
+
+    if (res.status === 401) { localStorage.removeItem('wizzardchat_token'); window.location.href = '/login'; return null; }
+
+    if (!res.ok) { console.error('API error', res.status, url); return null; }
+
+    return res.json();
+
+}
+
+
+
+// -- Tab switching -------------------------------------------------------------
+
+document.querySelectorAll('#wbTabs .nav-link').forEach(btn => {
+
+    btn.addEventListener('click', () => {
+
+        document.querySelectorAll('#wbTabs .nav-link').forEach(b => b.classList.remove('active'));
+
+        btn.classList.add('active');
+
+        _currentView = btn.dataset.view;
+
+        document.querySelectorAll('.wb-view').forEach(v => v.classList.remove('active'));
+
+        document.getElementById(`view-${_currentView}`).classList.add('active');
+
+        refreshCurrent();
+
+    });
+
+});
+
+
+
+// -- Auto-refresh --------------------------------------------------------------
+
+function startCountdown() {
+
+    clearInterval(_refreshTimer);
+
+    _countdownValue = 30;
+
+    document.getElementById('countdown').textContent = _countdownValue;
+
+    _refreshTimer = setInterval(() => {
+
+        _countdownValue -= 1;
+
+        document.getElementById('countdown').textContent = _countdownValue;
+
+        if (_countdownValue <= 0) {
+
+            refreshCurrent();
+
+            _countdownValue = 30;
+
+        }
+
+    }, 1000);
+
+}
+
+
+
+function refreshCurrent() {
+
+    if (_currentView === 'campaign') {
+
+        const id = document.getElementById('campaignSelect').value;
+
+        if (id) loadCampaignDetail(id);
+
+    } else if (_currentView === 'queues') {
+
+        loadQueuesView();
+
+    } else if (_currentView === 'team') {
+
+        const id = document.getElementById('teamSelect').value;
+
+        if (id) loadTeamDetail(id);
+
+    }
+
+    startCountdown();
+
+}
+
+
+
+// -- Helpers -------------------------------------------------------------------
+
+function fmtWait(seconds) {
+
+    if (!seconds) return '0s';
+
+    const m = Math.floor(seconds / 60);
+
+    const s = seconds % 60;
+
+    return m > 0 ? `${m}m ${s}s` : `${s}s`;
+
+}
+
+
+
+function chPill(channel) {
+
+    const map = { voice:'ch-voice', chat:'ch-chat', whatsapp:'ch-whatsapp',
+
+                  email:'ch-email', sms:'ch-sms', app:'ch-app' };
+
+    const cls = map[channel] || 'ch-chat';
+
+    return `<span class="badge ${cls} text-capitalize">${channel}</span>`;
+
+}
+
+
+
+function agentStatusBadge(status) {
+
+    const map = {
+
+        available: ['bg-success',  'Available'],
+
+        busy:      ['bg-primary',  'Busy'],
+
+        wrap_up:   ['bg-warning text-dark', 'Wrap-Up'],
+
+        offline:   ['bg-secondary', 'Offline'],
+
+    };
+
+    const [cls, lbl] = map[status] || map.offline;
+
+    return `<span class="badge ${cls}" style="font-size:.62rem;">${lbl}</span>`;
+
+}
+
+
+
+function slaClass(q) {
+
+    if (!q.sla_ok) return 'sla-breach';
+
+    const pct = q.sla_threshold > 0 ? q.longest_wait_seconds / q.sla_threshold : 0;
+
+    return pct >= 0.75 ? 'sla-warn' : 'sla-ok';
+
+}
+
+
+
+function statusBadgeClass(status) {
+
+    return { running:'bg-success', draft:'bg-secondary', paused:'bg-warning text-dark',
+
+             completed:'bg-primary', cancelled:'bg-danger' }[status] || 'bg-secondary';
+
+}
+
+
+
+// -- Render queue card ---------------------------------------------------------
+
+function renderQueueCard(q) {
+
+    const sc = slaClass(q);
+
+    const pct = Math.min(100, q.sla_threshold > 0 ? Math.round(q.longest_wait_seconds / q.sla_threshold * 100) : 0);
+
+    const barColor = q.sla_ok ? (pct >= 75 ? '#ffc107' : '#20c997') : '#dc3545';
+
+    return `
+
+    <div class="queue-card mb-3">
+
+        <div class="d-flex align-items-center justify-content-between mb-2">
+
+            <div class="d-flex align-items-center gap-2">
+
+                <span class="queue-dot" style="background:${q.color}"></span>
+
+                <span class="fw-semibold">${q.name}</span>
+
+                ${chPill(q.channel)}
+
+            </div>
+
+            <span class="${sc} fw-bold" title="Longest wait vs SLA threshold">
+
+                <i class="bi bi-stopwatch me-1"></i>${fmtWait(q.longest_wait_seconds)}
+
+            </span>
+
+        </div>
+
+        <div class="row g-2 mb-2">
+
+            <div class="col-4 text-center">
+
+                <div class="fw-bold text-warning fs-5">${q.waiting}</div>
+
+                <div class="text-muted" style="font-size:.7rem;">Waiting</div>
+
+            </div>
+
+            <div class="col-4 text-center">
+
+                <div class="fw-bold text-primary fs-5">${q.active}</div>
+
+                <div class="text-muted" style="font-size:.7rem;">Active</div>
+
+            </div>
+
+            <div class="col-4 text-center">
+
+                <div class="fw-bold fs-5">${q.agents_count}</div>
+
+                <div class="text-muted" style="font-size:.7rem;">Agents</div>
+
+            </div>
+
+        </div>
+
+        <div style="height:4px;border-radius:2px;background:#2d3140;overflow:hidden;">
+
+            <div style="width:${pct}%;height:100%;background:${barColor};border-radius:2px;transition:width .4s;"></div>
+
+        </div>
+
+        <div class="d-flex justify-content-between mt-1" style="font-size:.68rem;color:#556;">
+
+            <span>SLA: ${q.sla_threshold}s</span>
+
+            <span>${pct}%</span>
+
+        </div>
+
+    </div>`;
+
+}
+
+
+
+// -- Render agent row ----------------------------------------------------------
+
+function renderAgentRow(a) {
+
+    const pct = a.max_concurrent > 0 ? Math.round(a.active_convs / a.max_concurrent * 100) : 0;
+
+    const loadColor = pct >= 80 ? '#dc3545' : pct >= 50 ? '#ffc107' : '#0d6efd';
+
+    const status = a.status || (a.is_online ? 'available' : 'offline');
+
+    return `
+
+    <div class="agent-row d-flex align-items-center gap-3">
+
+        <span class="presence-dot ${a.is_online ? 'online' : 'offline'}"></span>
+
+        <div class="flex-grow-1">
+
+            <div class="d-flex justify-content-between align-items-center mb-1">
+
+                <span class="fw-semibold" style="font-size:.88rem;">${a.full_name || a.username}</span>
+
+                <div class="d-flex align-items-center gap-2">
+
+                    ${agentStatusBadge(status)}
+
+                    <span style="font-size:.78rem;color:#889;">${a.active_convs}/${a.max_concurrent}</span>
+
+                </div>
+
+            </div>
+
+            <div class="load-bar"><div class="load-fill" style="width:${pct}%;background:${loadColor};"></div></div>
+
+        </div>
+
+    </div>`;
+
+}
+
+
+
+// -- Render member card (team view) --------------------------------------------
+
+function renderMemberCard(m) {
+
+    const pct = m.max_concurrent > 0 ? Math.round(m.active_convs / m.max_concurrent * 100) : 0;
+
+    const loadColor = pct >= 80 ? '#dc3545' : pct >= 50 ? '#ffc107' : '#0d6efd';
+
+    const queueTags = (m.queues || []).map(q =>
+
+        `<span class="badge bg-secondary me-1" style="font-size:.64rem;">${q}</span>`
+
+    ).join('');
+
+    const status = m.status || (m.is_online ? 'available' : 'offline');
+
+    return `
+
+    <div class="col-6 col-md-4 col-xl-3">
+
+        <div class="member-card ${m.is_online ? '' : 'offline'}">
+
+            <div class="d-flex align-items-center gap-2 mb-2">
+
+                <span class="presence-dot ${m.is_online ? 'online' : 'offline'}"></span>
+
+                <span class="fw-semibold text-truncate" style="max-width:120px;">${m.full_name || m.username}</span>
+
+            </div>
+
+            <div class="d-flex align-items-center gap-1 mb-2">
+
+                ${agentStatusBadge(status)}
+
+                <span class="badge bg-dark text-capitalize" style="font-size:.62rem;">${m.role}</span>
+
+            </div>
+
+            <div class="d-flex justify-content-between mb-1" style="font-size:.76rem;">
+
+                <span>Active: <strong>${m.active_convs}</strong></span>
+
+                <span class="text-muted">Cap: ${m.max_concurrent}</span>
+
+            </div>
+
+            <div style="height:4px;border-radius:2px;background:#2d3140;overflow:hidden;margin-bottom:6px;">
+
+                <div style="width:${pct}%;height:100%;background:${loadColor};border-radius:2px;transition:width .4s;"></div>
+
+            </div>
+
+            <div style="font-size:.64rem;">${queueTags}</div>
+
+        </div>
+
+    </div>`;
+
+}
+
+
+
+// -- Campaign view -------------------------------------------------------------
+
+async function loadCampaigns() {
+
+    const campaigns = await apiFetch(`${API}/wallboard/campaigns`);
+
+    if (!campaigns) return;
+
+    const sel = document.getElementById('campaignSelect');
+
+    const qSel = document.getElementById('qFilterCampaign');
+
+    campaigns.forEach(c => {
+
+        const o = new Option(c.name, c.id);
+
+        sel.add(o);
+
+        qSel.add(new Option(c.name, c.id));
+
+    });
+
+}
+
+
+
+document.getElementById('campaignSelect').addEventListener('change', e => {
+
+    if (e.target.value) loadCampaignDetail(e.target.value);
+
+});
+
+
+
+async function loadCampaignDetail(id) {
+
+    const data = await apiFetch(`${API}/wallboard/campaign/${id}`);
+
+    if (!data) return;
+
+
+
+    // Status badge
+
+    const badge = document.getElementById('campStatusBadge');
+
+    badge.className = `badge ${statusBadgeClass(data.campaign.status)}`;
+
+    badge.textContent = data.campaign.status;
+
+
+
+    // Summary cards
+
+    const s = data.summary;
+
+    document.getElementById('cvWaiting').textContent    = s.total_waiting;
+
+    document.getElementById('cvActive').textContent     = s.total_active;
+
+    document.getElementById('cvAgentsOnline').textContent = s.agents_online;
+
+    document.getElementById('cvAgentsTotal').textContent  = s.agents_total;
+
+    document.getElementById('cvQueues').textContent     = s.queues_count;
+
+    document.getElementById('cvSLABreached').textContent = s.sla_breached_queues;
+
+    document.getElementById('campSummary').style.setProperty('display', 'flex', 'important');
+
+
+
+    // Queue cards
+
+    const qEl = document.getElementById('campQueues');
+
+    if (data.queues.length === 0) {
+
+        qEl.innerHTML = '<p class="text-muted small">No queues assigned to this campaign.</p>';
+
+    } else {
+
+        qEl.innerHTML = data.queues.map(renderQueueCard).join('');
+
+    }
+
+
+
+    // Agent roster
+
+    const aEl = document.getElementById('campAgents');
+
+    if (data.agents.length === 0) {
+
+        aEl.innerHTML = '<p class="text-muted small">No agents assigned to this campaign.</p>';
+
+    } else {
+
+        aEl.innerHTML = data.agents.map(renderAgentRow).join('');
+
+    }
+
+}
+
+
+
+// -- Queue view ----------------------------------------------------------------
+
+async function loadQueuesView() {
+
+    const campaignId = document.getElementById('qFilterCampaign').value;
+
+    const channel    = document.getElementById('qFilterChannel').value;
+
+    let url = `${API}/wallboard/queues`;
+
+    const params = new URLSearchParams();
+
+    if (campaignId) params.set('campaign_id', campaignId);
+
+    if (channel)    params.set('channel', channel);
+
+    if ([...params].length) url += '?' + params.toString();
+
+
+
+    const queues = await apiFetch(url);
+
+    const el = document.getElementById('globalQueues');
+
+    if (!queues || queues.length === 0) {
+
+        el.innerHTML = '<div class="col-12 text-muted small">No queues found.</div>';
+
+        return;
+
+    }
+
+    el.innerHTML = queues.map(q =>
+
+        `<div class="col-12 col-md-6 col-xl-4">${renderQueueCard(q)}</div>`
+
+    ).join('');
+
+}
+
+
+
+// -- Team view -----------------------------------------------------------------
+
+async function loadTeams() {
+
+    const teams = await apiFetch(`${API}/wallboard/teams`);
+
+    if (!teams) return;
+
+    const sel = document.getElementById('teamSelect');
+
+    teams.forEach(t => sel.add(new Option(`${t.name} (${t.online_count}/${t.member_count} online)`, t.id)));
+
+}
+
+
+
+document.getElementById('teamSelect').addEventListener('change', e => {
+
+    if (e.target.value) loadTeamDetail(e.target.value);
+
+});
+
+
+
+async function loadTeamDetail(id) {
+
+    const data = await apiFetch(`${API}/wallboard/team/${id}`);
+
+    if (!data) return;
+
+
+
+    const s = data.summary;
+
+    document.getElementById('tmTotal').textContent  = s.total;
+
+    document.getElementById('tmOnline').textContent = s.online;
+
+    document.getElementById('tmBusy').textContent   = s.busy;
+
+    document.getElementById('teamSummary').style.setProperty('display', 'flex', 'important');
+
+
+
+    const el = document.getElementById('teamMembers');
+
+    if (data.members.length === 0) {
+
+        el.innerHTML = '<div class="col-12 text-muted small">No members in this team.</div>';
+
+    } else {
+
+        el.innerHTML = data.members.map(renderMemberCard).join('');
+
+    }
+
+}
+
+
+
+document.getElementById('btnLogout').addEventListener('click', () => {
+
+    localStorage.removeItem('wizzardchat_token');
+
+    window.location.href = '/login';
+
+});
+
+
+
+// -- Bootstrap -----------------------------------------------------------------
+
+(async function init() {
+
+    if (!_token) { window.location.href = '/login'; return; }
+
+    await Promise.all([loadCampaigns(), loadTeams()]);
+
+    loadQueuesView();
+
+    startCountdown();
+
+})();
+
+</script>
+
+</body>
+
+</html>
+

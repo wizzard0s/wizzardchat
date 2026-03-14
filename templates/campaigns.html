@@ -1,210 +1,722 @@
-<!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+﻿<!DOCTYPE html>
+
+<html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+    <script src="/static/js/theme-init.js"></script>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Campaigns – WizzardChat</title>
+
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+
+    <title>WizzardChat – Campaigns</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
     <link href="/static/css/wizzardchat.css" rel="stylesheet">
+
     <style>
+
         .campaign-card { cursor: pointer; transition: transform .15s, box-shadow .15s; }
+
         .campaign-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.3); }
+
         .camp-color-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+
         .outcome-row td { vertical-align: middle; }
+
         .status-badge-running  { background:#198754; }
+
         .status-badge-draft    { background:#6c757d; }
+
         .status-badge-paused   { background:#ffc107; color:#000; }
+
         .status-badge-completed{ background:#0d6efd; }
+
         .status-badge-cancelled{ background:#dc3545; }
+
+        /* Shuttle widget */
+
+        .shuttle-list {
+
+            height: 190px; overflow-y: auto;
+
+            border: 1px solid rgba(255,255,255,.15); border-radius: .375rem;
+
+        }
+
+        .shuttle-item { font-size: .85rem; border: none !important; border-radius: 0 !important; }
+
+        .shuttle-item.active { background-color: rgba(13,110,253,.35) !important; }
+
     </style>
+
 </head>
+
 <body>
+
 <!-- Sidebar -->
-<nav id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark" style="width:220px;height:100vh;position:fixed;">
-    <a href="/" class="d-flex align-items-center mb-3 text-white text-decoration-none">
+
+<nav id="sidebar" class="p-3 text-white">
+
+    <a href="/" class="d-flex align-items-center mb-2 text-white text-decoration-none">
+
         <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+
         <span class="fs-5 fw-bold">WizzardChat</span>
+
     </a>
-    <hr>
-    <ul class="nav nav-pills flex-column mb-auto">
-        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
-        <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
-        <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
-        <li class="nav-item"><a href="/campaigns" class="nav-link active"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
-        <li class="nav-item"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
-        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">User Management</li>
-        <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
-        <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
-        <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
-        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">Business Settings</li>
-        <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
-        <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
-        <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>            <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>        <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
-    </ul>
-    <hr>
-    <div class="dropdown">
-        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-            <i class="bi bi-person-circle me-2"></i><strong id="currentUser">Agent</strong>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-            <li><a class="dropdown-item" href="#" id="btnLogout">Sign out</a></li>
-        </ul>
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="flex-fill text-truncate small" id="agentName">–</span>
+        <button class="btn btn-sm btn-outline-secondary" id="btnLogout" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
     </div>
-</nav>
+    <select class="form-select form-select-sm av-offline mb-2" id="availabilitySelect" title="Set your availability">
+        <option value="available">🟢 Available</option>
+        <option value="admin">🔵 Admin</option>
+        <option value="lunch">🟡 Lunch</option>
+        <option value="break">🟠 Break</option>
+        <option value="training">🟣 Training</option>
+        <option value="meeting">🔵 Meeting</option>
+        <option value="offline" selected>⚫ Offline</option>
+    </select>
+    <hr class="border-secondary">
+
+    <ul class="nav nav-pills flex-column flex-nowrap" style="flex:1 1 0;overflow-y:auto;min-height:0;">
+        <li class="nav-item" style="margin-bottom:4px;"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-monitoring',this)">
+                <span>Monitoring</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-monitoring">
+                <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a href="/wallboard" class="nav-link text-white"><i class="bi bi-display me-2"></i>Wallboard</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-operations',this)">
+                <span>Operations</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-operations">
+                <li class="nav-item"><a href="/interactions" class="nav-link text-white"><i class="bi bi-chat-square-text me-2"></i>Interactions</a></li>
+                <li class="nav-item"><a href="/flows" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-engagement',this)">
+                <span>Engagement</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-engagement">
+                <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+                <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+                <li class="nav-item"><a href="/campaigns" class="nav-link active"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+                <li class="nav-item"><a href="/msg-templates" class="nav-link text-white"><i class="bi bi-card-text me-2"></i>Templates</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-usermgmt',this)">
+                <span>User Management</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-usermgmt">
+                <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+                <li class="nav-item"><a href="/groups" class="nav-link text-white"><i class="bi bi-collection me-2"></i>Groups</a></li>
+                <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+                <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-bizsettings',this)">
+                <span>Business Settings</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-bizsettings">
+                <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+                <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+                <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>
+                <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+                <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+                <li class="nav-item"><a href="/audit-log" class="nav-link text-white"><i class="bi bi-journal-text me-2"></i>Audit Log</a></li>
+                <li class="nav-item"><a href="/docs" target="_blank" class="nav-link text-white"><i class="bi bi-code-square me-2"></i>API Docs</a></li>
+            </ul>
+        </li>
+        </ul>
+    </nav>
+
+
 
 <!-- Main -->
+
 <main style="margin-left:220px;padding:24px;min-height:100vh;">
+
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0"><i class="bi bi-megaphone me-2 text-primary"></i>Campaigns</h4>
+
+        <h4 class="mb-0"><i class="bi bi-megaphone me-2"></i>Campaigns</h4>
+
         <button class="btn btn-primary" onclick="openCampaignModal()">
+
             <i class="bi bi-plus-lg me-1"></i>New Campaign
+
         </button>
+
     </div>
+
+
 
     <!-- Campaign grid -->
+
     <div id="campaignGrid" class="row g-3">
+
         <div class="col-12 text-center text-muted py-5" id="campaignEmpty" style="display:none;">
+
             <i class="bi bi-megaphone fs-1 mb-2 d-block"></i>No campaigns yet. Create one to get started.
+
         </div>
+
     </div>
+
 </main>
 
-<!-- ═══════════════════════════════════════════════════════
+
+
+<!-- -------------------------------------------------------
+
      Campaign Modal
-════════════════════════════════════════════════════════ -->
+
+-------------------------------------------------------- -->
+
 <div class="modal fade" id="campaignModal" tabindex="-1">
+
     <div class="modal-dialog modal-lg">
+
         <div class="modal-content">
+
             <div class="modal-header">
+
                 <h5 class="modal-title" id="campaignModalTitle"><i class="bi bi-megaphone me-2"></i>New Campaign</h5>
+
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
             </div>
+
             <div class="modal-body">
+
                 <ul class="nav nav-tabs mb-3" id="campaignTabs">
+
                     <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabCBasic">Basic</button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCOptions">Options</button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCQueues">Queues</button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCAgents">Agents</button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCOutcomes">Outcomes</button></li>
+
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCOptions">Options</button></li>
+
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCQueues">Queues</button></li>
+
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCAgents">Agents</button></li>
+
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCOutcomes">Outcomes</button></li>
+
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCOutbound"><i class="bi bi-send me-1"></i>Outbound</button></li>
+
                 </ul>
+
                 <div class="tab-content">
 
-                    <!-- ── Basic ── -->
+
+
+                    <!-- -- Basic -- -->
+
                     <div class="tab-pane fade show active" id="tabCBasic">
+
                         <div class="row g-3">
+
                             <div class="col-12">
+
                                 <label class="form-label">Name <span class="text-danger">*</span></label>
+
                                 <input type="text" id="cName" class="form-control" placeholder="Summer Support Campaign">
+
                             </div>
+
                             <div class="col-12">
+
                                 <label class="form-label">Description</label>
+
                                 <textarea id="cDescription" class="form-control" rows="2" placeholder="Campaign purpose…"></textarea>
+
                             </div>
+
                             <div class="col-md-4">
+
                                 <label class="form-label">Colour</label>
+
                                 <div class="d-flex align-items-center gap-2">
+
                                     <input type="color" id="cColor" class="form-control form-control-color" value="#0d6efd">
+
                                     <span class="small text-muted">Campaign colour</span>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label class="form-label">Daily Start Time</label>
+
+                                <input type="time" id="cTimeStart" class="form-control" value="08:00">
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label class="form-label">Daily End Time</label>
+
+                                <input type="time" id="cTimeEnd" class="form-control" value="17:00">
+
+                            </div>
+
+                            <div class="col-12">
+
+                                <div class="form-check form-switch">
+
+                                    <input class="form-check-input" type="checkbox" id="cIsActive" checked>
+
+                                    <label class="form-check-label" for="cIsActive">Active</label>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- -- Options -- -->
+
+                    <div class="tab-pane fade" id="tabCOptions">
+
+                        <div class="row g-3">
+
+                            <div class="col-12">
+
+                                <h6 class="text-muted small text-uppercase mb-3">Feature Flags</h6>
+
+                                <div class="form-check form-switch mb-3">
+
+                                    <input class="form-check-input" type="checkbox" id="cAllowTransfer" checked>
+
+                                    <label class="form-check-label" for="cAllowTransfer">
+
+                                        <strong>Allow Transfer</strong>
+
+                                        <div class="text-muted small">Agents can transfer sessions to another queue or agent</div>
+
+                                    </label>
+
+                                </div>
+
+                                <div class="form-check form-switch mb-3">
+
+                                    <input class="form-check-input" type="checkbox" id="cAllowCallback">
+
+                                    <label class="form-check-label" for="cAllowCallback">
+
+                                        <strong>Allow Callback</strong>
+
+                                        <div class="text-muted small">Visitors can request a callback instead of waiting in queue</div>
+
+                                    </label>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-12">
+
+                                <hr class="my-1">
+
+                                <h6 class="text-muted small text-uppercase mb-3 mt-2">Dialler Settings</h6>
+
+                                <div class="row g-3">
+
+                                    <div class="col-md-6">
+
+                                        <label class="form-label">Dialler Mode</label>
+
+                                        <select id="cDiallerMode" class="form-select">
+
+                                            <option value="preview">Preview — agent dials manually on each contact</option>
+
+                                            <option value="progressive">Progressive — auto-advance after wrap-up</option>
+
+                                        </select>
+
+                                    </div>
+
+                                    <div class="col-md-6" id="ringTimeoutWrap">
+
+                                        <label class="form-label">Ring Timeout <span class="text-muted small">(seconds, progressive)</span></label>
+
+                                        <input type="number" id="cRingTimeout" class="form-control" value="45" min="10" max="300">
+
+                                        <div class="form-text">Auto-log no-answer after this ring time in progressive mode.</div>
+
+                                    </div>
+
+                                    <div class="col-md-6">
+
+                                        <label class="form-label">Max Attempts per contact</label>
+
+                                        <input type="number" id="cMaxAttempts" class="form-control" value="3" min="1" max="20">
+
+                                    </div>
+
+                                    <div class="col-md-6">
+
+                                        <label class="form-label">Retry Interval <span class="text-muted small">(seconds)</span></label>
+
+                                        <input type="number" id="cRetryInterval" class="form-control" value="3600" min="60">
+
+                                        <div class="form-text">Wait this long before re-dialling the same contact.</div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- -- Queues -- -->
+
+                    <div class="tab-pane fade" id="tabCQueues">
+
+                        <p class="text-muted small mb-2">Select the queues that will handle sessions for this campaign.</p>
+
+                        <div id="cQueueList" class="row g-2"></div>
+
+                        <div id="cQueueEmpty" class="text-muted small fst-italic mt-2" style="display:none">
+
+                            No queues configured yet. <a href="/queues" class="text-info">Create a queue</a> first.
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- -- Agents -- -->
+
+                    <div class="tab-pane fade" id="tabCAgents">
+
+
+
+                        <!-- Groups section -->
+
+                        <div class="mb-3">
+
+                            <h6 class="fw-semibold mb-1">
+
+                                <i class="bi bi-collection me-1 text-info"></i>Groups
+
+                                <a href="/groups" class="ms-2 text-muted small fw-normal" target="_blank" title="Manage groups">
+
+                                    <i class="bi bi-box-arrow-up-right"></i> Manage
+
+                                </a>
+
+                            </h6>
+
+                            <p class="text-muted small mb-2">Assign a group to add all its members to this campaign.</p>
+
+                            <div class="d-flex gap-0" id="groupShuttleWrap">
+
+                                <!-- rendered by JS -->
+
+                            </div>
+
+                        </div>
+
+
+
+                        <hr class="border-secondary my-3">
+
+
+
+                        <!-- Individual agents section -->
+
+                        <div>
+
+                            <h6 class="fw-semibold mb-1">
+
+                                <i class="bi bi-person-badge me-1 text-primary"></i>Individual Agents
+
+                                <span class="text-muted fw-normal small">(override / additional)</span>
+
+                            </h6>
+
+                            <p class="text-muted small mb-2">Add specific agents directly, beyond what groups provide.</p>
+
+                            <div class="d-flex gap-0" id="agentShuttleWrap">
+
+                                <!-- rendered by JS -->
+
+                            </div>
+
+                        </div>
+
+
+
+                    </div>
+
+
+
+                    <!-- -- Outcomes -- -->
+
+                    <div class="tab-pane fade" id="tabCOutcomes">
+
+                        <p class="text-muted small mb-2">Select the outcomes available to agents for contacts reached in this campaign.</p>
+
+                        <div id="cOutcomeList" class="row g-2"></div>
+
+                        <div id="cOutcomeEmpty" class="text-muted small fst-italic mt-2" style="display:none">
+
+                            No active outcomes configured. <a href="/outcomes" class="text-info">Add outcomes</a> under Business Settings.
+
+                        </div>
+
+                    </div>
+
+                    <!-- -- Outbound Config -- -->
+
+                    <div class="tab-pane fade" id="tabCOutbound">
+
+                        <div class="row g-3">
+
+                            <!-- Primary channel -->
+                            <div class="col-12">
+                                <h6 class="text-muted small text-uppercase mb-2">Primary channel</h6>
+                                <div class="d-flex flex-wrap gap-3" id="primaryChannelRadios">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="primaryChannel" id="pcVoice" value="voice" checked>
+                                        <label class="form-check-label" for="pcVoice"><i class="bi bi-telephone me-1"></i>Voice</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="primaryChannel" id="pcWa" value="whatsapp">
+                                        <label class="form-check-label" for="pcWa"><i class="bi bi-whatsapp me-1 text-success"></i>WhatsApp</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="primaryChannel" id="pcSms" value="sms">
+                                        <label class="form-check-label" for="pcSms"><i class="bi bi-phone me-1 text-info"></i>SMS</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="primaryChannel" id="pcEmail" value="email">
+                                        <label class="form-check-label" for="pcEmail"><i class="bi bi-envelope me-1 text-warning"></i>Email</label>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Daily Start Time</label>
-                                <input type="time" id="cTimeStart" class="form-control" value="08:00">
+
+                            <!-- Fallback channels -->
+                            <div class="col-12">
+                                <h6 class="text-muted small text-uppercase mb-2">Fallback channels (in order)</h6>
+                                <p class="text-muted small mb-2">Agents can use these channels if the primary channel fails. Drag to reorder.</p>
+                                <div class="d-flex flex-wrap gap-2" id="fallbackChannelChecks">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="fbVoice" value="voice">
+                                        <label class="form-check-label small" for="fbVoice"><i class="bi bi-telephone me-1"></i>Voice</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="fbWa" value="whatsapp">
+                                        <label class="form-check-label small" for="fbWa"><i class="bi bi-whatsapp me-1 text-success"></i>WhatsApp</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="fbSms" value="sms">
+                                        <label class="form-check-label small" for="fbSms"><i class="bi bi-phone me-1 text-info"></i>SMS</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="fbEmail" value="email">
+                                        <label class="form-check-label small" for="fbEmail"><i class="bi bi-envelope me-1 text-warning"></i>Email</label>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Daily End Time</label>
-                                <input type="time" id="cTimeEnd" class="form-control" value="17:00">
-                            </div>
+
+                            <!-- Autodial -->
                             <div class="col-12">
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="cIsActive" checked>
-                                    <label class="form-check-label" for="cIsActive">Active</label>
+                                    <input class="form-check-input" type="checkbox" id="cAutodial">
+                                    <label class="form-check-label" for="cAutodial">
+                                        <strong>Autodial</strong>
+                                        <div class="text-muted small">Automatically advance to the next contact without agent confirmation</div>
+                                    </label>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- ── Options ── -->
-                    <div class="tab-pane fade" id="tabCOptions">
-                        <div class="row g-3">
+                            <div class="col-12"><hr class="my-1"></div>
+
+                            <!-- Voice section -->
                             <div class="col-12">
-                                <h6 class="text-muted small text-uppercase mb-3">Feature Flags</h6>
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="cAllowTransfer" checked>
-                                    <label class="form-check-label" for="cAllowTransfer">
-                                        <strong>Allow Transfer</strong>
-                                        <div class="text-muted small">Agents can transfer sessions to another queue or agent</div>
-                                    </label>
-                                </div>
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="cAllowCallback">
-                                    <label class="form-check-label" for="cAllowCallback">
-                                        <strong>Allow Callback</strong>
-                                        <div class="text-muted small">Visitors can request a callback instead of waiting in queue</div>
-                                    </label>
+                                <h6 class="text-muted small text-uppercase mb-2"><i class="bi bi-telephone me-1"></i>Voice</h6>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Voice connector</label>
+                                    <select id="ocVoiceConnector" class="form-select form-select-sm">
+                                        <option value="">— none —</option>
+                                    </select>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- ── Queues ── -->
-                    <div class="tab-pane fade" id="tabCQueues">
-                        <p class="text-muted small mb-2">Select the queues that will handle sessions for this campaign.</p>
-                        <div id="cQueueList" class="row g-2"></div>
-                        <div id="cQueueEmpty" class="text-muted small fst-italic mt-2" style="display:none">
-                            No queues configured yet. <a href="/queues" class="text-info">Create a queue</a> first.
-                        </div>
-                    </div>
+                            <!-- WhatsApp section -->
+                            <div class="col-12">
+                                <h6 class="text-muted small text-uppercase mb-2"><i class="bi bi-whatsapp text-success me-1"></i>WhatsApp</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label small">WhatsApp connector</label>
+                                        <select id="ocWaConnector" class="form-select form-select-sm"
+                                                onchange="loadWaMetaTemplates(this.value)">
+                                            <option value="">— none —</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small">
+                                            HSM template <span class="badge bg-success ms-1" style="font-size:9px"><i class="bi bi-whatsapp me-1"></i>from Meta</span>
+                                        </label>
+                                        <select id="ocWaTemplate" class="form-select form-select-sm">
+                                            <option value="">— select connector first —</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12" id="ocWaVarWrap" style="display:none">
+                                        <label class="form-label small text-muted">Variable overrides <span class="text-muted" style="font-size:11px">(leave blank to use contact field binding)</span></label>
+                                        <div id="ocWaVarRows" class="d-flex flex-column gap-1"></div>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <!-- ── Agents ── -->
-                    <div class="tab-pane fade" id="tabCAgents">
-                        <p class="text-muted small mb-2">Select the agents assigned to work this campaign.</p>
-                        <div id="cAgentList" class="row g-2"></div>
-                        <div id="cAgentEmpty" class="text-muted small fst-italic mt-2" style="display:none">
-                            No active users found. <a href="/users" class="text-info">Manage users</a> under User Management.
-                        </div>
-                    </div>
+                            <!-- SMS section -->
+                            <div class="col-12">
+                                <h6 class="text-muted small text-uppercase mb-2"><i class="bi bi-phone text-info me-1"></i>SMS</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label small">SMS connector</label>
+                                        <select id="ocSmsConnector" class="form-select form-select-sm">
+                                            <option value="">— none —</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small">
+                                            SMS template
+                                            <a href="/msg-templates" target="_blank" class="ms-1 text-muted small"><i class="bi bi-box-arrow-up-right"></i></a>
+                                        </label>
+                                        <select id="ocSmsTemplate" class="form-select form-select-sm">
+                                            <option value="">— none —</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12" id="ocSmsVarWrap" style="display:none">
+                                        <label class="form-label small text-muted">Variable overrides</label>
+                                        <div id="ocSmsVarRows" class="d-flex flex-column gap-1"></div>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <!-- ── Outcomes ── -->
-                    <div class="tab-pane fade" id="tabCOutcomes">
-                        <p class="text-muted small mb-2">Select the outcomes available to agents for contacts reached in this campaign.</p>
-                        <div id="cOutcomeList" class="row g-2"></div>
-                        <div id="cOutcomeEmpty" class="text-muted small fst-italic mt-2" style="display:none">
-                            No active outcomes configured. <a href="/outcomes" class="text-info">Add outcomes</a> under Business Settings.
+                            <!-- Email section -->
+                            <div class="col-12">
+                                <h6 class="text-muted small text-uppercase mb-2"><i class="bi bi-envelope text-warning me-1"></i>Email</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label small">Email connector</label>
+                                        <select id="ocEmailConnector" class="form-select form-select-sm">
+                                            <option value="">— none —</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small">
+                                            Email template
+                                            <a href="/msg-templates" target="_blank" class="ms-1 text-muted small"><i class="bi bi-box-arrow-up-right"></i></a>
+                                        </label>
+                                        <select id="ocEmailTemplate" class="form-select form-select-sm">
+                                            <option value="">— none —</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12" id="ocEmailVarWrap" style="display:none">
+                                        <label class="form-label small text-muted">Variable overrides</label>
+                                        <div id="ocEmailVarRows" class="d-flex flex-column gap-1"></div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
                 </div>
+
             </div>
+
             <div class="modal-footer">
+
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
                 <button type="button" class="btn btn-primary" onclick="saveCampaign()">
+
                     <i class="bi bi-floppy me-1"></i>Save Campaign
+
                 </button>
+
             </div>
+
         </div>
+
     </div>
+
 </div>
+
+
 
 <!-- Confirm delete -->
+
 <div class="modal fade" id="deleteCModal" tabindex="-1">
+
     <div class="modal-dialog modal-sm">
+
         <div class="modal-content">
+
             <div class="modal-header"><h6 class="modal-title">Delete Campaign</h6></div>
+
             <div class="modal-body">
+
                 <p class="mb-0">Delete <strong id="deleteCName"></strong>? This cannot be undone.</p>
+
             </div>
+
             <div class="modal-footer">
+
                 <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
                 <button class="btn btn-sm btn-danger" onclick="confirmDeleteCampaign()">Delete</button>
+
             </div>
+
         </div>
+
     </div>
+
 </div>
 
+
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/static/js/campaigns.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+
+<script src="/static/js/campaigns.js?v=2"></script>
+
 </body>
+
 </html>
+

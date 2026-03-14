@@ -6,7 +6,7 @@ from playwright.sync_api import sync_playwright, Page, BrowserContext
 
 BASE_URL = os.getenv("WIZZARDCHAT_URL", "http://127.0.0.1:8091")
 ADMIN_USER = os.getenv("WIZZARDCHAT_ADMIN_USER", "admin")
-ADMIN_PASS = os.getenv("WIZZARDCHAT_ADMIN_PASS", "M@M@5t3r")
+ADMIN_PASS = os.getenv("WIZZARDCHAT_ADMIN_PASS")  # must be set in env — no default
 
 
 @pytest.fixture(scope="session")

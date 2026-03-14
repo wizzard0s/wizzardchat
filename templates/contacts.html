@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contacts – WizzardChat</title>
+    <title>Contacts â€“ WizzardChat</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="/static/css/wizzardchat.css" rel="stylesheet">
@@ -27,48 +27,101 @@
     </style>
 </head>
 <body>
-<!-- ─────────────────────────── Sidebar ─────────────────────────── -->
-<nav id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark"
-     style="width:220px;height:100vh;position:fixed;overflow-y:auto;">
-    <a href="/" class="d-flex align-items-center mb-3 text-white text-decoration-none">
+<!-- Sidebar -->
+<nav id="sidebar" class="p-3 text-white">
+    <a href="/" class="d-flex align-items-center mb-2 text-white text-decoration-none">
         <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
         <span class="fs-5 fw-bold">WizzardChat</span>
     </a>
-    <hr>
-    <ul class="nav nav-pills flex-column mb-auto">
-        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
-        <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
-        <li class="nav-item"><a href="/contacts" class="nav-link active"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
-        <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
-        <li class="nav-item"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
-        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">User Management</li>
-        <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
-        <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
-        <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
-        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">Business Settings</li>
-        <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
-        <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
-        <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>            <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>        <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
-    </ul>
-    <hr>
-    <div class="dropdown">
-        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-            <i class="bi bi-person-circle me-2"></i><strong id="currentUser">Admin</strong>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-            <li><a class="dropdown-item" href="#" id="btnLogout">Sign out</a></li>
-        </ul>
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="flex-fill text-truncate small" id="agentName">â€“</span>
+        <button class="btn btn-sm btn-outline-secondary" id="btnLogout" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
     </div>
+    <select class="form-select form-select-sm av-offline mb-2" id="availabilitySelect" title="Set your availability">
+        <option value="available">ðŸŸ¢ Available</option>
+        <option value="admin">ðŸ”µ Admin</option>
+        <option value="lunch">ðŸŸ¡ Lunch</option>
+        <option value="break">ðŸŸ  Break</option>
+        <option value="training">ðŸŸ£ Training</option>
+        <option value="meeting">ðŸ”µ Meeting</option>
+        <option value="offline" selected>âš« Offline</option>
+    </select>
+    <hr class="border-secondary">
+    <ul class="nav nav-pills flex-column flex-nowrap" style="flex:1 1 0;overflow-y:auto;min-height:0;">
+        <li class="nav-item" style="margin-bottom:4px;"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-monitoring',this)">
+                <span>Monitoring</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-monitoring">
+                <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a href="/wallboard" class="nav-link text-white"><i class="bi bi-display me-2"></i>Wallboard</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-operations',this)">
+                <span>Operations</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-operations">
+                <li class="nav-item"><a href="/interactions" class="nav-link text-white"><i class="bi bi-chat-square-text me-2"></i>Interactions</a></li>
+                <li class="nav-item"><a href="/flows" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-engagement',this)">
+                <span>Engagement</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-engagement">
+                <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+                <li class="nav-item"><a href="/contacts" class="active"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+                <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+                <li class="nav-item"><a href="/msg-templates" class="nav-link text-white"><i class="bi bi-card-text me-2"></i>Templates</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-usermgmt',this)">
+                <span>User Management</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-usermgmt">
+                <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+                <li class="nav-item"><a href="/groups" class="nav-link text-white"><i class="bi bi-collection me-2"></i>Groups</a></li>
+                <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+                <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-bizsettings',this)">
+                <span>Business Settings</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-bizsettings">
+                <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+                <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+                <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>
+                <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+                <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+                <li class="nav-item"><a href="/audit-log" class="nav-link text-white"><i class="bi bi-journal-text me-2"></i>Audit Log</a></li>
+                <li class="nav-item"><a href="/docs" target="_blank" class="nav-link text-white"><i class="bi bi-code-square me-2"></i>API Docs</a></li>
+            </ul>
+        </li>
+    </ul>
 </nav>
 
-<!-- ─────────────────────────── Main ─────────────────────────── -->
+
+
+
+
+<!-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Main â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 <main style="margin-left:220px;padding:24px;min-height:100vh;">
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h4 class="mb-0 fw-bold"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Contacts</h4>
-            <small class="text-muted" id="contactCountLabel">Loading…</small>
+            <small class="text-muted" id="contactCountLabel">Loadingâ€¦</small>
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-outline-secondary btn-sm" onclick="openImportModal()">
@@ -94,12 +147,12 @@
         </li>
     </ul>
 
-    <!-- ═══ CONTACTS TAB ═══ -->
+    <!-- â•â•â• CONTACTS TAB â•â•â• -->
     <div id="contactsPane">
         <!-- Filters -->
         <div class="d-flex gap-2 mb-3 flex-wrap">
             <input type="text" id="searchInput" class="form-control form-control-sm" style="max-width:260px"
-                   placeholder="Search name, email, phone…" oninput="debounceSearch()">
+                   placeholder="Search name, email, phoneâ€¦" oninput="debounceSearch()">
             <select id="filterStatus" class="form-select form-select-sm" style="max-width:160px" onchange="loadContacts()">
                 <option value="">All Statuses</option>
                 <option value="active">Active</option>
@@ -120,7 +173,7 @@
              style="background:rgba(13,110,253,.15);border:1px solid rgba(13,110,253,.3);">
             <span id="selectedCount" class="text-primary fw-semibold small me-2">0 selected</span>
             <select id="bulkListSelect" class="form-select form-select-sm" style="max-width:200px">
-                <option value="">Add to list…</option>
+                <option value="">Add to listâ€¦</option>
             </select>
             <button class="btn btn-sm btn-primary" onclick="bulkAddToList()">Add</button>
             <button class="btn btn-sm btn-outline-danger ms-2" onclick="bulkDelete()">
@@ -146,7 +199,7 @@
                     </tr>
                 </thead>
                 <tbody id="contactsBody">
-                    <tr><td colspan="9" class="text-center text-muted py-4">Loading…</td></tr>
+                    <tr><td colspan="9" class="text-center text-muted py-4">Loadingâ€¦</td></tr>
                 </tbody>
             </table>
         </div>
@@ -166,7 +219,7 @@
         </div>
     </div>
 
-    <!-- ═══ LISTS TAB ═══ -->
+    <!-- â•â•â• LISTS TAB â•â•â• -->
     <div id="listsPane" style="display:none">
         <div class="d-flex justify-content-end mb-3">
             <button class="btn btn-primary btn-sm" onclick="openListModal()">
@@ -174,12 +227,12 @@
             </button>
         </div>
         <div id="listsGrid" class="row g-3">
-            <div class="col-12 text-center text-muted py-5">Loading…</div>
+            <div class="col-12 text-center text-muted py-5">Loadingâ€¦</div>
         </div>
     </div>
 </main>
 
-<!-- ════════════════ Contact Modal (Add / Edit) ════════════════ -->
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• Contact Modal (Add / Edit) â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div class="modal fade" id="contactModal" tabindex="-1">
 <div class="modal-dialog modal-lg modal-dialog-scrollable">
 <div class="modal-content">
@@ -203,7 +256,7 @@
                 <div class="col-md-3">
                     <label class="form-label small">Title</label>
                     <select id="c-title" class="form-select form-select-sm">
-                        <option value="">—</option>
+                        <option value="">â€”</option>
                         <option>Mr</option><option>Mrs</option><option>Ms</option>
                         <option>Dr</option><option>Prof</option>
                     </select>
@@ -236,7 +289,7 @@
                 <div class="col-md-4">
                     <label class="form-label small">Source</label>
                     <select id="c-source" class="form-select form-select-sm">
-                        <option value="">—</option>
+                        <option value="">â€”</option>
                         <option value="manual">Manual</option>
                         <option value="import">Import</option>
                         <option value="web">Web</option>
@@ -314,7 +367,7 @@
                 <div class="col-md-4">
                     <label class="form-label small">Gender</label>
                     <select id="c-gender" class="form-select form-select-sm">
-                        <option value="">—</option>
+                        <option value="">â€”</option>
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                         <option value="other">Other</option>
@@ -323,12 +376,12 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small">Tags</label>
-                    <input type="text" id="c-tags" class="form-control form-control-sm" placeholder="vip, prospect, …">
+                    <input type="text" id="c-tags" class="form-control form-control-sm" placeholder="vip, prospect, â€¦">
                     <div class="form-text">Comma-separated</div>
                 </div>
                 <div class="col-12">
                     <label class="form-label small">Notes</label>
-                    <textarea id="c-notes" class="form-control form-control-sm" rows="3" placeholder="Internal notes…"></textarea>
+                    <textarea id="c-notes" class="form-control form-control-sm" rows="3" placeholder="Internal notesâ€¦"></textarea>
                 </div>
             </div>
         </div>
@@ -341,7 +394,7 @@
     </div>
 </div></div></div>
 
-<!-- ════════════════ List Modal (Add / Edit) ════════════════ -->
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• List Modal (Add / Edit) â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div class="modal fade" id="listModal" tabindex="-1">
 <div class="modal-dialog">
 <div class="modal-content">
@@ -357,7 +410,7 @@
         </div>
         <div class="mb-3">
             <label class="form-label small">Description</label>
-            <textarea id="list-description" class="form-control form-control-sm" rows="2" placeholder="Optional description…"></textarea>
+            <textarea id="list-description" class="form-control form-control-sm" rows="2" placeholder="Optional descriptionâ€¦"></textarea>
         </div>
         <div class="mb-3">
             <label class="form-label small">Colour</label>
@@ -384,7 +437,7 @@
     </div>
 </div></div></div>
 
-<!-- ════════════════ Import CSV Modal ════════════════ -->
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• Import CSV Modal â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div class="modal fade" id="importModal" tabindex="-1">
 <div class="modal-dialog modal-xl modal-dialog-scrollable">
 <div class="modal-content">
@@ -413,7 +466,7 @@
             <div class="mb-3">
                 <label class="form-label small">Add to List (optional)</label>
                 <select id="importListId" class="form-select form-select-sm">
-                    <option value="">— No list —</option>
+                    <option value="">â€” No list â€”</option>
                 </select>
                 <div class="form-text">Imported contacts will also be added to this list.</div>
             </div>
@@ -463,12 +516,13 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/sidebar.js"></script>
 <style>
 .color-preset { width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent; }
 .color-preset:hover { border-color: #fff; }
 </style>
 <script>
-/* ─── Auth ─── */
+/* â”€â”€â”€ Auth â”€â”€â”€ */
 const TOKEN_KEY = 'wizzardchat_token';
 let token = localStorage.getItem(TOKEN_KEY) || '';
 
@@ -511,17 +565,17 @@ document.getElementById('btnLogout').addEventListener('click', e => {
 const payload = token ? JSON.parse(atob(token.split('.')[1]||'e30=')) : {};
 document.getElementById('currentUser').textContent = payload.sub || 'Admin';
 
-/* ─── State ─── */
+/* â”€â”€â”€ State â”€â”€â”€ */
 let currentTab = 'contacts';
 let page = 0;
 const PAGE_SIZE = 50;
 let selectedIds = new Set();
 let allLists = [];
 let csvHeaders = [], csvSuggestions = {}, csvFile = null;
-const _contacts = {};  // id → contact data cache
-const _lists = {};     // id → list data cache
+const _contacts = {};  // id â†’ contact data cache
+const _lists = {};     // id â†’ list data cache
 
-/* ─── Tab switch ─── */
+/* â”€â”€â”€ Tab switch â”€â”€â”€ */
 function switchTab(tab) {
     currentTab = tab;
     document.getElementById('contactsPane').style.display = tab==='contacts' ? '' : 'none';
@@ -531,7 +585,7 @@ function switchTab(tab) {
     if (tab==='lists') loadLists();
 }
 
-/* ─── Contacts ─── */
+/* â”€â”€â”€ Contacts â”€â”€â”€ */
 let searchTimer = null;
 function debounceSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(()=>{ page=0; loadContacts(); }, 350); }
 function resetFilters() {
@@ -564,7 +618,7 @@ async function loadContacts() {
         document.getElementById('contactCountLabel').textContent = `${total} contact${total!==1?'s':''}`;
         const showing = total === 0
             ? 'No contacts'
-            : `Showing ${page*PAGE_SIZE+1}–${Math.min((page+1)*PAGE_SIZE, total)} of ${total}`;
+            : `Showing ${page*PAGE_SIZE+1}â€“${Math.min((page+1)*PAGE_SIZE, total)} of ${total}`;
         document.getElementById('pageInfo').textContent = showing;
         document.getElementById('btnPrev').disabled = page===0;
         document.getElementById('btnNext').disabled = (page+1)*PAGE_SIZE >= total;
@@ -589,20 +643,20 @@ function renderContacts(contacts) {
     }
     tb.innerHTML = contacts.map(c => {
         _contacts[c.id] = c;  // cache for edit onclick
-        const name = [c.first_name, c.last_name].filter(Boolean).join(' ') || '—';
+        const name = [c.first_name, c.last_name].filter(Boolean).join(' ') || 'â€”';
         const listBadges = (c.lists||[]).map(l =>
             `<span class="contact-list-badge"><span class="list-color-dot" style="background:#0d6efd"></span>${esc(l.name)}</span>`
         ).join('');
         const checked = selectedIds.has(c.id) ? 'checked' : '';
-        const date = c.created_at ? new Date(c.created_at).toLocaleDateString('en-ZA') : '—';
+        const date = c.created_at ? new Date(c.created_at).toLocaleDateString('en-ZA') : 'â€”';
         return `<tr data-id="${c.id}">
             <td><input type="checkbox" class="row-check" value="${c.id}" ${checked} onchange="toggleSelect(this)"></td>
             <td><span class="fw-semibold">${esc(name)}</span>${c.job_title?`<br><small class="text-muted">${esc(c.job_title)}</small>`:''}</td>
-            <td>${esc(c.email||'—')}</td>
-            <td>${esc(c.phone||'—')}</td>
-            <td>${esc(c.company||'—')}</td>
+            <td>${esc(c.email||'â€”')}</td>
+            <td>${esc(c.phone||'â€”')}</td>
+            <td>${esc(c.company||'â€”')}</td>
             <td>${statusBadge(c.status||'active')}</td>
-            <td>${listBadges||'<span class="text-muted small">—</span>'}</td>
+            <td>${listBadges||'<span class="text-muted small">â€”</span>'}</td>
             <td><small class="text-muted">${date}</small></td>
             <td>
                 <button class="btn btn-link btn-sm p-0 me-2" onclick="editContact('${c.id}')" title="Edit">
@@ -620,7 +674,7 @@ function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 
 function changePage(d) { page = Math.max(0, page+d); loadContacts(); }
 
-/* ─── Selection ─── */
+/* â”€â”€â”€ Selection â”€â”€â”€ */
 function toggleSelect(cb) {
     if (cb.checked) selectedIds.add(cb.value); else selectedIds.delete(cb.value);
     updateBulkToolbar();
@@ -669,7 +723,7 @@ async function bulkAddToList() {
     } catch(e) { toast(e.message, false); }
 }
 
-/* ─── Contact Modal ─── */
+/* â”€â”€â”€ Contact Modal â”€â”€â”€ */
 const CONTACT_FIELDS = ['first_name','last_name','title','job_title','company','email','phone',
     'whatsapp_id','address_line1','city','state','postal_code','country',
     'date_of_birth','gender','language','status','source','tags','notes'];
@@ -730,7 +784,7 @@ async function deleteContact(id) {
     } catch(e) { toast(e.message, false); }
 }
 
-/* ─── Lists ─── */
+/* â”€â”€â”€ Lists â”€â”€â”€ */
 async function loadLists() {
     try {
         const lists = await api('GET', '/api/v1/contacts/lists');
@@ -819,7 +873,7 @@ async function deleteList(id, name) {
     } catch(e) { toast(e.message, false); }
 }
 
-/* ─── CSV Import ─── */
+/* â”€â”€â”€ CSV Import â”€â”€â”€ */
 function openImportModal() { goImportStep(1); bootstrap.Modal.getOrCreateInstance(document.getElementById('importModal')).show(); }
 
 function goImportStep(n) {
@@ -874,7 +928,7 @@ async function runImport() {
     try {
         const r = await apiForm(url, fd);
         document.getElementById('importResults').innerHTML = `
-            <div class="display-6 mb-3">✅</div>
+            <div class="display-6 mb-3">âœ…</div>
             <h5 class="mb-3">Import Complete</h5>
             <div class="d-flex justify-content-center gap-4">
                 <div><div class="fs-4 fw-bold text-success">${r.created}</div><div class="text-muted small">Created</div></div>
@@ -887,7 +941,7 @@ async function runImport() {
     } catch(e) { toast(e.message, false); }
 }
 
-/* ─── Init ─── */
+/* â”€â”€â”€ Init â”€â”€â”€ */
 async function init() {
     try { await loadLists(); } catch(e) { console.error('init loadLists:', e); }
     try { await loadContacts(); } catch(e) { console.error('init loadContacts:', e); }

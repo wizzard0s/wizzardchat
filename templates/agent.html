@@ -1,277 +1,1213 @@
-<!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+﻿<!DOCTYPE html>
+
+<html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+    <script src="/static/js/theme-init.js"></script>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent Panel – WizzardChat</title>
+
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+
+    <title>WizzardChat – Agent Panel</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+
     <style>
+
         html, body { height: 100%; overflow: hidden; background: #1a1d23; }
 
-        /* ── Sidebar nav ── */
-        #sidebar {
-            width: 220px; position: fixed; top: 0; left: 0;
-            height: 100vh; background: #12141a; z-index: 100;
-            display: flex; flex-direction: column;
-        }
 
-        /* ── Session panel ── */
+
+        /* -- Session panel -- */
+
         #sessionPanel {
+
             width: 300px; position: fixed; top: 0; left: 220px;
+
             height: 100vh; background: #1e2029; border-right: 1px solid #2e3140;
+
             display: flex; flex-direction: column; z-index: 90;
+
         }
 
-        /* ── Chat area ── */
+
+
+        /* -- Chat area -- */
+
         #chatArea {
+
             margin-left: 520px;
+
             height: 100vh;
+
             display: flex; flex-direction: column;
+
         }
 
-        /* ── Session cards ── */
+
+
+        /* -- Session cards -- */
+
         .session-card {
+
             cursor: pointer; border: 1px solid transparent;
+
             transition: background .15s, border-color .15s;
+
         }
+
         .session-card:hover { background: #2a2d3a; border-color: #3a3f55; }
+
         .session-card.active  { background: #1e3a5f; border-color: #0d6efd; }
+
         .session-card.waiting { border-left: 3px solid #fd7e14; }
+
         .session-card.mine    { border-left: 3px solid #198754; }
 
-        /* ── Messages ── */
+
+
+        /* -- Messages -- */
+
         #msgList { overflow-y: auto; flex: 1; padding: 16px; gap: 8px; display: flex; flex-direction: column; }
 
+
+
         .bubble {
+
             max-width: 72%; padding: 8px 12px; border-radius: 12px;
+
             font-size: .9rem; line-height: 1.4;
+
         }
+
         .bubble.bot     { background: #2a2d3a; color: #cdd; align-self: flex-start; border-bottom-left-radius: 2px; }
+
         .bubble.visitor { background: #1a3a5c; color: #aef; align-self: flex-start; border-bottom-left-radius: 2px; }
+
         .bubble.agent   { background: #1a4a2e; color: #afc; align-self: flex-end;   border-bottom-right-radius: 2px; }
+
         .bubble.system  { background: transparent; color: #888; font-size: .78rem; align-self: center; text-align: center; font-style: italic; }
+
+
 
         .bubble .meta   { font-size: .72rem; opacity: .55; margin-top: 3px; }
 
+
+
         .menu-opts-list { margin-top: 5px; }
+
         .menu-opt-item  { font-size: .83rem; color: #8ac; padding: 1px 0; }
 
+
+
         .chat-divider {
+
             align-self: center; font-size: .72rem; color: #4a6080;
+
             background: #191b24; border: 1px solid #2a3348;
+
             border-radius: 10px; padding: 3px 14px; margin: 10px 0;
+
             letter-spacing: .04em;
+
         }
 
+
+
         .menu-options { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+
         .menu-opt-btn { font-size: .82rem; padding: 4px 10px; }
+
+
 
         #typingIndicator { font-size: .8rem; color: #888; height: 20px; padding: 0 8px; }
 
-        /* ── Status dot ── */
+
+
+        /* -- Status dot -- */
+
         .status-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
         .status-dot.online  { background: #198754; }
+
         .status-dot.offline { background: #6c757d; }
 
-        /* ── Campaign bar ── */
+
+
+        /* -- Campaign bar -- */
+
         #campaignBar { background: #12141a; border-bottom: 1px solid #2e3140; padding: 8px 12px; }
 
-        /* ── Empty state ── */
+
+
+        /* -- Dialler view (replaces #noSession when campaign active) -- */
+
+        #diallerView { flex: 1; display: none; flex-direction: column; overflow-y: auto; padding: 20px 24px; }
+        .dp-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 0 12px; border-bottom: 1px solid #2e3140; margin-bottom: 16px; }
+        .dp-section-label { font-size: .68rem; color: #6c757d; font-weight: 600; letter-spacing: .05em; margin-bottom: 8px; }
+        .dp-type-badge { font-size: .7rem; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+        .dp-type-voice     { background: #1a3a5c; color: #6ea8fe; }
+        .dp-type-sms       { background: #1a3a1c; color: #75b798; }
+        .dp-type-whatsapp  { background: #122b12; color: #25d366; }
+        .dp-type-email     { background: #3a2d1a; color: #ffc107; }
+        .dp-type-blast     { background: #3a1a3a; color: #e083f8; }
+        .dp-progress-section { margin-bottom: 20px; }
+        .dp-prog-track { height: 6px; background: #2e3140; border-radius: 4px; overflow: hidden; }
+        .dp-prog-fill  { height: 100%; background: #0d6efd; border-radius: 4px; transition: width .4s ease; }
+        .dp-stat-pill  { font-size: .72rem; }
+        .dp-contact-section { flex: 1; }
+        .dp-contact-card { background: #1e2029; border: 1px solid #2e3140; border-radius: 10px; padding: 16px; }
+        .dp-contact-card.has-outcome { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+        .dp-exhausted { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 0; color: #198754; text-align: center; }
+        .dp-action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+        .dp-outcome-section { background: #1c1509; border: 1px solid #2e3140; border-top: 3px solid #fd7e14; margin-top: -1px; border-radius: 0 0 10px 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+        .dp-outcome-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+        .dp-outcome-pill { font-size: .8rem; padding: 5px 12px; border-radius: 6px; border: 1px solid #3a3a50; background: #252836; color: #ccc; cursor: pointer; transition: background .15s, border-color .15s; }
+        .dp-outcome-pill:hover    { background: #2e3240; border-color: #6c757d; }
+        .dp-outcome-pill.selected { background: #1a3a5c; border-color: #0d6efd; color: #6ea8fe; }
+        .dp-outcome-pill.positive { border-left: 3px solid #198754; }
+        .dp-outcome-pill.negative { border-left: 3px solid #dc3545; }
+        .dp-outcome-pill.neutral  { border-left: 3px solid #6c757d; }
+        .dp-notes { background: #12141a; border: 1px solid #3a3000; color: #ccc; border-radius: 6px; padding: 8px 10px; font-size: .84rem; resize: vertical; min-height: 52px; width: 100%; }
+        .dp-notes:focus { outline: none; border-color: #fd7e14; }
+
+
+
+        /* -- Empty state -- */
+
         #noSession { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #555; }
 
+
+
         /* Count badge */
+
         .section-count { font-size: .7rem; background: #374151; padding: 1px 6px; border-radius: 10px; color: #aaa; }
 
-        /* ── Availability states ── */
-        #availabilitySelect { font-size: .8rem; background: #1e2029; color: #ccc; border-color: #2e3140; cursor: pointer; }
-        #availabilitySelect.av-available { border-color: #198754; }
-        #availabilitySelect.av-admin     { border-color: #0d6efd; }
-        #availabilitySelect.av-lunch     { border-color: #ffc107; }
-        #availabilitySelect.av-break     { border-color: #fd7e14; }
-        #availabilitySelect.av-training  { border-color: #6f42c1; }
-        #availabilitySelect.av-meeting   { border-color: #20c997; }
-        #availabilitySelect.av-offline   { border-color: #6c757d; }
+
+
+        /* -- Wrap-up panel -- */
+
+        #wrapPanel {
+
+            background: #1c1509;
+
+            border-top: 3px solid #fd7e14;
+
+            padding: 14px 20px;
+
+            display: none;
+
+            flex-direction: column;
+
+            gap: 10px;
+
+            flex-shrink: 0;
+
+        }
+
+        #wrapPanel.active { display: flex; }
+
+        #wrapHeader { display: flex; align-items: center; justify-content: space-between; }
+
+        #wrapCountdown {
+
+            font-size: 1.5rem; font-weight: 700; color: #fd7e14;
+
+            font-variant-numeric: tabular-nums;
+
+            min-width: 3.5ch;
+
+        }
+
+        #wrapCountdown.urgent { color: #dc3545; animation: wrapPulse .6s ease infinite alternate; }
+
+        @keyframes wrapPulse { from { opacity: 1; } to { opacity: .45; } }
+
+        #wrapNotes {
+
+            background: #12141a; border: 1px solid #3a3000; color: #ccc;
+
+            border-radius: 6px; padding: 8px 10px; font-size: .84rem;
+
+            resize: vertical; min-height: 52px; max-height: 120px;
+
+        }
+
+        #wrapNotes:focus { outline: none; border-color: #fd7e14; }
+
+        #wrapOutcomeRow { display: flex; flex-wrap: wrap; gap: 8px; }
+
+        .wrap-outcome-btn {
+
+            font-size: .8rem; padding: 5px 12px; border-radius: 6px;
+
+            border: 1px solid #3a3a50; background: #252836; color: #ccc;
+
+            cursor: pointer; transition: background .15s, border-color .15s;
+
+        }
+
+        .wrap-outcome-btn:hover { background: #2e3240; border-color: #6c757d; }
+
+        .wrap-outcome-btn.positive  { border-left: 3px solid #198754; }
+
+        .wrap-outcome-btn.negative  { border-left: 3px solid #dc3545; }
+
+        .wrap-outcome-btn.escalation{ border-left: 3px solid #fd7e14; }
+
+        .wrap-outcome-btn.neutral   { border-left: 3px solid #6c757d; }
+
+        .wrap-outcome-btn.flow_redirect { border-left: 3px solid #0dcaf0; }
+
+
+
         /* Emoji picker */
+
         #agentInputWrap { position: relative; flex: 1; display: flex; gap: 6px; align-items: flex-end; }
+
         #agentEmojiPicker {
+
             position: absolute; bottom: calc(100% + 8px); left: 0;
+
             background: #1e2029; border: 1px solid #343a40;
+
             border-radius: 10px; padding: 6px;
+
             display: none; flex-wrap: wrap; gap: 1px;
+
             width: 272px; max-height: 192px; overflow-y: auto;
+
             box-shadow: 0 4px 16px rgba(0,0,0,.4); z-index: 9999;
+
         }
+
         #agentEmojiPicker.ep-open { display: flex; }
+
         #agentEmojiPicker button {
+
             background: none; border: none; font-size: 19px;
+
             width: 30px; height: 30px; cursor: pointer; border-radius: 4px;
+
             color: inherit; padding: 0;
+
         }
+
         #agentEmojiPicker button:hover { background: rgba(255,255,255,.1); }
+
         #agentEmojiBtn, #agentAttachBtn {
+
             background: none; border: 1px solid #495057; color: #adb5bd;
+
             font-size: 17px; width: 36px; height: 36px; border-radius: 6px;
+
             display: flex; align-items: center; justify-content: center;
+
             cursor: pointer; flex-shrink: 0; transition: color .15s, border-color .15s;
+
         }
+
         #agentEmojiBtn:hover, #agentAttachBtn:hover { color: #fff; border-color: #adb5bd; }
+
         #agentEmojiBtn:disabled, #agentAttachBtn:disabled { opacity: .35; cursor: default; pointer-events: none; }
+
         /* Attachment bubbles */
+
         .bubble.agent .attach-img, .bubble.visitor .attach-img {
+
             max-width: 220px; max-height: 160px; border-radius: 8px; display: block; cursor: pointer; margin-top: 4px;
+
         }
+
         .bubble .attach-file {
+
             display: inline-flex; align-items: center; gap: 6px; margin-top: 4px;
+
             color: #74b9ff; text-decoration: none; word-break: break-all; font-size: 13px;
+
         }
+
         .bubble .attach-file:hover { text-decoration: underline; }
+
+
+
+        /* -- Copilot panel -- */
+
+        #copilotPanel {
+
+            width: 340px; position: fixed; top: 0; right: -340px;
+
+            height: 100vh; background: #13151e; border-left: 1px solid #2a3348;
+
+            display: flex; flex-direction: column; z-index: 95;
+
+            transition: right .25s ease;
+
+        }
+
+        #copilotPanel.open { right: 0; }
+
+        body.copilot-open #chatArea { margin-right: 340px; }
+
+
+
+        .cop-header { background: #0d0f16; border-bottom: 1px solid #2a3348; padding: 12px 14px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+        .cop-title  { font-size: .9rem; font-weight: 600; color: #cdd; flex: 1; }
+
+        .cop-msg-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+        .cop-bubble { border-radius: 10px; padding: 9px 12px; font-size: .84rem; line-height: 1.5; max-width: 100%; }
+
+        .cop-bubble.user   { background: #1a3a5c; color: #aef; align-self: flex-end; }
+
+        .cop-bubble.assistant { background: #1e2534; color: #cdd; align-self: flex-start; white-space: pre-wrap; }
+
+        .cop-bubble.thinking  { background: #1e2534; color: #666; align-self: flex-start; font-style: italic; }
+
+        .cop-sources { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+
+        .cop-source-link { font-size: .76rem; color: #6ea8fe; text-decoration: none; display: flex; align-items: baseline; gap: 4px; }
+
+        .cop-source-link:hover { text-decoration: underline; }
+
+        .cop-source-score { font-size: .72rem; color: #666; }
+
+        .cop-input-row { border-top: 1px solid #2a3348; padding: 10px; display: flex; gap: 6px; flex-shrink: 0; background: #0d0f16; }
+
+        #copInput { background: #1e2534; border: 1px solid #2e3548; color: #cdd; border-radius: 8px; font-size: .84rem; resize: none; flex: 1; padding: 7px 10px; max-height: 100px; }
+
+        #copInput:focus { outline: none; border-color: #0d6efd; }
+
+        #copInput::placeholder { color: #454d60; }
+
+        .cop-btn { background: none; border: 1px solid #2e3548; color: #aaa; border-radius: 7px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; flex-shrink: 0; }
+
+        .cop-btn:hover { border-color: #6ea8fe; color: #6ea8fe; }
+
+        .cop-send-btn { background: #0d6efd; border: none; color: #fff; border-radius: 7px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-size: 14px; }
+
+        .cop-send-btn:hover { background: #0b5ed7; }
+
+        .cop-send-btn:disabled { opacity: .4; cursor: default; }
+
+        .cop-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #454d60; font-size: .82rem; gap: 8px; padding: 20px; text-align: center; }
+
+        /* ── Voice Call Card ─────────────────────────────────────────────── */
+        #voiceCard {
+            display:none;
+            margin:6px 10px 4px;
+            padding:10px 12px;
+            background:#1a1e2e;
+            border:1px solid #2e3140;
+            border-left:3px solid #198754;
+            border-radius:8px;
+        }
+        #voiceCard.vc-active  { display:block; }
+        #voiceCard.vc-ringing { border-left-color:#ffc107; }
+        #voiceCard.vc-held    { border-left-color:#0d6efd; }
+        .vc-caller { font-size:.82rem; font-weight:600; color:#e2e8f0; }
+        .vc-phone  { font-size:.74rem; color:#6c757d; }
+        #vcTimer   { font-size:.85rem; font-weight:700; color:#198754; font-variant-numeric:tabular-nums; letter-spacing:.03em; }
+        .vc-controls { display:flex; gap:5px; margin-top:8px; flex-wrap:wrap; }
+        .vc-btn {
+            flex:1; min-width:38px; padding:4px 0;
+            background:#2e3140; border:1px solid #3e4254;
+            border-radius:6px; color:#e2e8f0; font-size:.78rem;
+            cursor:pointer; transition:background .15s,color .15s; white-space:nowrap;
+        }
+        .vc-btn:hover   { background:#3e4254; }
+        .vc-btn.vc-on   { background:#0d6efd; border-color:#0d6efd; color:#fff; }
+        .vc-btn-end     { flex:0 0 38px; background:#dc3545; border-color:#dc3545; color:#fff; }
+        .vc-btn-end:hover { background:#bb2d3b; border-color:#bb2d3b; }
+
     </style>
+
 </head>
+
 <body>
 
-<!-- ── Sidebar nav ── -->
+
+
+<!-- -- Sidebar nav -- -->
+
 <nav id="sidebar" class="p-3 text-white">
-    <a href="/" class="d-flex align-items-center mb-3 text-white text-decoration-none">
+
+    <a href="/" class="d-flex align-items-center mb-2 text-white text-decoration-none">
+
         <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+
         <span class="fs-5 fw-bold">WizzardChat</span>
+
     </a>
-    <hr class="border-secondary">
-    <ul class="nav nav-pills flex-column mb-auto">
-        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-        <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
-        <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
-        <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
-        <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
-        <li class="nav-item"><a href="/agent" class="nav-link active"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
-        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">User Management</li>
-        <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
-        <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
-        <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
-        <li class="mt-2 mb-1 px-2 text-uppercase text-secondary fw-semibold" style="font-size:10px;letter-spacing:.08em;">Business Settings</li>
-        <li class="nav-item"><a href="#" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
-        <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
-        <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
-    </ul>
-    <hr class="border-secondary">
-    <div class="d-flex align-items-center gap-2 mb-2">
+
+    <div class="d-flex align-items-center gap-2 mb-1">
+
         <span class="status-dot online" id="wsStatusDot" title="WebSocket connection"></span>
+
         <span class="flex-fill text-truncate small" id="agentName">–</span>
+
         <button class="btn btn-sm btn-outline-secondary" id="btnLogout" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
+
     </div>
-    <select class="form-select form-select-sm av-offline" id="availabilitySelect" title="Set your availability">
+
+    <select class="form-select form-select-sm av-offline mb-2" id="availabilitySelect" title="Set your availability">
+
         <option value="available">🟢 Available</option>
+
         <option value="admin">🔵 Admin</option>
+
         <option value="lunch">🟡 Lunch</option>
+
         <option value="break">🟠 Break</option>
+
         <option value="training">🟣 Training</option>
-        <option value="meeting">🟦 Meeting</option>
+
+        <option value="meeting">🔵 Meeting</option>
+
         <option value="offline" selected>⚫ Offline</option>
+
     </select>
+
+    <hr class="border-secondary">
+
+    <ul class="nav nav-pills flex-column flex-nowrap" style="flex:1 1 0;overflow-y:auto;min-height:0;">
+        <li class="nav-item" style="margin-bottom:4px;"><a href="/agent" class="nav-link active"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-monitoring',this)">
+                <span>Monitoring</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-monitoring">
+                <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a href="/wallboard" class="nav-link text-white"><i class="bi bi-display me-2"></i>Wallboard</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-operations',this)">
+                <span>Operations</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-operations">
+                <li class="nav-item"><a href="/interactions" class="nav-link text-white"><i class="bi bi-chat-square-text me-2"></i>Interactions</a></li>
+                <li class="nav-item"><a href="/flows" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-engagement',this)">
+                <span>Engagement</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-engagement">
+                <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+                <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+                <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+                <li class="nav-item"><a href="/msg-templates" class="nav-link text-white"><i class="bi bi-card-text me-2"></i>Templates</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-usermgmt',this)">
+                <span>User Management</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-usermgmt">
+                <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+                <li class="nav-item"><a href="/groups" class="nav-link text-white"><i class="bi bi-collection me-2"></i>Groups</a></li>
+                <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+                <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-bizsettings',this)">
+                <span>Business Settings</span>
+                <i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-bizsettings">
+                <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+                <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+                <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>
+                <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+                <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+                <li class="nav-item"><a href="/audit-log" class="nav-link text-white"><i class="bi bi-journal-text me-2"></i>Audit Log</a></li>
+                <li class="nav-item"><a href="/docs" target="_blank" class="nav-link text-white"><i class="bi bi-code-square me-2"></i>API Docs</a></li>
+            </ul>
+        </li>
+        </ul>
+
 </nav>
 
-<!-- ── Session panel ── -->
+
+
+<!-- -- Session panel -- -->
+
 <div id="sessionPanel">
+
     <!-- Campaign selector bar -->
+
     <div id="campaignBar">
+
         <label class="form-label small text-muted mb-1 d-block">Active Campaign</label>
+
         <div class="d-flex gap-2">
+
             <select class="form-select form-select-sm" id="campaignSelect">
+
                 <option value="">— All campaigns —</option>
+
             </select>
+
             <button class="btn btn-sm btn-outline-primary" id="btnSetCampaign" title="Apply campaign filter">
+
                 <i class="bi bi-check2"></i>
+
             </button>
+
         </div>
+
         <div class="mt-1 small text-muted" id="campaignStatus">Not connected</div>
+
+        <button class="btn btn-sm btn-outline-info mt-2 w-100" id="dpBtnOpenPanel" style="display:none;">
+            <i class="bi bi-telephone-fill me-1"></i> Dialler
+        </button>
+
+    </div>
+
+    <!-- Capacity strip -->
+    <div id="capacityStrip">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+            <span style="font-size:.68rem;color:#6c757d;font-weight:600;letter-spacing:.05em;">CAPACITY</span>
+            <div class="d-flex align-items-center gap-1">
+                <button id="btnPickNext" title="Claim one extra interaction above your limit">+1 Pick Next</button>
+            </div>
+        </div>
+        <!-- Omni progress bar -->
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="cap-label">Omni</span>
+            <div class="cap-bar">
+                <div class="cap-bar-fill" id="capOmniBar" style="width:0%"></div>
+            </div>
+            <span class="cap-count" id="capOmniCount">0/–</span>
+        </div>
+        <!-- Per-channel pills -->
+        <div class="d-flex flex-wrap gap-1">
+            <span class="cap-pill" id="capPill-voice"><i class="bi bi-telephone-fill me-1"></i>0/–</span>
+            <span class="cap-pill" id="capPill-chat"><i class="bi bi-chat-fill me-1"></i>0/–</span>
+            <span class="cap-pill" id="capPill-whatsapp"><i class="bi bi-whatsapp me-1"></i>0/–</span>
+            <span class="cap-pill" id="capPill-email"><i class="bi bi-envelope-fill me-1"></i>0/–</span>
+            <span class="cap-pill" id="capPill-sms"><i class="bi bi-phone-fill me-1"></i>0/–</span>
+        </div>
+    </div>
+
+    <!-- ── Live Voice Call Card ─────────────────────────────────────── -->
+    <div id="voiceCard">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+            <div>
+                <div class="vc-caller" id="vcCallerName">Unknown Caller</div>
+                <div class="vc-phone"  id="vcCallerPhone"></div>
+            </div>
+            <span id="vcTimer">–:––</span>
+        </div>
+        <small class="text-muted" id="vcState"></small>
+        <div class="vc-controls">
+            <button id="vcBtnMute"     class="vc-btn" title="Mute microphone"><i class="bi bi-mic-mute-fill me-1"></i>Mute</button>
+            <button id="vcBtnHold"     class="vc-btn" title="Hold"><i class="bi bi-pause-fill me-1"></i>Hold</button>
+            <button id="vcBtnTransfer" class="vc-btn" title="Transfer" data-bs-toggle="modal" data-bs-target="#vcTransferModal"><i class="bi bi-telephone-forward-fill"></i></button>
+            <button id="vcBtnHangup"   class="vc-btn vc-btn-end" title="Hang Up"><i class="bi bi-telephone-x-fill"></i></button>
+        </div>
     </div>
 
     <!-- Session list -->
+
     <div style="overflow-y:auto; flex:1; padding: 8px 0;">
 
+
+
         <!-- Waiting for agent -->
+
         <div class="px-3 py-2 d-flex justify-content-between align-items-center">
+
             <span class="small fw-semibold text-warning"><i class="bi bi-clock me-1"></i>Waiting</span>
+
             <span class="section-count" id="countWaiting">0</span>
+
         </div>
+
         <div id="listWaiting"></div>
 
+
+
         <!-- With me -->
+
         <div class="px-3 py-2 d-flex justify-content-between align-items-center mt-1 border-top border-dark">
+
             <span class="small fw-semibold text-success"><i class="bi bi-person-check me-1"></i>My Sessions</span>
+
             <span class="section-count" id="countMine">0</span>
+
         </div>
+
         <div id="listMine"></div>
 
+
+
         <!-- Active (bot flow) -->
+
         <div class="px-3 py-2 d-flex justify-content-between align-items-center mt-1 border-top border-dark">
+
             <span class="small fw-semibold text-info"><i class="bi bi-robot me-1"></i>In Flow</span>
+
             <span class="section-count" id="countFlow">0</span>
+
         </div>
+
         <div id="listFlow"></div>
+
     </div>
+
 </div>
 
-<!-- ── Chat area ── -->
+
+
+<!-- -- Chat area -- -->
+
 <div id="chatArea">
+
     <!-- No session selected -->
+
     <div id="noSession">
+
         <i class="bi bi-chat-dots fs-1 mb-3"></i>
+
         <p class="fs-5 mb-1">Select a session to start chatting</p>
+
         <p class="small">Waiting sessions will appear in the left panel automatically.</p>
+
     </div>
 
-    <!-- Active chat (hidden until session opened) -->
-    <div id="chatView" style="display:none; flex-direction:column; height:100%;">
+    <!-- Campaign dialler view (shown when campaign active and no session open) -->
+    <div id="diallerView" style="display:none; flex-direction:column;">
 
-        <!-- Chat header -->
-        <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom border-dark" style="background:#12141a;">
-            <div class="flex-fill">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-person-circle fs-4"></i>
-                    <div>
-                        <div class="fw-semibold" id="chatVisitorName">Visitor</div>
-                        <div class="small text-muted" id="chatVisitorMeta"></div>
+        <!-- Header: campaign name + type badge + refresh -->
+        <div class="dp-header">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="fw-semibold" id="dpCampaignName">Campaign</span>
+                <span class="dp-type-badge" id="dpTypeBadge"></span>
+                <span class="badge" id="dpStatusBadge"></span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="small text-muted" id="dpDiallerMode"></span>
+                <button class="btn btn-sm btn-outline-secondary py-0 px-2" id="dpBtnRefresh" title="Refresh">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress section -->
+        <div class="dp-progress-section">
+            <div class="dp-section-label">PROGRESS</div>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small text-muted" id="dpProgressText">0 / 0 attempted</span>
+                <span class="small fw-semibold" id="dpProgressPct">0%</span>
+            </div>
+            <div class="dp-prog-track">
+                <div class="dp-prog-fill" id="dpProgressBar" style="width:0%;"></div>
+            </div>
+            <div class="d-flex gap-2 mt-2 flex-wrap" id="dpByStatus"></div>
+        </div>
+
+        <!-- Next contact section -->
+        <div class="dp-contact-section">
+            <div class="dp-section-label">NEXT CONTACT</div>
+
+            <!-- Loading spinner -->
+            <div id="dpLoading" class="text-center text-muted py-4" style="display:none;">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>Loading&hellip;
+            </div>
+
+            <!-- Campaign exhausted -->
+            <div id="dpExhausted" class="dp-exhausted" style="display:none;">
+                <i class="bi bi-check2-circle fs-1"></i>
+                <p class="mb-1 fw-semibold mt-2">All contacts attempted</p>
+                <p class="small text-muted mb-0">This campaign has no remaining contacts.</p>
+            </div>
+
+            <!-- No contact available -->
+            <div id="dpNoContact" class="text-center text-muted py-3 small" style="display:none;">
+                No contact available. The campaign may be paused or outside calling hours.
+            </div>
+
+            <!-- Contact card + actions -->
+            <div id="dpContactCard" class="dp-contact-card" style="display:none;">
+                <div class="d-flex align-items-start gap-3">
+                    <i class="bi bi-person-circle fs-2 text-muted mt-1"></i>
+                    <div class="flex-fill">
+                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                            <span class="fw-semibold fs-5" id="dpContactName"></span>
+                            <span class="badge bg-secondary small" id="dpContactCompany"></span>
+                            <span class="badge bg-info text-dark small" id="dpAttemptBadge"></span>
+                            <span class="badge bg-warning text-dark small" id="dpTemplateBadge" style="display:none;">
+                                <i class="bi bi-file-text me-1"></i>Template required
+                            </span>
+                        </div>
+                        <div class="d-flex flex-column gap-1 small text-muted">
+                            <span id="dpContactPhone"></span>
+                            <span id="dpContactWa" style="display:none;"></span>
+                            <span id="dpContactEmail" style="display:none;"></span>
+                            <span id="dpContactLang"></span>
+                        </div>
+                        <div class="small text-muted fst-italic mt-1" id="dpContactNotes" style="display:none;"></div>
                     </div>
                 </div>
+                <!-- Action buttons -->
+                <div class="dp-action-row" id="dpActionRow">
+                    <button class="btn btn-success" id="dpBtnDial">
+                        <i class="bi bi-telephone-fill me-1"></i>Dial
+                    </button>
+                    <button class="btn btn-outline-primary" id="dpBtnNext">
+                        <i class="bi bi-arrow-right me-1"></i>Next
+                    </button>
+                    <button class="btn btn-outline-secondary" id="dpBtnSkip">
+                        <i class="bi bi-skip-forward me-1"></i>Skip
+                    </button>
+                </div>
             </div>
-            <span class="badge" id="chatStatusBadge">–</span>
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-success" id="btnTake" style="display:none;">
-                    <i class="bi bi-person-check me-1"></i>Take
-                </button>
-                <button class="btn btn-sm btn-warning" id="btnRelease" style="display:none;">
-                    <i class="bi bi-person-dash me-1"></i>Release
-                </button>
-                <button class="btn btn-sm btn-danger" id="btnClose">
-                    <i class="bi bi-x-circle me-1"></i>Close
-                </button>
+
+            <!-- Outcome wrap-up (shown after dialling attempt started) -->
+            <div class="dp-outcome-section" id="dpOutcomeSection" style="display:none;">
+                <div class="dp-section-label">RECORD OUTCOME</div>
+                <div class="dp-outcome-pills" id="dpOutcomePills"></div>
+                <textarea class="dp-notes" id="dpOutcomeNotes" rows="2" placeholder="Notes (optional)&hellip;"></textarea>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary btn-sm" id="dpBtnSubmitOutcome">
+                        <i class="bi bi-check2 me-1"></i>Submit
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" id="dpBtnCancelOutcome">
+                        Cancel
+                    </button>
+                </div>
             </div>
+
         </div>
 
+    </div>
+
+
+
+    <!-- Active chat (hidden until session opened) -->
+
+    <div id="chatView" style="display:none; flex-direction:column; height:100%;">
+
+
+
+        <!-- Chat header -->
+
+        <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom border-dark" style="background:#12141a;">
+
+            <div class="flex-fill">
+
+                <div class="d-flex align-items-center gap-2">
+
+                    <i class="bi bi-person-circle fs-4"></i>
+
+                    <div>
+
+                        <div class="fw-semibold" id="chatVisitorName">Visitor</div>
+
+                        <div class="small text-muted" id="chatVisitorMeta"></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <span class="badge" id="chatStatusBadge">–</span>
+
+            <div class="d-flex gap-2">
+
+                <button class="btn btn-sm btn-success" id="btnTake" style="display:none;">
+
+                    <i class="bi bi-person-check me-1"></i>Take
+
+                </button>
+
+                <button class="btn btn-sm btn-warning" id="btnRelease" style="display:none;">
+
+                    <i class="bi bi-person-dash me-1"></i>Release
+
+                </button>
+
+                <!-- Outcome-gated close: shown when session is with_agent and owned by this agent -->
+
+                <button class="btn btn-sm btn-secondary" id="btnOutcome" style="display:none;">
+
+                    <i class="bi bi-flag-fill me-1"></i>Outcome
+
+                </button>
+
+                <!-- Direct close: shown for waiting / flow sessions (supervisor action) -->
+
+                <button class="btn btn-sm btn-danger" id="btnClose" style="display:none;">
+
+                    <i class="bi bi-x-circle me-1"></i>Close
+
+                </button>
+
+                <button class="btn btn-sm btn-outline-info" id="btnCopilot" title="Agent Copilot" onclick="copilotToggle()">
+
+                    <i class="bi bi-stars me-1"></i>Copilot
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+
         <!-- Messages -->
+
         <div id="msgList"></div>
+
         <div id="typingIndicator"></div>
 
-        <!-- Input -->
-        <div class="d-flex gap-2 px-4 py-3 border-top border-dark" style="background:#12141a;">
-            <div id="agentInputWrap">
-                <div id="agentEmojiPicker"></div>
-                <button id="agentEmojiBtn" title="Emoji" disabled>&#x1F60A;</button>
-                <button id="agentAttachBtn" title="Attach file" disabled>&#x1F4CE;</button>
-                <input type="file" id="agentFileInput" style="display:none"
-                       accept="image/*,.pdf,.doc,.docx,.txt,.zip,.csv">
-                <input type="text" class="form-control" id="msgInput"
-                       placeholder="Type a message&#x2026; (Enter to send)" autocomplete="off" disabled>
+
+
+        <!-- - Wrap-up panel - shown when visitor leaves while agent is assigned - -->
+
+        <div id="wrapPanel">
+
+            <div id="wrapHeader">
+
+                <div class="d-flex align-items-center gap-2">
+
+                    <i class="bi bi-hourglass-split text-warning fs-5"></i>
+
+                    <span class="fw-semibold text-warning">Visitor has left &mdash; Wrap Up</span>
+
+                    <span class="text-muted small ms-2">Select an outcome to close or complete notes first</span>
+
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+
+                    <span class="text-muted small">Auto-close in</span>
+
+                    <span id="wrapCountdown">2:00</span>
+
+                </div>
+
             </div>
+
+            <textarea id="wrapNotes" placeholder="Add notes for this interaction&#x2026;"></textarea>
+
+            <div id="wrapOutcomeRow"></div>
+
+        </div>
+
+
+
+        <!-- AI summary banner — shown after session closes -->
+
+        <div id="summaryBanner" style="display:none">
+
+            <div class="d-flex align-items-start gap-2 px-4 py-3"
+
+                 style="background:#0d1117;border-top:1px solid #1e3a5f;">
+
+                <i class="bi bi-stars text-info mt-1 flex-shrink-0"></i>
+
+                <div class="flex-grow-1">
+
+                    <div class="small fw-semibold text-info mb-1">AI Summary</div>
+
+                    <div id="summaryText" class="small text-light"
+
+                         style="white-space:pre-wrap;line-height:1.6;"></div>
+
+                </div>
+
+                <button class="btn btn-sm p-0 text-muted ms-2"
+
+                        onclick="el.summaryBanner.style.display='none'"
+
+                        title="Dismiss">&#x2715;</button>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Input -->
+
+        <div class="d-flex gap-2 px-4 py-3 border-top border-dark" style="background:#12141a;">
+
+            <div id="agentInputWrap">
+
+                <div id="agentEmojiPicker"></div>
+
+                <button id="agentEmojiBtn" title="Emoji" disabled>&#x1F60A;</button>
+
+                <button id="agentAttachBtn" title="Attach file" disabled>&#x1F4CE;</button>
+
+                <input type="file" id="agentFileInput" style="display:none"
+
+                       accept="image/*,.pdf,.doc,.docx,.txt,.zip,.csv">
+
+                <input type="text" class="form-control" id="msgInput"
+
+                       placeholder="Type a message&#x2026; (Enter to send)" autocomplete="off" disabled>
+
+            </div>
+
             <button class="btn btn-primary" id="btnSend" disabled>
+
                 <i class="bi bi-send"></i>
+
             </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- -- Outcome selection modal -- -->
+
+<div class="modal fade" id="outcomeModal" tabindex="-1" aria-labelledby="outcomeModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+
+        <div class="modal-content" style="background:#1e2029; border:1px solid #2e3140;">
+
+            <div class="modal-header" style="border-bottom:1px solid #2e3140;">
+
+                <div>
+
+                    <h5 class="modal-title mb-0" id="outcomeModalLabel">
+
+                        <i class="bi bi-flag-fill me-2 text-secondary"></i>Select an Outcome
+
+                    </h5>
+
+                    <div class="small text-muted mt-1" id="outcomeModalMeta"></div>
+
+                </div>
+
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+
+            </div>
+
+            <div class="modal-body" id="outcomeModalBody" style="min-height:160px; padding:1.5rem;">
+
+                <div class="text-center py-4 text-muted">
+
+                    <i class="bi bi-hourglass-split me-2"></i>Loading outcomes…
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer" style="border-top:1px solid #2e3140; background:#12141a;">
+
+                <small class="text-muted me-auto">
+
+                    <i class="bi bi-info-circle me-1"></i>
+
+                    Selecting an outcome will close or redirect this session.
+
+                </small>
+
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- ── Voice Call Transfer Modal ─────────────────────────────────────────── -->
+<div class="modal fade" id="vcTransferModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#1e2029; border:1px solid #2e3140;">
+            <div class="modal-header" style="border-bottom:1px solid #2e3140;">
+                <h5 class="modal-title"><i class="bi bi-telephone-forward-fill me-2 text-primary"></i>Transfer Call</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Transfer to phone number</label>
+                    <input type="tel" class="form-control form-control-sm bg-dark text-light border-secondary"
+                           id="vcTransferPhone" placeholder="+27 XX XXX XXXX">
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid #2e3140; background:#12141a;">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="vcBtnDoTransfer"><i class="bi bi-telephone-forward-fill me-1"></i>Transfer</button>
+            </div>
         </div>
     </div>
 </div>
 
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/static/js/agent.js?v=5"></script>
+    <script src="/static/js/sidebar.js"></script>
+
+<script src="/static/js/agent.js?v=16"></script>
+
+
+
+<!-- -- Copilot panel -- -->
+
+<div id="copilotPanel">
+
+  <div class="cop-header">
+
+    <i class="bi bi-stars text-info fs-5"></i>
+
+    <span class="cop-title">Agent Copilot</span>
+
+    <button class="cop-btn" title="Configure" onclick="copilotOpenConfig()"><i class="bi bi-gear"></i></button>
+
+    <button class="cop-btn" title="Reset conversation" onclick="copilotReset()"><i class="bi bi-arrow-counterclockwise"></i></button>
+
+    <button class="cop-btn" title="Close" onclick="copilotToggle()"><i class="bi bi-x-lg"></i></button>
+
+  </div>
+
+  <div id="copMsgList" class="cop-msg-list">
+
+    <div class="cop-empty" id="copEmpty">
+
+      <i class="bi bi-stars fs-2"></i>
+
+      <span>Ask me anything about the conversation or the knowledge base.</span>
+
+      <span class="text-muted" style="font-size:.75rem">Backed by WizzardAI + KB</span>
+
+    </div>
+
+  </div>
+
+  <div class="cop-input-row">
+
+    <textarea id="copInput" rows="1" placeholder="Ask the copilot…"
+
+              onkeydown="copilotKeydown(event)"></textarea>
+
+    <button class="cop-send-btn" id="copSendBtn" title="Send" onclick="copilotAsk()">
+
+      <i class="bi bi-send-fill"></i>
+
+    </button>
+
+  </div>
+
+</div>
+
+
+
+<!-- -- Copilot config modal -- -->
+
+<div class="modal fade" id="copilotConfigModal" tabindex="-1">
+
+  <div class="modal-dialog modal-lg">
+
+    <div class="modal-content" style="background:#1e2029; border:1px solid #2e3140;">
+
+      <div class="modal-header" style="border-bottom:1px solid #2e3140;">
+
+        <h5 class="modal-title"><i class="bi bi-stars me-2 text-info"></i>Copilot Configuration</h5>
+
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <div class="mb-3 form-check form-switch">
+
+          <input class="form-check-input" type="checkbox" id="copCfgEnabled">
+
+          <label class="form-check-label" for="copCfgEnabled">Copilot enabled</label>
+
+        </div>
+
+        <div class="mb-3">
+
+          <label class="form-label small fw-semibold">Knowledge sources</label>
+
+          <div class="text-muted small mb-2">Select which sources the copilot can search. Leave all unchecked to search every source.</div>
+
+          <div id="copCfgSources" class="d-flex flex-column gap-2"></div>
+
+        </div>
+
+        <div class="row g-3 mb-3">
+
+          <div class="col-md-6">
+
+            <label class="form-label small fw-semibold">Model</label>
+
+            <input id="copCfgModel" class="form-control form-control-sm" placeholder="auto" />
+
+            <small class="text-muted">Leave <code>auto</code> to use WizzardAI's default</small>
+
+          </div>
+
+          <div class="col-md-6">
+
+            <label class="form-label small fw-semibold">Max KB results</label>
+
+            <input id="copCfgMaxResults" type="number" class="form-control form-control-sm" min="1" max="20" value="5" />
+
+          </div>
+
+        </div>
+
+        <div class="mb-3">
+
+          <label class="form-label small fw-semibold">System prompt</label>
+
+          <textarea id="copCfgSystemPrompt" class="form-control form-control-sm font-monospace" rows="5"></textarea>
+
+        </div>
+
+      </div>
+
+      <div class="modal-footer" style="border-top:1px solid #2e3140; background:#12141a;">
+
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+
+        <button class="btn btn-primary btn-sm" onclick="copilotSaveConfig()"><i class="bi bi-floppy me-1"></i>Save</button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<script src="/static/js/copilot.js?v=1"></script>
+
 </body>
+
 </html>
+
