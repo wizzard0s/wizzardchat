@@ -7,8 +7,6 @@
     <meta charset="UTF-8">
     <script src="/static/js/theme-init.js"></script>
     <script src="/static/js/wz-theme.js"></script>
-    <script src="/static/js/wz-theme.js"></script>
-    <script src="/static/js/wz-theme.js"></script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -32,9 +30,9 @@
 
         #sessionPanel {
 
-            width: 300px; position: fixed; top: 0; left: 220px;
+            width: 300px; position: fixed; top: 52px; left: 220px;
 
-            height: 100vh; background: #1e2029; border-right: 1px solid #2e3140;
+            height: calc(100vh - 52px); background: #1e2029; border-right: 1px solid #2e3140;
 
             display: flex; flex-direction: column; z-index: 90;
 
@@ -48,7 +46,9 @@
 
             margin-left: 520px;
 
-            height: 100vh;
+            margin-top: 52px;
+
+            height: calc(100vh - 52px);
 
             display: flex; flex-direction: column;
 
@@ -271,6 +271,116 @@
 
 
 
+        /* ── Agent toolbar ───────────────────────────────────────────────── */
+        #agentToolbar {
+            position: fixed; top: 0; left: 220px; right: 0;
+            height: 52px; background: #12141a; border-bottom: 1px solid #2e3140;
+            display: flex; align-items: center; gap: 8px; padding: 0 16px;
+            z-index: 91;
+        }
+        .tbar-divider { width: 1px; height: 28px; background: #2e3140; flex-shrink: 0; margin: 0 4px; }
+        .tbar-outbound-btn {
+            background: none; border: 1px solid #343a40; color: #8a9bb0;
+            border-radius: 6px; font-size: .78rem; padding: 4px 10px;
+            display: flex; align-items: center; gap: 5px; cursor: pointer;
+            transition: background .15s, border-color .15s, color .15s;
+            white-space: nowrap;
+        }
+        .tbar-outbound-btn:hover { background: #2a2d3a; border-color: #6c757d; color: #fff; }
+        .tbar-outbound-btn.voice    { border-color: #198754; color: #75b798; }
+        .tbar-outbound-btn.voice:hover    { background: #122b12; }
+        .tbar-outbound-btn.whatsapp { border-color: #25d366; color: #25d366; }
+        .tbar-outbound-btn.whatsapp:hover { background: #0a1f0f; }
+        .tbar-outbound-btn.email    { border-color: #c09010; color: #ffc107; }
+        .tbar-outbound-btn.email:hover    { background: #1f1600; }
+        #tbarCampaignBadge {
+            display: none;
+            background: #1a3a1c; border: 1px solid #198754; color: #75b798;
+            border-radius: 6px; font-size: .78rem; padding: 3px 10px;
+            align-items: center; gap: 6px; flex-shrink: 0;
+        }
+        #tbarCampaignBadge.active { display: flex; }
+        #tbarCapacity { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; overflow: hidden; }
+
+        /* ── Chat header channel border ─────────────────────────────────── */
+        #chatHeaderBar { border-left: 4px solid transparent; transition: border-color .2s; }
+        #chatHeaderBar.ch-voice    { border-left-color: #198754; }
+        #chatHeaderBar.ch-chat     { border-left-color: #0d6efd; }
+        #chatHeaderBar.ch-whatsapp { border-left-color: #25d366; }
+        #chatHeaderBar.ch-email    { border-left-color: #ffc107; }
+        #chatHeaderBar.ch-sms      { border-left-color: #6c757d; }
+        #chatChannelBadge { font-size: .78rem; padding: 2px 8px; border-radius: 4px; font-weight: 600; display: none; }
+        #chatChannelBadge.active { display: inline-block; }
+        .ch-badge-voice    { background: #1a3a5c; color: #6ea8fe; }
+        .ch-badge-chat     { background: #1a2a5c; color: #74b9ff; }
+        .ch-badge-whatsapp { background: #122b12; color: #25d366; }
+        .ch-badge-email    { background: #3a2d1a; color: #ffc107; }
+        .ch-badge-sms      { background: #252836; color: #adb5bd; }
+
+        /* ── Context bar ────────────────────────────────────────────────── */
+        #chatContextBar {
+            display: none;
+            background: #0d0f16; border-top: 1px solid #1e2535;
+            padding: 5px 16px; font-size: .76rem; flex-shrink: 0;
+            align-items: center; gap: 10px; flex-wrap: wrap;
+        }
+        #chatContextBar.active { display: flex; }
+        .ctx-ref  { color: #8a9bb0; font-family: monospace; }
+        .ctx-tag  {
+            background: #1e2534; border: 1px solid #2a3348; color: #8899aa;
+            border-radius: 10px; padding: 1px 7px; font-size: .70rem;
+        }
+
+        /* ── Voice input mode (replaces text input for voice sessions) ─── */
+        #voiceInputRow {
+            display: none;
+            background: #12141a; border-top: 1px solid #2e3140;
+            padding: 10px 20px; gap: 10px; align-items: center; flex-shrink: 0;
+        }
+        #voiceInputRow.active { display: flex; }
+        #voiceNotepad {
+            flex: 1; background: #1e2029; border: 1px solid #2e3140; color: #cdd;
+            border-radius: 8px; padding: 8px 10px; font-size: .84rem;
+            resize: none; min-height: 38px; max-height: 80px;
+        }
+        #voiceNotepad:focus { outline: none; border-color: #198754; }
+        .vi-btn {
+            background: #2e3140; border: 1px solid #3e4254; border-radius: 7px;
+            color: #e2e8f0; font-size: .8rem; padding: 6px 12px;
+            cursor: pointer; white-space: nowrap; transition: background .15s;
+        }
+        .vi-btn:hover   { background: #3e4254; }
+        .vi-btn.vi-on   { background: #0d6efd; border-color: #0d6efd; color: #fff; }
+        .vi-btn-end     { background: #dc3545; border-color: #dc3545; color: #fff; }
+        .vi-btn-end:hover { background: #bb2d3b; border-color: #bb2d3b; }
+        #viTimer        { font-size: 1rem; font-weight: 700; color: #198754; font-variant-numeric: tabular-nums; min-width: 4ch; text-align: center; }
+
+        /* ── Outbound compose drawer (right-side slide-in) ──────────────── */
+        #outboundDrawer {
+            position: fixed; top: 0; right: -420px; width: 420px;
+            height: 100vh; background: #13151e; border-left: 1px solid #2a3348;
+            display: flex; flex-direction: column; z-index: 96;
+            transition: right .25s ease;
+        }
+        #outboundDrawer.open { right: 0; }
+        body.outbound-open #chatArea { margin-right: 420px; }
+        .od-header { background: #0d0f16; border-bottom: 1px solid #2a3348; padding: 12px 14px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .od-title  { font-size: .9rem; font-weight: 600; color: #cdd; flex: 1; }
+        .od-close  { background: none; border: none; color: #aaa; font-size: 18px; cursor: pointer; padding: 0 4px; }
+        .od-close:hover { color: #fff; }
+        .od-body   { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+        .od-label  { font-size: .78rem; color: #6c757d; font-weight: 600; letter-spacing: .04em; margin-bottom: 4px; }
+        .od-char-counter { font-size: .75rem; color: #6c757d; text-align: right; margin-top: 2px; }
+        .od-footer { border-top: 1px solid #2a3348; padding: 10px 14px; display: flex; justify-content: flex-end; gap: 8px; background: #0d0f16; flex-shrink: 0; }
+        .template-card {
+            border: 1px solid #2a3348; border-radius: 8px; padding: 10px 12px;
+            cursor: pointer; transition: border-color .15s, background .15s;
+        }
+        .template-card:hover { background: #1e2534; border-color: #3a4a60; }
+        .template-card.selected { background: #1a3a5c; border-color: #0d6efd; }
+        .template-name { font-size: .84rem; font-weight: 600; color: #cdd; }
+        .template-body { font-size: .78rem; color: #8a9bb0; margin-top: 4px; white-space: pre-wrap; }
+
         /* Emoji picker */
 
         #agentInputWrap { position: relative; flex: 1; display: flex; gap: 6px; align-items: flex-end; }
@@ -437,6 +547,45 @@
 
 <body>
 
+<!-- ── Agent toolbar ─────────────────────────────────────────────────── -->
+<div id="agentToolbar">
+    <!-- Capacity + campaign badge -->
+    <div id="tbarCapacity">
+        <span style="font-size:.63rem;color:#6c757d;font-weight:600;letter-spacing:.05em;flex-shrink:0;">CAPACITY</span>
+        <div class="cap-bar" style="width:70px;flex-shrink:0;">
+            <div class="cap-bar-fill" id="capOmniBar" style="width:0%"></div>
+        </div>
+        <span class="cap-count" id="capOmniCount">0/–</span>
+        <span class="cap-pill" id="capPill-voice" title="Voice"><i class="bi bi-telephone-fill me-1"></i>0/–</span>
+        <span class="cap-pill" id="capPill-chat" title="Chat"><i class="bi bi-chat-fill me-1"></i>0/–</span>
+        <span class="cap-pill" id="capPill-whatsapp" title="WhatsApp"><i class="bi bi-whatsapp me-1"></i>0/–</span>
+        <span class="cap-pill" id="capPill-email" title="Email"><i class="bi bi-envelope-fill me-1"></i>0/–</span>
+        <span class="cap-pill" id="capPill-sms" title="SMS"><i class="bi bi-phone-fill me-1"></i>0/–</span>
+        <button id="btnPickNext" title="Claim one extra interaction above your limit"
+                style="font-size:.72rem;padding:2px 8px;">+1 Pick Next</button>
+    </div>
+    <!-- Active campaign badge -->
+    <div id="tbarCampaignBadge">
+        <i class="bi bi-megaphone-fill"></i>
+        <span id="tbarCampaignName">Campaign</span>
+        <span id="tbarCampaignTypeBadge"></span>
+    </div>
+    <div class="tbar-divider"></div>
+    <!-- Outbound launchers -->
+    <button class="tbar-outbound-btn voice"    id="tbarBtnVoice"    title="Start outbound call" onclick="outboundOpen('voice')">
+        <i class="bi bi-telephone-fill"></i> Voice
+    </button>
+    <button class="tbar-outbound-btn sms"      id="tbarBtnSms"      title="Send outbound SMS" onclick="outboundOpen('sms')">
+        <i class="bi bi-phone-fill"></i> SMS
+    </button>
+    <button class="tbar-outbound-btn whatsapp" id="tbarBtnWhatsapp" title="Send outbound WhatsApp" onclick="outboundOpen('whatsapp')">
+        <i class="bi bi-whatsapp"></i> WhatsApp
+    </button>
+    <button class="tbar-outbound-btn email"    id="tbarBtnEmail"    title="Compose outbound email" onclick="outboundOpen('email')">
+        <i class="bi bi-envelope-fill"></i> Email
+    </button>
+</div>
+
 
 
 <!-- -- Sidebar nav -- -->
@@ -582,31 +731,7 @@
 
     </div>
 
-    <!-- Capacity strip -->
-    <div id="capacityStrip">
-        <div class="d-flex align-items-center justify-content-between mb-1">
-            <span style="font-size:.68rem;color:#6c757d;font-weight:600;letter-spacing:.05em;">CAPACITY</span>
-            <div class="d-flex align-items-center gap-1">
-                <button id="btnPickNext" title="Claim one extra interaction above your limit">+1 Pick Next</button>
-            </div>
-        </div>
-        <!-- Omni progress bar -->
-        <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="cap-label">Omni</span>
-            <div class="cap-bar">
-                <div class="cap-bar-fill" id="capOmniBar" style="width:0%"></div>
-            </div>
-            <span class="cap-count" id="capOmniCount">0/–</span>
-        </div>
-        <!-- Per-channel pills -->
-        <div class="d-flex flex-wrap gap-1">
-            <span class="cap-pill" id="capPill-voice"><i class="bi bi-telephone-fill me-1"></i>0/–</span>
-            <span class="cap-pill" id="capPill-chat"><i class="bi bi-chat-fill me-1"></i>0/–</span>
-            <span class="cap-pill" id="capPill-whatsapp"><i class="bi bi-whatsapp me-1"></i>0/–</span>
-            <span class="cap-pill" id="capPill-email"><i class="bi bi-envelope-fill me-1"></i>0/–</span>
-            <span class="cap-pill" id="capPill-sms"><i class="bi bi-phone-fill me-1"></i>0/–</span>
-        </div>
-    </div>
+    <!-- Capacity strip moved to #agentToolbar -->
 
     <!-- ── Live Voice Call Card ─────────────────────────────────────── -->
     <div id="voiceCard">
@@ -811,7 +936,7 @@
 
         <!-- Chat header -->
 
-        <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom border-dark" style="background:#12141a;">
+        <div id="chatHeaderBar" class="d-flex align-items-center gap-3 px-4 py-3 border-bottom border-dark" style="background:#12141a;">
 
             <div class="flex-fill">
 
@@ -821,7 +946,10 @@
 
                     <div>
 
-                        <div class="fw-semibold" id="chatVisitorName">Visitor</div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-semibold" id="chatVisitorName">Visitor</span>
+                            <span id="chatChannelBadge"></span>
+                        </div>
 
                         <div class="small text-muted" id="chatVisitorMeta"></div>
 
@@ -831,7 +959,7 @@
 
             </div>
 
-            <span class="badge" id="chatStatusBadge">–</span>
+            <span class="wz-badge" id="chatStatusBadge">–</span>
 
             <div class="d-flex gap-2">
 
@@ -881,7 +1009,20 @@
 
         <div id="typingIndicator"></div>
 
-
+        <!-- ── Context bar: contact ref, channel, tags, history, transfer ─ -->
+        <div id="chatContextBar">
+            <span class="ctx-ref" id="ctxContactRef"></span>
+            <span id="ctxChannelInfo"></span>
+            <div id="ctxTags" class="d-flex gap-1 flex-wrap"></div>
+            <div class="ms-auto d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary py-0 px-2" id="ctxBtnHistory" title="View contact history" style="font-size:.75rem;" onclick="contactHistoryOpen()">
+                    <i class="bi bi-clock-history me-1"></i>History
+                </button>
+                <button class="btn btn-sm btn-outline-secondary py-0 px-2" id="ctxBtnTransfer" title="Transfer session" style="font-size:.75rem;" data-bs-toggle="modal" data-bs-target="#vcTransferModal">
+                    <i class="bi bi-box-arrow-right me-1"></i>Transfer
+                </button>
+            </div>
+        </div>
 
         <!-- - Wrap-up panel - shown when visitor leaves while agent is assigned - -->
 
@@ -949,9 +1090,19 @@
 
 
 
+        <!-- Voice input row (shown instead of text input for active voice sessions) -->
+        <div id="voiceInputRow">
+            <span id="viTimer">–:––</span>
+            <textarea id="voiceNotepad" rows="1" placeholder="Call notes…"></textarea>
+            <button id="viBtnMute"     class="vi-btn" title="Mute microphone"><i class="bi bi-mic-mute-fill me-1"></i>Mute</button>
+            <button id="viBtnHold"     class="vi-btn" title="Hold"><i class="bi bi-pause-fill me-1"></i>Hold</button>
+            <button id="viBtnTransfer" class="vi-btn" title="Transfer" data-bs-toggle="modal" data-bs-target="#vcTransferModal"><i class="bi bi-telephone-forward-fill me-1"></i>Transfer</button>
+            <button id="viBtnHangup"   class="vi-btn vi-btn-end" title="Hang Up"><i class="bi bi-telephone-x-fill"></i></button>
+        </div>
+
         <!-- Input -->
 
-        <div class="d-flex gap-2 px-4 py-3 border-top border-dark" style="background:#12141a;">
+        <div id="chatInputRow" class="d-flex gap-2 px-4 py-3 border-top border-dark" style="background:#12141a;">
 
             <div id="agentInputWrap">
 
@@ -1209,6 +1360,274 @@
 
 
 <script src="/static/js/copilot.js?v=1"></script>
+
+<!-- ── Outbound compose drawer ───────────────────────────────────────────── -->
+<div id="outboundDrawer">
+    <div class="od-header">
+        <i class="bi" id="odIcon" style="font-size:1.2rem;"></i>
+        <span class="od-title" id="odTitle">Outbound</span>
+        <button class="od-close" onclick="outboundClose()" title="Close"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="od-body" id="odBody">
+
+        <!-- Voice -->
+        <div id="odVoice" style="display:none;">
+            <div class="od-label">Contact</div>
+            <input type="text" class="form-control form-control-sm mb-3" id="odVoiceContact"
+                   placeholder="Search contacts or enter number…" autocomplete="off">
+            <div class="od-label">Queue (optional)</div>
+            <select class="form-select form-select-sm mb-3" id="odVoiceQueue">
+                <option value="">— Direct call (no queue) —</option>
+            </select>
+            <div class="od-label">Caller ID</div>
+            <select class="form-select form-select-sm" id="odVoiceCallerId">
+                <option value="">— Default —</option>
+            </select>
+        </div>
+
+        <!-- SMS -->
+        <div id="odSms" style="display:none;">
+            <div class="od-label">To</div>
+            <input type="text" class="form-control form-control-sm mb-3" id="odSmsTo"
+                   placeholder="+27 XX XXX XXXX" autocomplete="off">
+            <div class="od-label">Connector</div>
+            <select class="form-select form-select-sm mb-3" id="odSmsConnector">
+                <option value="">— Select connector —</option>
+            </select>
+            <div class="od-label">Message</div>
+            <textarea class="form-control form-control-sm" id="odSmsBody" rows="4"
+                      placeholder="Type your message…" maxlength="918"
+                      oninput="odSmsCount(this)"></textarea>
+            <div class="od-char-counter"><span id="odSmsCurrent">0</span> / 160 &mdash; <span id="odSmsSegments">1</span> segment(s)</div>
+        </div>
+
+        <!-- WhatsApp -->
+        <div id="odWhatsapp" style="display:none;">
+            <div class="od-label">To</div>
+            <input type="text" class="form-control form-control-sm mb-3" id="odWaTo"
+                   placeholder="+27 XX XXX XXXX" autocomplete="off">
+            <div class="od-label">Connector</div>
+            <select class="form-select form-select-sm mb-3" id="odWaConnector">
+                <option value="">— Select connector —</option>
+            </select>
+            <div class="od-label">Template</div>
+            <div id="odWaTemplateList" class="d-flex flex-column gap-2">
+                <div class="text-muted small"><i class="bi bi-hourglass-split me-1"></i>Loading templates…</div>
+            </div>
+            <div id="odWaVars" class="mt-3" style="display:none;">
+                <div class="od-label">Template variables</div>
+                <div id="odWaVarFields" class="d-flex flex-column gap-2"></div>
+                <div class="od-label mt-3">Preview</div>
+                <div id="odWaPreview" class="template-body p-2 rounded" style="background:#1e2029;border:1px solid #2a3348;min-height:48px;"></div>
+            </div>
+        </div>
+
+        <!-- Email -->
+        <div id="odEmail" style="display:none;">
+            <div class="od-label">From</div>
+            <select class="form-select form-select-sm mb-3" id="odEmailFrom">
+                <option value="">— Select email connector —</option>
+            </select>
+            <div class="od-label">To</div>
+            <input type="email" class="form-control form-control-sm mb-3" id="odEmailTo" placeholder="recipient@example.com">
+            <div class="od-label">Subject</div>
+            <input type="text" class="form-control form-control-sm mb-3" id="odEmailSubject" placeholder="Subject…">
+            <div class="od-label">Message</div>
+            <textarea class="form-control form-control-sm mb-2" id="odEmailBody" rows="6" placeholder="Compose your email…"></textarea>
+            <div class="od-label">Attachments</div>
+            <input type="file" id="odEmailAttachInput" multiple class="form-control form-control-sm">
+        </div>
+
+    </div>
+    <div class="od-footer">
+        <button class="btn btn-outline-secondary btn-sm" onclick="outboundClose()">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="odSendBtn" onclick="outboundSend()">
+            <i class="bi bi-send me-1"></i>Send
+        </button>
+    </div>
+</div>
+
+<!-- ── Contact history panel ─────────────────────────────────────────────── -->
+<div id="contactHistoryPanel" style="position:fixed;top:0;right:-440px;width:440px;height:100vh;background:#13151e;border-left:1px solid #2a3348;display:flex;flex-direction:column;z-index:97;transition:right .25s ease;">
+    <div style="background:#0d0f16;border-bottom:1px solid #2a3348;padding:12px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <i class="bi bi-clock-history text-info" style="font-size:1.1rem;"></i>
+        <span style="font-size:.9rem;font-weight:600;color:#cdd;flex:1;">Contact History</span>
+        <div class="d-flex gap-2 me-2">
+            <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="contactHistoryLoad(30)" id="chBtn30">Last 30 days</button>
+            <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="contactHistoryLoad(90)">90 days</button>
+            <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="contactHistoryLoad(0)">All</button>
+        </div>
+        <button style="background:none;border:none;color:#aaa;font-size:18px;cursor:pointer;" onclick="contactHistoryClose()" title="Close"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div id="chList" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;">
+        <div class="text-muted small text-center py-4">Select a session to view history.</div>
+    </div>
+    <div style="border-top:1px solid #2a3348;padding:10px 14px;background:#0d0f16;flex-shrink:0;">
+        <a id="chViewProfile" href="#" target="_blank" class="btn btn-sm btn-outline-info w-100">
+            <i class="bi bi-person-lines-fill me-1"></i>View Full Contact Profile
+        </a>
+    </div>
+</div>
+
+<script>
+
+// ── Outbound compose drawer ───────────────────────────────────────────────────
+let _odChannel = null;
+let _odWaTemplate = null;
+
+function outboundOpen(channel) {
+    _odChannel = channel;
+    _odWaTemplate = null;
+    const drawer = document.getElementById('outboundDrawer');
+    const iconEl = document.getElementById('odIcon');
+    const titleEl = document.getElementById('odTitle');
+    const cfg = {
+        voice:    { icon: 'bi-telephone-fill',  title: 'Outbound Call',      section: 'odVoice'    },
+        sms:      { icon: 'bi-phone-fill',       title: 'Send SMS',           section: 'odSms'      },
+        whatsapp: { icon: 'bi-whatsapp',         title: 'Send WhatsApp',      section: 'odWhatsapp' },
+        email:    { icon: 'bi-envelope-fill',    title: 'Compose Email',      section: 'odEmail'    },
+    };
+    const c = cfg[channel];
+    if (!c) return;
+    if (iconEl)  iconEl.className  = 'bi ' + c.icon;
+    if (titleEl) titleEl.textContent = c.title;
+    ['odVoice', 'odSms', 'odWhatsapp', 'odEmail'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = (id === c.section) ? '' : 'none';
+    });
+    if (drawer) drawer.classList.add('open');
+    document.body.classList.add('outbound-open');
+    if (channel === 'whatsapp') _odLoadWaTemplates();
+}
+
+function outboundClose() {
+    const drawer = document.getElementById('outboundDrawer');
+    if (drawer) drawer.classList.remove('open');
+    document.body.classList.remove('outbound-open');
+}
+
+function odSmsCount(el) {
+    const len = el.value.length;
+    const segs = Math.ceil(len / 160) || 1;
+    const cur = document.getElementById('odSmsCurrent');
+    const seg = document.getElementById('odSmsSegments');
+    if (cur) cur.textContent = len;
+    if (seg) seg.textContent = segs;
+}
+
+async function _odLoadWaTemplates() {
+    const list = document.getElementById('odWaTemplateList');
+    if (!list) return;
+    list.innerHTML = '<div class="text-muted small"><i class="bi bi-hourglass-split me-1"></i>Loading templates…</div>';
+    try {
+        const r = await apiFetch('/api/v1/msg-templates?channel=whatsapp&active_only=true');
+        if (!r.ok) { list.innerHTML = '<div class="text-muted small">Failed to load templates.</div>'; return; }
+        const templates = await r.json();
+        if (!templates.length) { list.innerHTML = '<div class="text-muted small">No approved WhatsApp templates.</div>'; return; }
+        list.innerHTML = '';
+        templates.forEach(t => {
+            const card = document.createElement('div');
+            card.className = 'template-card';
+            card.innerHTML = `<div class="template-name">${esc(t.name)}</div><div class="template-body">${esc(t.content || '')}</div>`;
+            card.addEventListener('click', () => {
+                list.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                _odWaTemplate = t;
+                _odRenderWaVars(t);
+            });
+            list.appendChild(card);
+        });
+    } catch { list.innerHTML = '<div class="text-muted small">Error loading templates.</div>'; }
+}
+
+function _odRenderWaVars(template) {
+    const vars = (template.content || '').match(/\{\{(\d+)\}\}/g) || [];
+    const varsPanel = document.getElementById('odWaVars');
+    const varFields = document.getElementById('odWaVarFields');
+    if (!varsPanel || !varFields) return;
+    if (!vars.length) { varsPanel.style.display = 'none'; _odUpdateWaPreview(); return; }
+    varFields.innerHTML = '';
+    [...new Set(vars)].forEach(v => {
+        const num = v.slice(2, -2);
+        const inp = document.createElement('input');
+        inp.type = 'text'; inp.className = 'form-control form-control-sm';
+        inp.placeholder = `Variable ${num}`; inp.dataset.var = num;
+        inp.addEventListener('input', _odUpdateWaPreview);
+        const lbl = document.createElement('div');
+        lbl.className = 'od-label'; lbl.textContent = `{{${num}}}`;
+        varFields.appendChild(lbl);
+        varFields.appendChild(inp);
+    });
+    varsPanel.style.display = '';
+    _odUpdateWaPreview();
+}
+
+function _odUpdateWaPreview() {
+    const preview = document.getElementById('odWaPreview');
+    if (!preview || !_odWaTemplate) return;
+    let txt = _odWaTemplate.content || '';
+    document.querySelectorAll('#odWaVarFields input[data-var]').forEach(inp => {
+        txt = txt.replaceAll(`{{${inp.dataset.var}}}`, inp.value || `{{${inp.dataset.var}}}`);
+    });
+    preview.textContent = txt;
+}
+
+function outboundSend() {
+    if (!_odChannel) return;
+    alert('Outbound ' + _odChannel + ' send — API integration coming soon.');
+}
+
+// ── Contact history panel ─────────────────────────────────────────────────────
+function contactHistoryOpen() {
+    const panel = document.getElementById('contactHistoryPanel');
+    if (!panel) return;
+    panel.style.right = '0';
+    contactHistoryLoad(30);
+}
+
+function contactHistoryClose() {
+    const panel = document.getElementById('contactHistoryPanel');
+    if (panel) panel.style.right = '-440px';
+}
+
+async function contactHistoryLoad(days) {
+    const list = document.getElementById('chList');
+    const profileLink = document.getElementById('chViewProfile');
+    if (!list) return;
+    const s = sessions[activeKey];
+    if (!s) { list.innerHTML = '<div class="text-muted small text-center py-4">No session selected.</div>'; return; }
+    list.innerHTML = '<div class="text-center text-muted py-4"><div class="spinner-border spinner-border-sm me-2"></div>Loading…</div>';
+    try {
+        const contactId = (s.metadata || {}).contact_id || s.contact_id;
+        if (profileLink) profileLink.href = contactId ? `/contacts/${contactId}` : '#';
+        const params = contactId ? `contact_id=${contactId}&` : '';
+        const since = days ? `&days=${days}` : '';
+        const r = await apiFetch(`/api/v1/interactions?${params}limit=50${since}`);
+        if (!r.ok) throw new Error();
+        const items = await r.json();
+        if (!items.length) { list.innerHTML = '<div class="text-muted small text-center py-4">No history found.</div>'; return; }
+        const chColors = { voice: '#198754', chat: '#0d6efd', whatsapp: '#25d366', email: '#ffc107', sms: '#6c757d' };
+        const chIcons  = { voice: 'bi-telephone-fill', chat: 'bi-chat-fill', whatsapp: 'bi-whatsapp', email: 'bi-envelope-fill', sms: 'bi-phone-fill' };
+        list.innerHTML = items.map(i => {
+            const ch = (i.channel || 'chat').toLowerCase();
+            const clr = chColors[ch] || '#6c757d';
+            const ico = chIcons[ch]  || 'bi-chat';
+            const dt  = i.created_at ? new Date(i.created_at).toLocaleDateString('en-ZA') : '';
+            const outcome = i.outcome_code ? `<span class="ctx-tag ms-1">${esc(i.outcome_code)}</span>` : '';
+            return `<div style="border:1px solid #2a3348;border-left:3px solid ${clr};border-radius:7px;padding:8px 10px;background:#1e2029;">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="bi ${ico}" style="color:${clr};font-size:.82rem;"></i>
+                    <span class="small fw-semibold" style="color:${clr};">${ch.charAt(0).toUpperCase()+ch.slice(1)}</span>
+                    ${outcome}
+                    <span class="ms-auto small text-muted">${esc(dt)}</span>
+                </div>
+                ${i.notes ? `<div class="small text-muted" style="white-space:pre-wrap;">${esc(i.notes)}</div>` : ''}
+            </div>`;
+        }).join('');
+    } catch { list.innerHTML = '<div class="text-muted small text-center py-4">Failed to load history.</div>'; }
+}
+
+</script>
 
 </body>
 

@@ -138,6 +138,24 @@ const el = {
     dpOutcomeNotes:      $('dpOutcomeNotes'),
     dpBtnSubmitOutcome:  $('dpBtnSubmitOutcome'),
     dpBtnCancelOutcome:  $('dpBtnCancelOutcome'),
+    // toolbar
+    tbarCampaignBadge:   $('tbarCampaignBadge'),
+    tbarCampaignName:    $('tbarCampaignName'),
+    // chat header enhancements
+    chatHeaderBar:       $('chatHeaderBar'),
+    chatChannelBadge:    $('chatChannelBadge'),
+    // context bar
+    chatContextBar:      $('chatContextBar'),
+    ctxContactRef:       $('ctxContactRef'),
+    ctxChannelInfo:      $('ctxChannelInfo'),
+    ctxTags:             $('ctxTags'),
+    // voice input row (in chat area)
+    voiceInputRow:       $('voiceInputRow'),
+    viTimer:             $('viTimer'),
+    viBtnMute:           $('viBtnMute'),
+    viBtnHold:           $('viBtnHold'),
+    viBtnHangup:         $('viBtnHangup'),
+    chatInputRow:        $('chatInputRow'),
 };
 
 // ─── Init ────────────────────────────────────────────────────────────────────
@@ -812,6 +830,43 @@ function updateChatHeader() {
     el.chatBadge.className = 'wz-badge ' + cls;
     el.chatBadge.textContent = label;
 
+    // ── Channel badge + header border ──────────────────────────────────────
+    const channel = s.channel || (meta.channel) || 'chat';
+    const chLabels = { voice: '📞 Voice', chat: '💬 Chat', whatsapp: '🟢 WhatsApp', email: '✉ Email', sms: '📱 SMS' };
+    const chBadgeCls = { voice: 'ch-badge-voice', chat: 'ch-badge-chat', whatsapp: 'ch-badge-whatsapp', email: 'ch-badge-email', sms: 'ch-badge-sms' };
+    const chHeaderCls = { voice: 'ch-voice', chat: 'ch-chat', whatsapp: 'ch-whatsapp', email: 'ch-email', sms: 'ch-sms' };
+    if (el.chatChannelBadge) {
+        el.chatChannelBadge.textContent = chLabels[channel] || channel;
+        el.chatChannelBadge.className = 'chatChannelBadge active ' + (chBadgeCls[channel] || '');
+    }
+    if (el.chatHeaderBar) {
+        el.chatHeaderBar.className = el.chatHeaderBar.className.replace(/\bch-\w+\b/g, '').trim();
+        if (chHeaderCls[channel]) el.chatHeaderBar.classList.add(chHeaderCls[channel]);
+    }
+
+    // ── Context bar ─────────────────────────────────────────────────────────
+    if (el.chatContextBar) {
+        const ref = s.session_key ? s.session_key.slice(-8).toUpperCase() : '';
+        if (el.ctxContactRef) el.ctxContactRef.textContent = ref ? '#' + ref : '';
+        if (el.ctxChannelInfo) el.ctxChannelInfo.textContent = (chLabels[channel] || channel);
+        if (el.ctxTags) {
+            el.ctxTags.innerHTML = '';
+            const tags = s.tags || meta.tags || [];
+            tags.forEach(t => {
+                const span = document.createElement('span');
+                span.className = 'ctx-tag';
+                span.textContent = t;
+                el.ctxTags.appendChild(span);
+            });
+        }
+        el.chatContextBar.classList.toggle('active', s.status !== 'closed');
+    }
+
+    // ── Voice input row visibility ───────────────────────────────────────────
+    const isVoice = channel === 'voice';
+    if (el.voiceInputRow) el.voiceInputRow.classList.toggle('active', isVoice && s.status === 'with_agent');
+    if (el.chatInputRow)  el.chatInputRow.style.display = (isVoice && s.status === 'with_agent') ? 'none' : '';
+
     const isMine   = s.agent_id === currentUserId;
     const isWithMe = s.status === 'with_agent' && isMine;
     const isWrap   = s.status === 'wrap_up' && isMine;
@@ -824,7 +879,7 @@ function updateChatHeader() {
     el.btnClose.style.display   = (!isWithMe && !isWrap && s.status !== 'closed') ? '' : 'none';
 
     // Typing disabled during wrap-up (visitor already left)
-    const canType = isWithMe;
+    const canType = isWithMe && !isVoice;
     el.msgInput.disabled = !canType;
     el.btnSend.disabled  = !canType;
     if (el.emojiBtn) el.emojiBtn.disabled = !canType;
@@ -927,6 +982,9 @@ function _showVoiceCard(state, stateText) {
     if (el.vcState) el.vcState.textContent = stateText || '';
     if (el.vcTimer) el.vcTimer.textContent = state === 'ringing' ? '\u2013:\u2013\u2013' : '0:00';
     el.voiceCard.className = state === 'ringing' ? 'vc-ringing vc-active' : 'vc-active';
+    // Mirror to voice input row in chat area
+    if (el.voiceInputRow) el.voiceInputRow.classList.add('active');
+    if (el.chatInputRow)  el.chatInputRow.style.display = 'none';
     _syncVoiceCardState();
 }
 
@@ -937,6 +995,9 @@ function _hideVoiceCard() {
     if (el.voiceCard) el.voiceCard.className = '';
     if (el.vcTimer) el.vcTimer.textContent = '\u2013:\u2013\u2013';
     if (el.vcState) el.vcState.textContent = '';
+    // Restore text input row
+    if (el.voiceInputRow) el.voiceInputRow.classList.remove('active');
+    if (el.chatInputRow)  el.chatInputRow.style.display = '';
 }
 
 function _syncVoiceCardState() {
@@ -953,7 +1014,9 @@ function _startVoiceTimer() {
         const secs = Math.floor((Date.now() - voiceCall.connectedAt.getTime()) / 1000);
         const m = Math.floor(secs / 60);
         const s = secs % 60;
-        if (el.vcTimer) el.vcTimer.textContent = `${m}:${String(s).padStart(2, '0')}`;
+        const timeStr = `${m}:${String(s).padStart(2, '0')}`;
+        if (el.vcTimer) el.vcTimer.textContent = timeStr;
+        if (el.viTimer) el.viTimer.textContent = timeStr;
     }, 1000);
 }
 
@@ -1069,6 +1132,14 @@ function diallerRenderHeader() {
 
     const mode = (diallerProgress?.dialler_mode) || diallerCampaign.settings?.dialler_mode || '';
     if (el.dpDiallerMode) el.dpDiallerMode.textContent = mode ? mode.charAt(0).toUpperCase() + mode.slice(1) + ' mode' : '';
+
+    // ── Toolbar campaign badge ───────────────────────────────────────────────
+    if (el.tbarCampaignBadge) {
+        el.tbarCampaignBadge.classList.add('active');
+        if (el.tbarCampaignName) el.tbarCampaignName.textContent = diallerCampaign.name || '';
+        const tbarTypeBadge = document.getElementById('tbarCampaignTypeBadge');
+        if (tbarTypeBadge) { tbarTypeBadge.className = 'dp-type-badge ' + cls; tbarTypeBadge.textContent = label; }
+    }
 }
 
 function diallerRenderProgress() {
@@ -1372,7 +1443,7 @@ function bindUI() {
         }
     });
 
-    // ── Voice card controls ───────────────────────────────────────────────
+    // ── Voice card controls (session panel) ──────────────────────────────────
     el.vcBtnMute?.addEventListener('click', () => {
         if (!voiceCall) return;
         wsSend({ type: voiceCall.muted ? 'call_unmute' : 'call_mute', attempt_id: voiceCall.attemptId });
@@ -1384,6 +1455,23 @@ function bindUI() {
     });
 
     el.vcBtnHangup?.addEventListener('click', () => {
+        if (!voiceCall) return;
+        if (!confirm('Hang up this call?')) return;
+        wsSend({ type: 'call_hangup', attempt_id: voiceCall.attemptId });
+    });
+
+    // ── Voice input row controls (chat area) ─────────────────────────────────
+    el.viBtnMute?.addEventListener('click', () => {
+        if (!voiceCall) return;
+        wsSend({ type: voiceCall.muted ? 'call_unmute' : 'call_mute', attempt_id: voiceCall.attemptId });
+    });
+
+    el.viBtnHold?.addEventListener('click', () => {
+        if (!voiceCall) return;
+        wsSend({ type: voiceCall.held ? 'call_unhold' : 'call_hold', attempt_id: voiceCall.attemptId });
+    });
+
+    el.viBtnHangup?.addEventListener('click', () => {
         if (!voiceCall) return;
         if (!confirm('Hang up this call?')) return;
         wsSend({ type: 'call_hangup', attempt_id: voiceCall.attemptId });
