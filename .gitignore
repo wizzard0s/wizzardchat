@@ -43,3 +43,17 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Test / dev artifacts (one-time scripts, screenshots, Word docs)
+_*.py
+screenshots/
+evidence/
+*.docx
+~$*
+startup_*.txt
+startup_out.txt
+startup_check.txt
+startup_err.txt
+
+# Stray databases (SQLite leftovers)
+*.db
