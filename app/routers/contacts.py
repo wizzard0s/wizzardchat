@@ -429,6 +429,20 @@ async def create_contact(body: ContactCreate, db: AsyncSession = Depends(get_db)
         asyncio.create_task(_fire_contact_imported(c))
     except Exception:
         pass
+    # Routines: contact.created
+    try:
+        from app.services.event_dispatcher import dispatch
+        await dispatch("contact.created", {
+            "event": "contact.created",
+            "id": str(c.id),
+            "first_name": c.first_name,
+            "last_name": c.last_name,
+            "email": c.email,
+            "phone": c.phone,
+            "status": c.status.value if c.status else None,
+        }, db)
+    except Exception:
+        pass
     return _build_contact_out(c)
 
 
@@ -452,6 +466,21 @@ async def update_contact(contact_id: UUID, body: ContactUpdate, db: AsyncSession
     # Fire status-changed event if status was in the update payload and it actually changed
     if "status" in body.model_fields_set and old_status != new_status:
         asyncio.create_task(_fire_contact_status_changed(c, old_status, new_status))
+    # Routines: contact.updated
+    try:
+        from app.services.event_dispatcher import dispatch
+        await dispatch("contact.updated", {
+            "event": "contact.updated",
+            "id": str(c.id),
+            "first_name": c.first_name,
+            "last_name": c.last_name,
+            "email": c.email,
+            "phone": c.phone,
+            "status": c.status.value if c.status else None,
+            "changed_fields": list(body.model_fields_set),
+        }, db)
+    except Exception:
+        pass
     return _build_contact_out(c)
 
 
@@ -495,6 +524,21 @@ async def opt_out_contact(
         setattr(c, field, True)
     c.opt_out_at = datetime.utcnow()
     await db.commit()
+    # Routines: contact.opted_out
+    try:
+        from app.services.event_dispatcher import dispatch
+        await dispatch("contact.opted_out", {
+            "event": "contact.opted_out",
+            "id": str(contact_id),
+            "first_name": c.first_name,
+            "last_name": c.last_name,
+            "email": c.email,
+            "phone": c.phone,
+            "channel": body.channel,
+            "opt_out_at": c.opt_out_at.isoformat() + "Z" if c.opt_out_at else None,
+        }, db)
+    except Exception:
+        pass
     return {"ok": True, "contact_id": str(contact_id), "channel": body.channel}
 
 

@@ -729,6 +729,36 @@ async def _fire_chat_ended_event(
         _log.warning("_fire_chat_ended_event: could not notify inbound router: %s", exc)
 
 
+async def _dispatch_conversation_event(session_key: str, topic: str, closed_by: str = "unknown") -> None:
+    """Fire a Routines event for a conversation state change (fire-and-forget)."""
+    try:
+        from app.services.event_dispatcher import dispatch
+        async with async_session() as db:
+            res = await db.execute(
+                select(Interaction).where(Interaction.session_key == session_key)
+            )
+            sess = res.scalar_one_or_none()
+            if not sess:
+                return
+            vm = sess.visitor_metadata or {}
+            event_data = {
+                "event":        topic,
+                "id":           str(sess.id),
+                "session_key":  session_key,
+                "channel":      vm.get("channel", "chat"),
+                "status":       sess.status,
+                "closed_by":    closed_by,
+                "contact_id":   str(sess.contact_id) if sess.contact_id else None,
+                "queue_id":     str(sess.queue_id) if sess.queue_id else None,
+                "connector_id": str(sess.connector_id) if sess.connector_id else None,
+                "assigned_to":  str(sess.assigned_to) if getattr(sess, "assigned_to", None) else None,
+                "ended_at":     sess.ended_at.isoformat() + "Z" if sess.ended_at else None,
+            }
+            await dispatch(topic, event_data, db)
+    except Exception as exc:
+        _log.warning("_dispatch_conversation_event failed topic=%s session=%s: %s", topic, session_key, exc)
+
+
 async def _summarise_async(session_key: str) -> None:
     """
     Fire-and-forget: produce a final roll-up summary on close.
@@ -1251,6 +1281,7 @@ async def run_flow(
                 contact_id=str(session.contact_id) if getattr(session, "contact_id", None) else None,
                 queue_id=str(session.queue_id) if session.queue_id else None,
             ))
+            asyncio.create_task(_dispatch_conversation_event(session.session_key, "conversation.closed", "flow_end"))
             return
 
         # ── Message / Send Message ────────────────────────────────────────────
@@ -2205,6 +2236,7 @@ async def visitor_close(api_key: str, session_id: str):
                     contact_id=str(session.contact_id) if getattr(session, "contact_id", None) else None,
                     queue_id=str(session.queue_id) if session.queue_id else None,
                 ))
+                asyncio.create_task(_dispatch_conversation_event(session_id, "conversation.closed", "visitor"))
         manager.disconnect_visitor(session_id)
     return {"ok": True}
 
@@ -2619,6 +2651,7 @@ async def agent_ws(websocket: WebSocket, token: str = Query(...)):
                             contact_id=str(sess.contact_id) if getattr(sess, "contact_id", None) else None,
                             queue_id=str(sess.queue_id) if sess.queue_id else None,
                         ))
+                        asyncio.create_task(_dispatch_conversation_event(session_key, "conversation.closed", "agent"))
                         await websocket.send_text(json.dumps({
                             "type": "session_closed",
                             "session_id": session_key,

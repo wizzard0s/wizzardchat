@@ -557,6 +557,33 @@ async def update_attempt(
 
     await db.flush()
     await db.refresh(attempt)
+
+    # Routines: attempt.completed or attempt.outcome_set
+    try:
+        from app.services.event_dispatcher import dispatch
+        if terminal_transition:
+            await dispatch("attempt.completed", {
+                "event":           "attempt.completed",
+                "id":              str(attempt.id),
+                "campaign_id":     str(attempt.campaign_id),
+                "contact_id":      str(attempt.contact_id) if attempt.contact_id else None,
+                "status":          attempt.status.value if attempt.status else None,
+                "outcome_code":    attempt.outcome_code,
+                "handle_duration": attempt.handle_duration,
+                "ended_at":        attempt.ended_at.isoformat() + "Z" if attempt.ended_at else None,
+            }, db)
+        if body.outcome_code is not None:
+            await dispatch("attempt.outcome_set", {
+                "event":        "attempt.outcome_set",
+                "id":           str(attempt.id),
+                "campaign_id":  str(attempt.campaign_id),
+                "contact_id":   str(attempt.contact_id) if attempt.contact_id else None,
+                "outcome_code": attempt.outcome_code,
+                "notes":        attempt.notes,
+            }, db)
+    except Exception:
+        pass
+
     return CampaignAttemptOut.model_validate(attempt)
 
 

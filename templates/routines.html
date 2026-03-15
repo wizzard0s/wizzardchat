@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="/static/js/theme-init.js"></script>
+    <script src="/static/js/wz-theme.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Routines &ndash; WizzardChat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+</head>
+<body>
+<!-- Sidebar -->
+<nav id="sidebar" class="p-3 text-white">
+    <a href="/" class="d-flex align-items-center mb-2 text-white text-decoration-none">
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+        <span class="fs-5 fw-bold">WizzardChat</span>
+    </a>
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="flex-fill text-truncate small" id="agentName">&ndash;</span>
+        <button class="btn btn-sm btn-outline-secondary" id="btnLogout" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
+    </div>
+    <select class="form-select form-select-sm av-offline mb-2" id="availabilitySelect" title="Set your availability">
+        <option value="available">&#x1F7E2; Available</option>
+        <option value="admin">&#x1F535; Admin</option>
+        <option value="lunch">&#x1F7E1; Lunch</option>
+        <option value="break">&#x1F7E0; Break</option>
+        <option value="training">&#x1F7E3; Training</option>
+        <option value="meeting">&#x1F535; Meeting</option>
+        <option value="offline" selected>&#x26AB; Offline</option>
+    </select>
+    <hr class="border-secondary">
+    <ul class="nav nav-pills flex-column flex-nowrap" style="flex:1 1 0;overflow-y:auto;min-height:0;">
+        <li class="nav-item" style="margin-bottom:4px;"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-monitoring',this)">
+                <span>Monitoring</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-monitoring">
+                <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a href="/wallboard" class="nav-link text-white"><i class="bi bi-display me-2"></i>Wallboard</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-operations',this)">
+                <span>Operations</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-operations">
+                <li class="nav-item"><a href="/interactions" class="nav-link text-white"><i class="bi bi-chat-square-text me-2"></i>Interactions</a></li>
+                <li class="nav-item"><a href="/recordings" class="nav-link text-white"><i class="bi bi-mic-fill me-2"></i>Recordings</a></li>
+                <li class="nav-item"><a href="/flows" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-engagement',this)">
+                <span>Engagement</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-engagement">
+                <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+                <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+                <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-bizsettings',this)">
+                <span>Business Settings</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-bizsettings">
+                <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+                <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+                <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>
+                <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+                <li class="nav-item"><a href="/routines" class="nav-link active"><i class="bi bi-lightning-charge-fill me-2"></i>Routines</a></li>
+                <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+                <li class="nav-item"><a href="/audit-log" class="nav-link text-white"><i class="bi bi-journal-text me-2"></i>Audit Log</a></li>
+                <li class="nav-item"><a href="/docs" target="_blank" class="nav-link text-white"><i class="bi bi-code-square me-2"></i>API Docs</a></li>
+            </ul>
+        </li>
+    </ul>
+</nav>
+
+<!-- Main -->
+<main style="margin-left:220px;padding:24px;min-height:100vh;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="mb-0"><i class="bi bi-lightning-charge-fill me-2 text-warning"></i>Routines</h4>
+            <p class="text-muted small mb-0 mt-1">Push events to external systems when things happen in WizzardChat. Inspired by Connexone Routines.</p>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" id="routinesTabs">
+        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabSubs"><i class="bi bi-send me-1"></i>Webhook Subscriptions</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabSchedules"><i class="bi bi-alarm me-1"></i>Scheduled Routines</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- ─── Webhook Subscriptions ─── -->
+        <div class="tab-pane fade show active" id="tabSubs">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <p class="text-muted small mb-0">Register external URLs to receive events from WizzardChat.</p>
+                <button class="btn btn-warning btn-sm" onclick="openSubModal()"><i class="bi bi-plus-lg me-1"></i>New Subscription</button>
+            </div>
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="table table-hover table-bordered mb-0 align-middle small">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>URL</th>
+                                <th>Topics</th>
+                                <th style="width:80px" class="text-center">Method</th>
+                                <th style="width:70px" class="text-center">Enabled</th>
+                                <th style="width:120px" class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subTableBody">
+                            <tr id="subEmpty"><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-send fs-2 d-block mb-2"></i>No subscriptions yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── Scheduled Routines ─── -->
+        <div class="tab-pane fade" id="tabSchedules">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <p class="text-muted small mb-0">Fire <code>routine.tick</code> events on a cron schedule (SAST). Pair with a webhook subscription listening on <code>routine.tick</code>.</p>
+                <button class="btn btn-warning btn-sm" onclick="openSchedModal()"><i class="bi bi-plus-lg me-1"></i>New Schedule</button>
+            </div>
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="table table-hover table-bordered mb-0 align-middle small">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th style="width:160px">Cron</th>
+                                <th style="width:110px">Timezone</th>
+                                <th style="width:140px">Last run</th>
+                                <th style="width:70px" class="text-center">Enabled</th>
+                                <th style="width:100px" class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="schedTableBody">
+                            <tr id="schedEmpty"><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-alarm fs-2 d-block mb-2"></i>No schedules yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- ═══════════════ Delivery Log Modal ═══════════════ -->
+<div class="modal fade" id="deliveryModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-list-check me-2"></i>Delivery Log — <span id="deliverySubName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <table class="table table-sm table-bordered mb-0 align-middle small">
+                    <thead>
+                        <tr>
+                            <th style="width:160px">Queued</th>
+                            <th style="width:120px">Topic</th>
+                            <th style="width:90px">Status</th>
+                            <th style="width:60px" class="text-center">HTTP</th>
+                            <th style="width:60px" class="text-center">ms</th>
+                            <th>Response</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deliveryTableBody">
+                        <tr><td colspan="6" class="text-center text-muted py-4">Loading&hellip;</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ Subscription Modal ═══════════════ -->
+<div class="modal fade" id="subModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="subModalTitle"><i class="bi bi-send me-2"></i>New Subscription</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="subId">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" id="subName" class="form-control" placeholder="e.g. CRM close hook">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Endpoint URL <span class="text-danger">*</span></label>
+                        <input type="url" id="subUrl" class="form-control" placeholder="https://your-system.example.com/webhook">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Event Topics <span class="text-danger">*</span></label>
+                        <div id="topicCheckboxes" class="d-flex flex-wrap gap-2">
+                            <!-- populated by JS -->
+                        </div>
+                        <div class="form-text">Select at least one event that will trigger this subscription.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">HTTP Method</label>
+                        <select id="subMethod" class="form-select">
+                            <option value="POST" selected>POST</option>
+                            <option value="GET">GET</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Timeout (s)</label>
+                        <input type="number" id="subTimeout" class="form-control" value="10" min="1" max="60">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Max Retries</label>
+                        <input type="number" id="subRetryMax" class="form-control" value="3" min="0" max="10">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Signing Secret</label>
+                        <input type="text" id="subSecret" class="form-control font-monospace" placeholder="Leave blank for unsigned deliveries">
+                        <div class="form-text">If set, every delivery includes an <code>X-Wizzard-Signature-256</code> header (HMAC-SHA256, Stripe-style).</div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Custom Headers <span class="text-muted small">(JSON object)</span></label>
+                        <textarea id="subHeaders" class="form-control font-monospace" rows="2" placeholder='{"Authorization": "Bearer <token>"}'></textarea>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Payload Template <span class="text-muted small">(JSON — leave blank to send full event)</span></label>
+                        <textarea id="subTemplate" class="form-control font-monospace" rows="4"
+                            placeholder='{"crm_event":"interaction_closed","contact":"${contact.phone}","outcome":"${outcome.key}"}'></textarea>
+                        <div class="form-text">Use <code>${path.to.field}</code> tokens. Blank = full event dict.</div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Condition Filter <span class="text-muted small">(JSON — leave blank = fire always)</span></label>
+                        <textarea id="subFilter" class="form-control font-monospace" rows="3"
+                            placeholder='{"op":"eq","field":"event.outcome_code","value":"sale"}'></textarea>
+                        <div class="form-text">Supported ops: <code>eq neq gt lt gte lte in not_in contains starts_with is_null is_not_null</code>. Combine with <code>{"op":"and","conditions":[...]}</code>.</div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="subEnabled" checked>
+                            <label class="form-check-label" for="subEnabled">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="saveSub()"><i class="bi bi-floppy me-1"></i>Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ Schedule Modal ═══════════════ -->
+<div class="modal fade" id="schedModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="schedModalTitle"><i class="bi bi-alarm me-2"></i>New Schedule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="schedId">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" id="schedName" class="form-control" placeholder="e.g. Daily 09:00 report">
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label">Cron Expression <span class="text-danger">*</span></label>
+                        <input type="text" id="schedCron" class="form-control font-monospace" placeholder="0 9 * * 1-5">
+                        <div class="form-text">5-field cron: minute&nbsp;hour&nbsp;day&nbsp;month&nbsp;weekday. e.g. <code>0 9 * * 1-5</code> = weekdays at 09:00.</div>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Timezone</label>
+                        <input type="text" id="schedTz" class="form-control" value="Africa/Johannesburg">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Description</label>
+                        <textarea id="schedDesc" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Custom Data <span class="text-muted small">(JSON — included in routine.tick payload)</span></label>
+                        <textarea id="schedData" class="form-control font-monospace" rows="2" placeholder='{"report":"daily_summary"}'></textarea>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="schedEnabled" checked>
+                            <label class="form-check-label" for="schedEnabled">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="saveSched()"><i class="bi bi-floppy me-1"></i>Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/wz-nav.js"></script>
+<script>
+// ── Auth ──────────────────────────────────────────────────────────────────────
+const token = () => localStorage.getItem('access_token') || '';
+const hdrs  = () => ({ 'Authorization': 'Bearer ' + token(), 'Content-Type': 'application/json' });
+async function api(method, url, body) {
+    const r = await fetch(url, { method, headers: hdrs(), body: body ? JSON.stringify(body) : undefined });
+    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || r.status); }
+    if (r.status === 204) return null;
+    return r.json();
+}
+
+// ── Event topics reference ────────────────────────────────────────────────────
+const ALL_TOPICS = [
+    'conversation.created','conversation.assigned','conversation.closed',
+    'conversation.abandoned','conversation.transferred',
+    'message.received',
+    'attempt.connected','attempt.completed','attempt.outcome_set',
+    'contact.created','contact.updated','contact.opted_out',
+    'agent.availability_changed','agent.connected','agent.disconnected',
+    'recording.available','csat.received','routine.tick','test.ping',
+];
+
+function buildTopicCheckboxes(selected=[]) {
+    const el = document.getElementById('topicCheckboxes');
+    el.innerHTML = ALL_TOPICS.map(t => `
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="tp_${t.replace('.','_')}" value="${t}" ${selected.includes(t)?'checked':''}>
+            <label class="form-check-label small font-monospace" for="tp_${t.replace('.','_')}">${t}</label>
+        </div>`).join('');
+}
+
+// ── Status badge ──────────────────────────────────────────────────────────────
+const STATUS_BADGE = {
+    delivered: 'bg-success', failed: 'bg-danger', abandoned: 'bg-dark',
+    queued: 'bg-secondary', dispatching: 'bg-primary',
+};
+function statusBadge(s) {
+    return `<span class="badge ${STATUS_BADGE[s]||'bg-secondary'}">${s}</span>`;
+}
+
+// ── Load subscriptions ────────────────────────────────────────────────────────
+async function loadSubs() {
+    const subs = await api('GET', '/api/v1/webhook-subscriptions');
+    const tbody = document.getElementById('subTableBody');
+    document.getElementById('subEmpty').style.display = subs.length ? 'none' : '';
+    tbody.innerHTML = subs.map(s => `
+        <tr>
+            <td>${escHtml(s.name)}</td>
+            <td class="font-monospace small text-truncate" style="max-width:260px" title="${escHtml(s.url)}">${escHtml(s.url)}</td>
+            <td>${(s.event_topics||[]).map(t=>`<span class="badge bg-secondary me-1">${t}</span>`).join('')}</td>
+            <td class="text-center"><span class="badge bg-info">${s.http_method}</span></td>
+            <td class="text-center">${s.enabled ? '<i class="bi bi-check-circle-fill text-success"></i>' : '<i class="bi bi-x-circle-fill text-danger"></i>'}</td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-outline-info me-1" onclick="viewDeliveries('${s.id}','${escHtml(s.name)}')" title="Delivery log"><i class="bi bi-list-check"></i></button>
+                <button class="btn btn-sm btn-outline-warning me-1" onclick="testSub('${s.id}')" title="Test ping"><i class="bi bi-send"></i></button>
+                <button class="btn btn-sm btn-outline-secondary me-1" onclick="editSub(${JSON.stringify(s).replace(/"/g,'&quot;')})" title="Edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteSub('${s.id}')" title="Delete"><i class="bi bi-trash"></i></button>
+            </td>
+        </tr>`).join('') || '';
+}
+
+// ── Load schedules ────────────────────────────────────────────────────────────
+async function loadScheds() {
+    const scheds = await api('GET', '/api/v1/routine-schedules');
+    const tbody = document.getElementById('schedTableBody');
+    document.getElementById('schedEmpty').style.display = scheds.length ? 'none' : '';
+    tbody.innerHTML = scheds.map(s => `
+        <tr>
+            <td>${escHtml(s.name)}</td>
+            <td class="font-monospace">${escHtml(s.cron_expression)}</td>
+            <td>${escHtml(s.timezone)}</td>
+            <td class="small text-muted">${s.last_run_at ? new Date(s.last_run_at).toLocaleString('en-ZA') : '—'}</td>
+            <td class="text-center">${s.enabled ? '<i class="bi bi-check-circle-fill text-success"></i>' : '<i class="bi bi-x-circle-fill text-danger"></i>'}</td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-outline-secondary me-1" onclick="editSched(${JSON.stringify(s).replace(/"/g,'&quot;')})" title="Edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteSched('${s.id}')" title="Delete"><i class="bi bi-trash"></i></button>
+            </td>
+        </tr>`).join('') || '';
+}
+
+// ── Subscription CRUD ─────────────────────────────────────────────────────────
+function openSubModal(s=null) {
+    document.getElementById('subId').value = s ? s.id : '';
+    document.getElementById('subModalTitle').innerHTML = `<i class="bi bi-send me-2"></i>${s ? 'Edit' : 'New'} Subscription`;
+    document.getElementById('subName').value = s ? s.name : '';
+    document.getElementById('subUrl').value = s ? s.url : '';
+    document.getElementById('subMethod').value = s ? s.http_method : 'POST';
+    document.getElementById('subTimeout').value = s ? s.timeout_seconds : 10;
+    document.getElementById('subRetryMax').value = s ? s.retry_max : 3;
+    document.getElementById('subSecret').value = (s && s.secret && s.secret !== '***') ? s.secret : '';
+    document.getElementById('subHeaders').value = s && s.custom_headers ? JSON.stringify(s.custom_headers, null, 2) : '';
+    document.getElementById('subTemplate').value = s && s.payload_template ? JSON.stringify(s.payload_template, null, 2) : '';
+    document.getElementById('subFilter').value = s && s.filter_expr ? JSON.stringify(s.filter_expr, null, 2) : '';
+    document.getElementById('subEnabled').checked = s ? s.enabled : true;
+    buildTopicCheckboxes(s ? s.event_topics : []);
+    new bootstrap.Modal(document.getElementById('subModal')).show();
+}
+function editSub(s) { openSubModal(s); }
+
+async function saveSub() {
+    const id = document.getElementById('subId').value;
+    const topics = [...document.querySelectorAll('#topicCheckboxes input:checked')].map(c => c.value);
+    if (!topics.length) { alert('Select at least one event topic.'); return; }
+    const url = document.getElementById('subUrl').value.trim();
+    if (!url) { alert('Endpoint URL is required.'); return; }
+    let headers = null, template = null, filter = null;
+    try { const v = document.getElementById('subHeaders').value.trim(); if (v) headers = JSON.parse(v); } catch { alert('Custom Headers: invalid JSON'); return; }
+    try { const v = document.getElementById('subTemplate').value.trim(); if (v) template = JSON.parse(v); } catch { alert('Payload Template: invalid JSON'); return; }
+    try { const v = document.getElementById('subFilter').value.trim(); if (v) filter = JSON.parse(v); } catch { alert('Condition Filter: invalid JSON'); return; }
+    const body = {
+        name: document.getElementById('subName').value,
+        url,
+        http_method: document.getElementById('subMethod').value,
+        timeout_seconds: +document.getElementById('subTimeout').value,
+        retry_max: +document.getElementById('subRetryMax').value,
+        event_topics: topics,
+        enabled: document.getElementById('subEnabled').checked,
+        custom_headers: headers,
+        payload_template: template,
+        filter_expr: filter,
+    };
+    const secret = document.getElementById('subSecret').value.trim();
+    if (secret) body.secret = secret;
+    try {
+        if (id) await api('PUT', `/api/v1/webhook-subscriptions/${id}`, body);
+        else     await api('POST', '/api/v1/webhook-subscriptions', body);
+        bootstrap.Modal.getInstance(document.getElementById('subModal')).hide();
+        await loadSubs();
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function deleteSub(id) {
+    if (!confirm('Delete this subscription? All delivery logs will also be removed.')) return;
+    await api('DELETE', `/api/v1/webhook-subscriptions/${id}`);
+    await loadSubs();
+}
+
+async function testSub(id) {
+    try {
+        await api('POST', `/api/v1/webhook-subscriptions/${id}/test`);
+        alert('Test ping queued — check the delivery log in a few seconds.');
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── Delivery log ──────────────────────────────────────────────────────────────
+async function viewDeliveries(subId, name) {
+    document.getElementById('deliverySubName').textContent = name;
+    document.getElementById('deliveryTableBody').innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Loading&hellip;</td></tr>';
+    new bootstrap.Modal(document.getElementById('deliveryModal')).show();
+    try {
+        const deliveries = await api('GET', `/api/v1/webhook-subscriptions/${subId}/deliveries`);
+        document.getElementById('deliveryTableBody').innerHTML = deliveries.length
+            ? deliveries.map(d => `
+                <tr>
+                    <td class="small">${d.queued_at ? new Date(d.queued_at).toLocaleString('en-ZA') : '—'}</td>
+                    <td class="font-monospace small">${d.event_topic || '—'}</td>
+                    <td>${statusBadge(d.status)}</td>
+                    <td class="text-center">${d.response_code ? `<span class="${d.response_code<300?'text-success':'text-danger'}">${d.response_code}</span>` : '—'}</td>
+                    <td class="text-center">${d.duration_ms ?? '—'}</td>
+                    <td class="font-monospace small text-truncate" style="max-width:300px" title="${escHtml(d.response_body||'')}">${escHtml((d.response_body||'').substring(0,200))}</td>
+                </tr>`).join('')
+            : '<tr><td colspan="6" class="text-center text-muted py-4">No deliveries yet.</td></tr>';
+    } catch(e) {
+        document.getElementById('deliveryTableBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${e.message}</td></tr>`;
+    }
+}
+
+// ── Schedule CRUD ─────────────────────────────────────────────────────────────
+function openSchedModal(s=null) {
+    document.getElementById('schedId').value = s ? s.id : '';
+    document.getElementById('schedModalTitle').innerHTML = `<i class="bi bi-alarm me-2"></i>${s ? 'Edit' : 'New'} Schedule`;
+    document.getElementById('schedName').value = s ? s.name : '';
+    document.getElementById('schedCron').value = s ? s.cron_expression : '';
+    document.getElementById('schedTz').value = s ? s.timezone : 'Africa/Johannesburg';
+    document.getElementById('schedDesc').value = s ? (s.description||'') : '';
+    document.getElementById('schedData').value = s && s.custom_data ? JSON.stringify(s.custom_data, null, 2) : '';
+    document.getElementById('schedEnabled').checked = s ? s.enabled : true;
+    new bootstrap.Modal(document.getElementById('schedModal')).show();
+}
+function editSched(s) { openSchedModal(s); }
+
+async function saveSched() {
+    const id = document.getElementById('schedId').value;
+    let customData = null;
+    try { const v = document.getElementById('schedData').value.trim(); if (v) customData = JSON.parse(v); } catch { alert('Custom Data: invalid JSON'); return; }
+    const body = {
+        name: document.getElementById('schedName').value,
+        cron_expression: document.getElementById('schedCron').value.trim(),
+        timezone: document.getElementById('schedTz').value.trim() || 'Africa/Johannesburg',
+        description: document.getElementById('schedDesc').value || null,
+        custom_data: customData,
+        enabled: document.getElementById('schedEnabled').checked,
+    };
+    try {
+        if (id) await api('PUT', `/api/v1/routine-schedules/${id}`, body);
+        else     await api('POST', '/api/v1/routine-schedules', body);
+        bootstrap.Modal.getInstance(document.getElementById('schedModal')).hide();
+        await loadScheds();
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function deleteSched(id) {
+    if (!confirm('Delete this schedule?')) return;
+    await api('DELETE', `/api/v1/routine-schedules/${id}`);
+    await loadScheds();
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    // redirect to login if no token
+    if (!localStorage.getItem('access_token')) { window.location.href = '/login'; return; }
+
+    loadSubs();
+    loadScheds();
+
+    // Reload the relevant set when switching tabs
+    document.querySelector('[href="#tabSubs"]').addEventListener('shown.bs.tab', loadSubs);
+    document.querySelector('[href="#tabSchedules"]').addEventListener('shown.bs.tab', loadScheds);
+
+    // Agent name + availability (shared header)
+    fetch('/api/v1/users/me', {headers: {'Authorization':'Bearer '+token()}})
+        .then(r=>r.json()).then(u=> {
+            document.getElementById('agentName').textContent = u.full_name || u.username || '';
+        }).catch(()=>{});
+    document.getElementById('btnLogout').onclick = () => {
+        localStorage.removeItem('access_token');
+        window.location.href = '/login';
+    };
+});
+</script>
+</body>
+</html>

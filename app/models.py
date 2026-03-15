@@ -1167,3 +1167,111 @@ class MessageTemplate(Base):
 
     creator = relationship("User", foreign_keys=[created_by])
 
+
+# ──────────────── Routines / Outbound Webhook ────────────────────────────────
+
+class WebhookSubscription(Base):
+    """Register an external URL to receive events from WizzardChat (Routines).
+
+    ``event_topics``  — list of topic strings e.g. ``["conversation.closed"]``
+    ``filter_expr``   — optional JSON condition tree (see event_dispatcher docs)
+    ``payload_template`` — optional dict with ``${path}`` tokens; None = send full event
+    ``secret``        — HMAC-SHA256 signing secret; None = unsigned
+    """
+    __tablename__ = "chat_webhook_subscriptions"
+
+    id               = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name             = Column(String(255), nullable=False)
+    description      = Column(Text)
+
+    # Target
+    url              = Column(String(2000), nullable=False)
+    http_method      = Column(String(8),  default="POST")    # POST | GET
+    custom_headers   = Column(JSONB,      default=dict)
+
+    # Trigger
+    event_topics     = Column(JSONB,      nullable=False)    # ["conversation.closed", ...]
+    filter_expr      = Column(JSONB,      default=None)      # Condition tree or None
+
+    # Payload
+    payload_template = Column(JSONB,      default=None)      # None = full event dict
+
+    # Security
+    secret           = Column(String(255), nullable=True)
+
+    # Reliability
+    enabled          = Column(Boolean,    default=True)
+    retry_max        = Column(Integer,    default=3)
+    timeout_seconds  = Column(Integer,    default=10)
+
+    # Audit
+    created_by       = Column(UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="SET NULL"), nullable=True)
+    created_at       = Column(DateTime, default=datetime.utcnow)
+    updated_at       = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    deliveries = relationship("WebhookDelivery", back_populates="subscription",
+                              cascade="all, delete-orphan", passive_deletes=True)
+    creator    = relationship("User", foreign_keys=[created_by])
+
+
+class WebhookDelivery(Base):
+    """Records every dispatch attempt for a WebhookSubscription event."""
+    __tablename__ = "chat_webhook_deliveries"
+
+    id              = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    subscription_id = Column(UUID(as_uuid=True),
+                             ForeignKey("chat_webhook_subscriptions.id", ondelete="CASCADE"),
+                             nullable=False)
+    event_id        = Column(String(100))   # unique ID per event occurrence
+    event_topic     = Column(String(100))
+    payload         = Column(JSONB)         # resolved payload sent
+
+    # State: queued | dispatching | delivered | failed | abandoned
+    status          = Column(String(30), default="queued")
+    attempts        = Column(Integer,    default=0)
+    max_attempts    = Column(Integer,    default=3)
+    next_retry_at   = Column(DateTime,   nullable=True)
+
+    # Last attempt result
+    response_code   = Column(Integer,  nullable=True)
+    response_body   = Column(Text,     nullable=True)
+    duration_ms     = Column(Integer,  nullable=True)
+
+    queued_at        = Column(DateTime, default=datetime.utcnow)
+    last_attempt_at  = Column(DateTime, nullable=True)
+    delivered_at     = Column(DateTime, nullable=True)
+
+    subscription = relationship("WebhookSubscription", back_populates="deliveries")
+
+    __table_args__ = (
+        Index("ix_wh_delivery_sub",        "subscription_id"),
+        Index("ix_wh_delivery_status",     "status"),
+        Index("ix_wh_delivery_next_retry", "next_retry_at"),
+    )
+
+
+class RoutineSchedule(Base):
+    """Time-based event emitter.  Fires ``routine.tick`` at the configured cron interval.
+
+    ``cron_expression`` — standard 5-field cron (minute, hour, dom, month, dow)
+    ``timezone``        — IANA tz string (default Africa/Johannesburg)
+    ``custom_data``     — arbitrary dict included in the ``routine.tick`` payload
+    """
+    __tablename__ = "chat_routine_schedules"
+
+    id              = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name            = Column(String(255), nullable=False)
+    description     = Column(Text)
+    cron_expression = Column(String(100), nullable=False)
+    timezone        = Column(String(50),  default="Africa/Johannesburg")
+    custom_data     = Column(JSONB,       default=dict)
+    enabled         = Column(Boolean,     default=True)
+    last_run_at     = Column(DateTime,    nullable=True)
+    next_run_at     = Column(DateTime,    nullable=True)
+
+    created_by      = Column(UUID(as_uuid=True), ForeignKey("chat_users.id", ondelete="SET NULL"), nullable=True)
+    created_at      = Column(DateTime, default=datetime.utcnow)
+    updated_at      = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    creator = relationship("User", foreign_keys=[created_by])
+

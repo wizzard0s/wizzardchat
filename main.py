@@ -42,6 +42,8 @@ from app.routers import recordings as recordings_router
 from app.routers import agents as agents_router
 from app.routers import message_templates as message_templates_router
 from app.routers import supervisor as supervisor_router
+from app.routers import webhook_subscriptions as webhook_subscriptions_router
+from app.routers import routine_schedules as routine_schedules_router
 
 # Project root — used for absolute paths; avoids mutating process cwd
 BASE_DIR = Path(__file__).resolve().parent
@@ -1197,8 +1199,18 @@ async def lifespan(app: FastAPI):
     from app.routers.email_connector import start_all_poll_tasks as _start_email_polls
     await _start_email_polls()
 
+    # ── Start routine scheduler (APScheduler cron jobs) ──────────────────────
+    from app.services.routine_scheduler import start_scheduler as _start_scheduler
+    await _start_scheduler()
+
+    # ── Re-queue any webhook deliveries interrupted at last shutdown ──────────
+    from app.services.event_dispatcher import requeue_pending_deliveries as _requeue
+    await _requeue()
+
     yield
 
+    from app.services.routine_scheduler import stop_scheduler as _stop_scheduler
+    await _stop_scheduler()
     await engine.dispose()
 
 
@@ -1285,6 +1297,8 @@ app.include_router(audit_router.router)
 app.include_router(message_templates_router.router)
 app.include_router(recordings_router.router)
 app.include_router(supervisor_router.router)
+app.include_router(webhook_subscriptions_router.router)
+app.include_router(routine_schedules_router.router)
 
 @app.get("/")
 async def index(request: Request):
@@ -1400,6 +1414,11 @@ async def supervisor_page(request: Request):
 @app.get("/audit-log")
 async def audit_log_page(request: Request):
     return templates.TemplateResponse("audit_log.html", {"request": request})
+
+
+@app.get("/routines")
+async def routines_page(request: Request):
+    return templates.TemplateResponse("routines.html", {"request": request})
 
 
 @app.get("/msg-templates")
