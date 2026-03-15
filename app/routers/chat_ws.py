@@ -557,6 +557,7 @@ def _session_summary(session: Interaction, connector_name: str = "") -> dict:
         "created_at": session.created_at.isoformat() + "Z",
         "last_activity_at": (session.last_activity_at.isoformat() if session.last_activity_at else None),
         "agent_id": str(session.agent_id) if session.agent_id else None,
+        "queue_id": str(session.queue_id) if session.queue_id else None,
         "notes": session.notes,
         "message_log": list(session.message_log or []),
         "segments": list(session.segments or []),

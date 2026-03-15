@@ -325,6 +325,7 @@ class Queue(Base):
     disconnect_outcome_id = Column(UUID(as_uuid=True), ForeignKey("chat_outcomes.id", ondelete="SET NULL"), nullable=True)
     color = Column(String(20), default="#fd7e14")
     outcomes = Column(JSONB, default=list)  # [{key, label, description}]
+    webform_urls = Column(JSONB, default=dict)  # {slots:[{name, url}], override_campaign:bool}
     is_active = Column(Boolean, default=True)
     overflow_queue_id = Column(UUID(as_uuid=True), ForeignKey("chat_queues.id", ondelete="SET NULL"))
     flow_id = Column(UUID(as_uuid=True), ForeignKey("chat_flows.id", ondelete="SET NULL"))
@@ -625,6 +626,7 @@ class Campaign(Base):
     campaign_time = Column(JSONB, default=lambda: {"start": "08:00", "end": "17:00"})  # daily hours
     options = Column(JSONB, default=lambda: {"allow_transfer": True, "allow_callback": False})  # feature flags
     outcomes = Column(JSONB, default=list)  # [{key, label, description}]
+    webform_urls = Column(JSONB, default=dict)  # {slots:[{name, url}]}
     queues = Column(JSONB, default=list)    # list of Queue UUIDs assigned to this campaign
     agents = Column(JSONB, default=list)         # individual User UUIDs overrides / additions
     agent_groups = Column(JSONB, default=list)   # list of AgentGroup UUIDs assigned to this campaign

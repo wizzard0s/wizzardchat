@@ -576,6 +576,27 @@
         .vc-btn-end     { flex:0 0 38px; background:#dc3545; border-color:#dc3545; color:#fff; }
         .vc-btn-end:hover { background:#bb2d3b; border-color:#bb2d3b; }
 
+        /* Webform tab bar */
+        #webformTabBar { display:none; flex-shrink:0; overflow-x:auto; background:#12141a; border-bottom:1px solid #2e3140; padding:0 8px; gap:0; align-items:flex-end; }
+        .wftab { background:none; border:none; border-bottom:2px solid transparent; color:#8a9bb0; padding:8px 14px; font-size:.8rem; cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:5px; transition:color .15s,border-color .15s; }
+        .wftab:hover { color:#e0e6ef; }
+        .wftab.active { color:#6ea8fe; border-bottom-color:#6ea8fe; }
+        .wftab.chat-tab.active { color:#198754; border-bottom-color:#198754; }
+        .wftab-popout { background:none; border:none; color:#4a5a70; padding:1px 3px; cursor:pointer; font-size:.7rem; line-height:1; }
+        .wftab-popout:hover { color:#6ea8fe; }
+        #chatSlot { display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; }
+        .wfSlot { display:none; flex-direction:column; flex:1; min-height:0; }
+        .wfSlot-toolbar { display:flex; align-items:center; gap:8px; padding:6px 16px; background:#0d0f16; border-bottom:1px solid #2e3140; flex-shrink:0; font-size:.8rem; color:#e0e6ef; }
+        .wfSlot-url-badge { font-size:.7rem; color:#4a5a70; font-family:monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:320px; }
+        .wfSlot-btn { background:#1a1e2d; border:1px solid #2e3140; color:#8a9bb0; padding:3px 10px; border-radius:4px; font-size:.75rem; cursor:pointer; }
+        .wfSlot-btn:hover { background:#2a2e3d; }
+        .wfSlot-btn.primary { border-color:#0d6efd; color:#6ea8fe; }
+        .wfSlot-btn.primary:hover { background:#1a2a50; }
+        .wfSlot-iframe-wrap { flex:1; display:flex; }
+        .wfSlot-iframe-wrap iframe { width:100%; height:100%; border:none; background:#fff; }
+        .wfSlot-blocked { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; gap:10px; padding:32px; text-align:center; color:#8a9bb0; }
+        .wfSlot-blocked p { margin:0; }
+
     </style>
 
 </head>
@@ -1058,7 +1079,11 @@
 
         </div>
 
+        <!-- Webform tab bar (shown when session has configured URL slots) -->
+        <div id="webformTabBar"></div>
 
+        <!-- Chat slot wrapper (hides when an iframe tab is active) -->
+        <div id="chatSlot">
 
         <!-- Messages -->
 
@@ -1186,6 +1211,15 @@
             </button>
 
         </div>
+
+        </div><!-- /chatSlot -->
+
+        <!-- Webform iframe slots (1 per configured URL, max 5) -->
+        <div id="wfSlot_1" class="wfSlot"></div>
+        <div id="wfSlot_2" class="wfSlot"></div>
+        <div id="wfSlot_3" class="wfSlot"></div>
+        <div id="wfSlot_4" class="wfSlot"></div>
+        <div id="wfSlot_5" class="wfSlot"></div>
 
     </div>
 

@@ -277,6 +277,7 @@
         _initGroupShuttle([]);
         _initAgentShuttle([]);
         _fillOutboundTab({});
+        _fillWebformSlots('c', []);
     }
 
     function _fillForm(c) {
@@ -308,6 +309,9 @@
         _initAgentShuttle(c.agents || []);
         // Outbound config
         _fillOutboundTab(c.outbound_config || {});
+        // Webform URLs
+        const intCfg = c.webform_urls || {};
+        _fillWebformSlots('c', intCfg.slots || []);
     }
 
     // \u2500\u2500\u2500 Global outcomes \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -345,6 +349,27 @@
     }
 
     // \u2500\u2500\u2500 Outcomes (checkbox selection) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    //  Webform URL slots 
+    function _readWebformSlots(prefix) {
+        const slots = [];
+        for (let i = 1; i <= 5; i++) {
+            const name = (document.getElementById(prefix + 'SlotName_' + i)?.value || '').trim();
+            const url  = (document.getElementById(prefix + 'SlotUrl_'  + i)?.value || '').trim();
+            slots.push({ name, url });
+        }
+        return slots;
+    }
+
+    function _fillWebformSlots(prefix, slots) {
+        for (let i = 1; i <= 5; i++) {
+            const slot = slots[i - 1] || {};
+            const nameEl = document.getElementById(prefix + 'SlotName_' + i);
+            const urlEl  = document.getElementById(prefix + 'SlotUrl_'  + i);
+            if (nameEl) nameEl.value = slot.name || '';
+            if (urlEl)  urlEl.value  = slot.url  || '';
+        }
+    }
+
     function _readOutcomes() {
         return Array.from(document.querySelectorAll('#cOutcomeList input[type=checkbox]:checked')).map(el => el.value);
     }
@@ -424,6 +449,7 @@
             queues:        _readQueues(),
             agents:        shuttleGetSelected('campAgents'),
             agent_groups:  shuttleGetSelected('campGroups'),
+            webform_urls: { slots: _readWebformSlots('c') },
         };
 
         const url    = _editId ? `/api/v1/campaigns/${_editId}` : '/api/v1/campaigns';

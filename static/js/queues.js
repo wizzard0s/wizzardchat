@@ -152,7 +152,7 @@
 
         // Activate first tab
         const firstTab = document.querySelector('#queueTabs .nav-link');
-        bootstrap.Tab.getOrCreateInstance(firstTab).show();
+        if (firstTab) bootstrap.Tab.getOrCreateInstance(firstTab).show();
 
         modal().show();
     };
@@ -170,6 +170,9 @@
         document.getElementById('qDisconnectTimeout').value = '';
         _fillDisconnectOutcomeSelect(null);
         _renderOutcomeCheckboxes('qOutcomeList', 'qOutcomeEmpty', []);
+        _fillWebformSlots('q', []);
+        const ovr = document.getElementById('qOverrideCampaign');
+        if (ovr) ovr.checked = false;
     }
 
     function _fillForm(q) {
@@ -187,9 +190,35 @@
 
         // Outcomes
         _renderOutcomeCheckboxes('qOutcomeList', 'qOutcomeEmpty', q.outcomes || []);
+        // Webform URLs
+        const intCfg = q.webform_urls || {};
+        _fillWebformSlots('q', intCfg.slots || []);
+        const ovr = document.getElementById('qOverrideCampaign');
+        if (ovr) ovr.checked = !!intCfg.override_campaign;
     }
 
     // \u2500\u2500\u2500 Outcomes (checkbox selection) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    //  Webform URL slots 
+    function _readWebformSlots(prefix) {
+        const slots = [];
+        for (let i = 1; i <= 5; i++) {
+            const name = (document.getElementById(prefix + 'SlotName_' + i)?.value || '').trim();
+            const url  = (document.getElementById(prefix + 'SlotUrl_'  + i)?.value || '').trim();
+            slots.push({ name, url });
+        }
+        return slots;
+    }
+
+    function _fillWebformSlots(prefix, slots) {
+        for (let i = 1; i <= 5; i++) {
+            const slot = slots[i - 1] || {};
+            const nameEl = document.getElementById(prefix + 'SlotName_' + i);
+            const urlEl  = document.getElementById(prefix + 'SlotUrl_'  + i);
+            if (nameEl) nameEl.value = slot.name || '';
+            if (urlEl)  urlEl.value  = slot.url  || '';
+        }
+    }
+
     function _readOutcomes() {
         return Array.from(document.querySelectorAll('#qOutcomeList input[type=checkbox]:checked')).map(el => el.value);
     }
@@ -212,6 +241,10 @@
             disconnect_timeout_seconds: parseInt(document.getElementById('qDisconnectTimeout').value) || null,
             disconnect_outcome_id: document.getElementById('qDisconnectOutcome').value || null,
             outcomes:       _readOutcomes(),
+            webform_urls: {
+                slots:             _readWebformSlots('q'),
+                override_campaign: !!(document.getElementById('qOverrideCampaign')?.checked),
+            },
         };
 
         const url    = _editId ? `/api/v1/queues/${_editId}` : '/api/v1/queues';

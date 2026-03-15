@@ -214,6 +214,8 @@
 
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCOutcomes">Outcomes</button></li>
 
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCWebforms"><i class="bi bi-window-stack me-1"></i>Webforms</button></li>
+
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCOutbound"><i class="bi bi-send me-1"></i>Outbound</button></li>
 
                 </ul>
@@ -490,6 +492,50 @@
 
                         </div>
 
+                    </div>
+
+                    <!-- -- Webforms -- -->
+                    <div class="tab-pane fade" id="tabCWebforms">
+                        <p class="text-muted small mb-2">Configure up to 5 web pages to open as tabs in the agent panel when this campaign is active. Queue webform URLs override these when the queue has &ldquo;Override campaign webforms&rdquo; checked.</p>
+                        <div class="row g-2 align-items-center fw-semibold small text-muted mb-1">
+                            <div class="col-auto" style="width:40px">#</div>
+                            <div class="col-3">Tab name</div>
+                            <div class="col">URL</div>
+                        </div>
+                        <div id="cIntegSlots">
+                            <div class="row g-2 align-items-center mb-1">
+                                <div class="col-auto" style="width:40px"><span class="badge bg-warning text-dark">1</span></div>
+                                <div class="col-3"><input type="text" class="form-control form-control-sm" id="cSlotName_1" placeholder="Tab name"></div>
+                                <div class="col"><input type="url" class="form-control form-control-sm font-monospace" id="cSlotUrl_1" placeholder="https://…"></div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-1">
+                                <div class="col-auto" style="width:40px"><span class="badge bg-warning text-dark">2</span></div>
+                                <div class="col-3"><input type="text" class="form-control form-control-sm" id="cSlotName_2" placeholder="Tab name"></div>
+                                <div class="col"><input type="url" class="form-control form-control-sm font-monospace" id="cSlotUrl_2" placeholder="https://…"></div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-1">
+                                <div class="col-auto" style="width:40px"><span class="badge bg-warning text-dark">3</span></div>
+                                <div class="col-3"><input type="text" class="form-control form-control-sm" id="cSlotName_3" placeholder="Tab name"></div>
+                                <div class="col"><input type="url" class="form-control form-control-sm font-monospace" id="cSlotUrl_3" placeholder="https://…"></div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-1">
+                                <div class="col-auto" style="width:40px"><span class="badge bg-warning text-dark">4</span></div>
+                                <div class="col-3"><input type="text" class="form-control form-control-sm" id="cSlotName_4" placeholder="Tab name"></div>
+                                <div class="col"><input type="url" class="form-control form-control-sm font-monospace" id="cSlotUrl_4" placeholder="https://…"></div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-1">
+                                <div class="col-auto" style="width:40px"><span class="badge bg-warning text-dark">5</span></div>
+                                <div class="col-3"><input type="text" class="form-control form-control-sm" id="cSlotName_5" placeholder="Tab name"></div>
+                                <div class="col"><input type="url" class="form-control form-control-sm font-monospace" id="cSlotUrl_5" placeholder="https://…"></div>
+                            </div>
+                        </div>
+                        <p class="text-muted small mt-3 mb-0">
+                            Variables: <code>{contact.id}</code> <code>{contact.phone}</code> <code>{contact.email}</code>
+                            <code>{contact.first_name}</code> <code>{contact.last_name}</code> <code>{contact.company}</code>
+                            <code>{interaction.id}</code> <code>{interaction.channel}</code>
+                            <code>{attempt.id}</code> <code>{attempt.campaign_id}</code>
+                            <code>{meta.ANY_KEY}</code> (from visitor metadata)
+                        </p>
                     </div>
 
                     <!-- -- Outbound Config -- -->

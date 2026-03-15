@@ -259,6 +259,7 @@ class QueueCreate(BaseModel):
     disconnect_outcome_id: Optional[UUID] = None
     color: str = "#fd7e14"
     outcomes: List[str] = []  # list of global Outcome IDs
+    webform_urls: Dict[str, Any] = {}
     is_active: bool = True
     overflow_queue_id: Optional[UUID] = None
     flow_id: Optional[UUID] = None
@@ -278,6 +279,7 @@ class QueueOut(BaseModel):
     disconnect_outcome_id: Optional[UUID] = None
     color: str = "#fd7e14"
     outcomes: List[Any] = []  # list of global Outcome IDs
+    webform_urls: Dict[str, Any] = {}
     is_active: bool
     overflow_queue_id: Optional[UUID]
     flow_id: Optional[UUID]
@@ -535,6 +537,7 @@ class CampaignCreate(BaseModel):
     campaign_time: Dict[str, Any] = {"start": "08:00", "end": "17:00"}
     options: Dict[str, Any] = {"allow_transfer": True, "allow_callback": False}
     outcomes: List[str] = []  # list of global Outcome IDs
+    webform_urls: Dict[str, Any] = {}
     queues: List[str] = []    # list of Queue IDs
     agents: List[str] = []         # individual User IDs (overrides / additions)
     agent_groups: List[str] = []    # list of AgentGroup IDs assigned to this campaign
@@ -567,6 +570,7 @@ class CampaignOut(BaseModel):
     campaign_time: Dict[str, Any] = {}
     options: Dict[str, Any] = {}
     outcomes: List[Any] = []  # list of global Outcome IDs
+    webform_urls: Dict[str, Any] = {}
     queues: List[Any] = []    # list of Queue IDs
     agents: List[Any] = []         # individual User IDs (overrides / additions)
     agent_groups: List[Any] = []    # list of AgentGroup IDs assigned to this campaign

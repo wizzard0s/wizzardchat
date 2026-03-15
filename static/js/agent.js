@@ -1,4 +1,4 @@
-/**
+﻿/**
  * WizzardChat \u2013 Agent Panel JS
  * Connects to /ws/agent, manages session list, chat window, and campaign dispatch.
  * navToggle, accordion init, availability init, and agentName are in sidebar.js
@@ -838,6 +838,143 @@ function sessionCardHTML(s, cssClass) {
 }
 
 // \u2500\u2500\u2500 Open session \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// --- Webform tabs -----------------------------------------------------------
+const _wfCache = {};      // queue_id  -> { webform_urls, campaign_id }
+const _wfCampCache = {};  // campaign_id -> slots[]
+
+function _esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function _resolveWebformVars(url, s) {
+    const meta = s.metadata || {};
+    const vars = {
+        'contact.id':         meta.contact_id    || '',
+        'contact.phone':      meta.phone         || '',
+        'contact.email':      meta.email         || '',
+        'contact.first_name': meta.first_name    || '',
+        'contact.last_name':  meta.last_name     || '',
+        'contact.company':    meta.company       || '',
+        'interaction.id':     s.session_key      || '',
+        'interaction.channel':s.channel          || '',
+        'interaction.direction':s.direction      || 'inbound',
+        'attempt.id':         s.attempt_id       || '',
+        'attempt.campaign_id':s.campaign_id      || '',
+    };
+    Object.entries(meta).forEach(([k, v]) => { vars['meta.' + k] = String(v ?? ''); });
+    return url.replace(/\{([^}]+)\}/g, (_, key) => vars[key] ?? '');
+}
+
+async function _getQueueWebformConfig(queueId) {
+    if (_wfCache[queueId] !== undefined) return _wfCache[queueId];
+    try {
+        const r = await apiFetch(`/api/v1/queues/${queueId}`);
+        if (!r.ok) { _wfCache[queueId] = null; return null; }
+        const q = await r.json();
+        _wfCache[queueId] = { webform_urls: q.webform_urls || {}, campaign_id: q.campaign_id || null };
+        return _wfCache[queueId];
+    } catch { _wfCache[queueId] = null; return null; }
+}
+
+async function _getCampaignWebformSlots(campId) {
+    if (_wfCampCache[campId] !== undefined) return _wfCampCache[campId];
+    try {
+        const r = await apiFetch(`/api/v1/campaigns/${campId}`);
+        if (!r.ok) { _wfCampCache[campId] = null; return null; }
+        const c = await r.json();
+        _wfCampCache[campId] = (c.webform_urls?.slots || []).filter(sl => sl?.url);
+        return _wfCampCache[campId];
+    } catch { _wfCampCache[campId] = null; return null; }
+}
+
+async function _getWebformSlots(s) {
+    const queueId = s.queue_id;
+    if (!queueId) return [];
+    const qConfig = await _getQueueWebformConfig(queueId);
+    const qSlots  = (qConfig?.webform_urls?.slots || []).filter(sl => sl?.url);
+    if (qSlots.length && qConfig?.webform_urls?.override_campaign) return qSlots;
+    const campId  = qConfig?.campaign_id;
+    if (campId) {
+        const cSlots = await _getCampaignWebformSlots(campId);
+        if (cSlots?.length) return cSlots;
+    }
+    return qSlots;
+}
+
+function _switchWebformTab(tabId) {
+    const bar = document.getElementById('webformTabBar');
+    if (!bar) return;
+    bar.querySelectorAll('.wftab').forEach(t => t.classList.remove('active'));
+    const btn = document.getElementById('wftab_' + tabId);
+    if (btn) btn.classList.add('active');
+    const chatSlot = document.getElementById('chatSlot');
+    if (tabId === 'chat') {
+        if (chatSlot) chatSlot.style.display = 'flex';
+        for (let i = 1; i <= 5; i++) { const sl = document.getElementById('wfSlot_' + i); if (sl) sl.style.display = 'none'; }
+    } else {
+        if (chatSlot) chatSlot.style.display = 'none';
+        for (let i = 1; i <= 5; i++) {
+            const sl = document.getElementById('wfSlot_' + i);
+            if (sl) sl.style.display = (i === parseInt(tabId)) ? 'flex' : 'none';
+        }
+    }
+}
+
+async function _loadWebformTabs(key) {
+    const s   = sessions[key];
+    const bar = document.getElementById('webformTabBar');
+    const chatSlot = document.getElementById('chatSlot');
+    if (!bar) return;
+    bar.innerHTML = '';
+    bar.style.display = 'none';
+    for (let i = 1; i <= 5; i++) { const sl = document.getElementById('wfSlot_' + i); if (sl) { sl.style.display = 'none'; sl.innerHTML = ''; } }
+    if (chatSlot) chatSlot.style.display = 'flex';
+    if (!s) return;
+    const slots = await _getWebformSlots(s);
+    if (!slots.length) return;
+    bar.style.display = 'flex';
+    const chatTab = document.createElement('button');
+    chatTab.className = 'wftab chat-tab active';
+    chatTab.id = 'wftab_chat';
+    chatTab.innerHTML = '<i class="bi bi-chat-text-fill me-1" style="color:#198754;"></i>Chat';
+    chatTab.onclick = () => _switchWebformTab('chat');
+    bar.appendChild(chatTab);
+    slots.slice(0, 5).forEach((slot, idx) => {
+        const num = idx + 1;
+        const resolvedUrl = _resolveWebformVars(slot.url, s);
+        const tab = document.createElement('button');
+        tab.className = 'wftab';
+        tab.id = 'wftab_' + num;
+        tab.innerHTML = `<i class="bi bi-globe2 me-1" style="color:#6ea8fe;"></i>${_esc(slot.name || 'Tab ' + num)}<button class="wftab-popout" title="Pop out" onclick="event.stopPropagation();window.open('${_esc(resolvedUrl)}','_blank','noopener');"><i class="bi bi-box-arrow-up-right"></i></button>`;
+        tab.onclick = () => _switchWebformTab(num);
+        bar.appendChild(tab);
+        const slotEl = document.getElementById('wfSlot_' + num);
+        if (slotEl) {
+            slotEl.innerHTML = `<div class="wfSlot-toolbar"><i class="bi bi-globe2 me-1" style="color:#6ea8fe;"></i><strong>${_esc(slot.name || 'Tab ' + num)}</strong><span class="wfSlot-url-badge" title="${_esc(slot.url)}">${_esc(resolvedUrl)}</span><div class="ms-auto d-flex gap-2"><button class="wfSlot-btn" id="wfSlot_reload_${num}"><i class="bi bi-arrow-clockwise me-1"></i>Reload</button><button class="wfSlot-btn primary" onclick="window.open('${_esc(resolvedUrl)}','_blank','noopener')"><i class="bi bi-box-arrow-up-right me-1"></i>Pop out</button></div></div><div class="wfSlot-iframe-wrap" id="wfSlot_wrap_${num}"><iframe id="wfSlot_iframe_${num}" src="${_esc(resolvedUrl)}" sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals" title="${_esc(slot.name || 'Tab ' + num)}"></iframe></div>`;
+            // Wire reload button now that the element exists
+            const reloadBtn = document.getElementById('wfSlot_reload_' + num);
+            const iframeEl  = document.getElementById('wfSlot_iframe_' + num);
+            const wrapEl    = document.getElementById('wfSlot_wrap_'   + num);
+            if (reloadBtn && iframeEl) reloadBtn.onclick = () => { iframeEl.src = iframeEl.src; };
+            // Detect iframe block — contentDocument is null when X-Frame-Options / CSP frame-ancestors blocks
+            if (iframeEl && wrapEl) {
+                iframeEl.addEventListener('load', function _onLoad() {
+                    iframeEl.removeEventListener('load', _onLoad);
+                    let blocked = false;
+                    try { if (iframeEl.contentDocument === null) blocked = true; }
+                    catch(e) { /* cross-origin but loaded fine */ }
+                    if (!blocked) return;
+                    iframeEl.style.display = 'none';
+                    const fb = document.createElement('div');
+                    fb.className = 'wfSlot-blocked';
+                    fb.innerHTML = `<i class="bi bi-shield-x" style="font-size:2.2rem;color:#6c757d;"></i><p>This page blocks embedding.</p><p><small style="word-break:break-all;color:#4a5a70;">${_esc(resolvedUrl)}</small></p><div class="d-flex gap-2 mt-2"><button class="wfSlot-btn primary" onclick="window.open('${_esc(resolvedUrl)}','wf_side_${num}','width=1100,height=850,left=120,top=80,noopener')"><i class="bi bi-window me-1"></i>Side window</button><button class="wfSlot-btn" onclick="window.open('${_esc(resolvedUrl)}','_blank','noopener')"><i class="bi bi-box-arrow-up-right me-1"></i>New tab</button></div>`;
+                    wrapEl.appendChild(fb);
+                });
+            }
+        }
+    });
+}
+
 function openSession(key) {
     activeKey = key;
 
@@ -862,6 +999,7 @@ function openSession(key) {
 
     // Render chat header
     updateChatHeader();
+    _loadWebformTabs(key);
 
     // Render message history
     el.msgList.innerHTML = '';

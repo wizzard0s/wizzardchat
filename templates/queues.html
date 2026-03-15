@@ -143,6 +143,7 @@
                     <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabQBasic">Basic</button></li>
                     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabQSettings">Settings</button></li>
                     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabQOutcomes">Outcomes</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabQWebforms"><i class="bi bi-window-stack me-1"></i>Webforms</button></li>
                 </ul>
                 <div class="tab-content">
 
@@ -208,6 +209,14 @@
                                 <label class="form-label">SLA Threshold <small class="text-muted">(seconds)</small></label>
                                 <input type="number" id="qSla" class="form-control" value="30" min="0">
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Disconnect Timeout <small class="text-muted">(seconds, blank = none)</small></label>
+                                <input type="number" id="qDisconnectTimeout" class="form-control" min="0" placeholder="e.g. 60">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Disconnect Outcome <small class="text-muted">(on timeout)</small></label>
+                                <select id="qDisconnectOutcome" class="form-select"></select>
+                            </div>
                         </div>
                     </div>
 
@@ -218,6 +227,56 @@
                         <div id="qOutcomeEmpty" class="text-muted small fst-italic mt-2" style="display:none">
                             No active outcomes configured. <a href="/outcomes" class="text-info">Add outcomes</a> under Business Settings.
                         </div>
+                    </div>
+
+                    <!-- -- Webforms -- -->
+                    <div class="tab-pane fade" id="tabQWebforms">
+                        <p class="text-muted small mb-2">Configure up to 5 web pages to open as tabs in the agent panel when a session is assigned from this queue.</p>
+                        <div class="row g-2 align-items-center fw-semibold small text-muted mb-1">
+                            <div class="col-auto" style="width:40px">#</div>
+                            <div class="col-3">Tab name</div>
+                            <div class="col">URL</div>
+                        </div>
+                        <div id="qIntegSlots">
+                            <div class="row g-2 align-items-center mb-1">
+                                <div class="col-auto" style="width:40px"><span class="badge bg-secondary">1</span></div>
+                                <div class="col-3"><input type="text" class="form-control form-control-sm" id="qSlotName_1" placeholder="Tab name"></div>
+                                <div class="col"><input type="url" class="form-control form-control-sm font-monospace" id="qSlotUrl_1" placeholder="https://…"></div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-1">
+                                <div class="col-auto" style="width:40px"><span class="badge bg-secondary">2</span></div>
+                                <div class="col-3"><input type="text" class="form-control form-control-sm" id="qSlotName_2" placeholder="Tab name"></div>
+                                <div class="col"><input type="url" class="form-control form-control-sm font-monospace" id="qSlotUrl_2" placeholder="https://…"></div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-1">
+                                <div class="col-auto" style="width:40px"><span class="badge bg-secondary">3</span></div>
+                                <div class="col-3"><input type="text" class="form-control form-control-sm" id="qSlotName_3" placeholder="Tab name"></div>
+                                <div class="col"><input type="url" class="form-control form-control-sm font-monospace" id="qSlotUrl_3" placeholder="https://…"></div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-1">
+                                <div class="col-auto" style="width:40px"><span class="badge bg-secondary">4</span></div>
+                                <div class="col-3"><input type="text" class="form-control form-control-sm" id="qSlotName_4" placeholder="Tab name"></div>
+                                <div class="col"><input type="url" class="form-control form-control-sm font-monospace" id="qSlotUrl_4" placeholder="https://…"></div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-1">
+                                <div class="col-auto" style="width:40px"><span class="badge bg-secondary">5</span></div>
+                                <div class="col-3"><input type="text" class="form-control form-control-sm" id="qSlotName_5" placeholder="Tab name"></div>
+                                <div class="col"><input type="url" class="form-control form-control-sm font-monospace" id="qSlotUrl_5" placeholder="https://…"></div>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input" type="checkbox" id="qOverrideCampaign">
+                            <label class="form-check-label small" for="qOverrideCampaign">
+                                <strong>Override campaign webforms</strong> — when checked, these URLs replace any webform URLs defined on the linked campaign
+                            </label>
+                        </div>
+                        <p class="text-muted small mt-3 mb-0">
+                            Variables: <code>{contact.id}</code> <code>{contact.phone}</code> <code>{contact.email}</code>
+                            <code>{contact.first_name}</code> <code>{contact.last_name}</code> <code>{contact.company}</code>
+                            <code>{interaction.id}</code> <code>{interaction.channel}</code>
+                            <code>{attempt.id}</code> <code>{attempt.campaign_id}</code>
+                            <code>{meta.ANY_KEY}</code> (from visitor metadata)
+                        </p>
                     </div>
 
                 </div><!-- /tab-content -->
