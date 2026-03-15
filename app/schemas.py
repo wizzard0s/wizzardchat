@@ -8,6 +8,7 @@ from app.models import (
     ChannelType, UserRole, QueueStrategy, ConversationStatus,
     CampaignStatus, CampaignType, ContactStatus, AuthType,
     FlowType, FlowStatus, TagType, AttemptStatus,
+    RecordingStatus, RecordingLeg,
 )
 
 
@@ -601,6 +602,30 @@ class CampaignAttemptUpdate(BaseModel):
     handle_duration: Optional[int] = None
 
 
+class CallRecordingOut(BaseModel):
+    id:                     UUID
+    attempt_id:             UUID
+    campaign_id:            Optional[UUID]
+    agent_id:               Optional[UUID]
+    contact_id:             Optional[UUID]
+    provider:               Optional[str]
+    leg:                    str = "unknown"
+    status:                 str = "pending"
+    provider_recording_id:  Optional[str]
+    provider_url:           Optional[str]
+    file_path:              Optional[str]
+    file_size_bytes:        Optional[int]
+    mime_type:              Optional[str]
+    duration_seconds:       Optional[int]
+    started_at:             Optional[datetime]
+    ended_at:               Optional[datetime]
+    # Derived — full playback URL served by the recordings router
+    playback_url:           Optional[str] = None
+    created_at:             datetime
+
+    model_config = {"from_attributes": True}
+
+
 class CampaignAttemptOut(BaseModel):
     id:              UUID
     campaign_id:     UUID
@@ -617,6 +642,8 @@ class CampaignAttemptOut(BaseModel):
     ended_at:        Optional[datetime]
     ring_duration:   Optional[int]
     handle_duration: Optional[int]
+    recording_url:   Optional[str]
+    recordings:      List["CallRecordingOut"] = []
     created_at:      datetime
 
     model_config = {"from_attributes": True}

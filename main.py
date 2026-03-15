@@ -38,6 +38,7 @@ from app.routers import voice_connector as voice_connector_router
 from app.routers import sms_connector as sms_connector_router
 from app.routers import voice_twiml as voice_twiml_router
 from app.routers import audit as audit_router
+from app.routers import recordings as recordings_router
 from app.routers import agents as agents_router
 from app.routers import message_templates as message_templates_router
 
@@ -845,6 +846,37 @@ async def lifespan(app: FastAPI):
              "ALTER TABLE chat_users ADD COLUMN IF NOT EXISTS channel_max_sms INTEGER"),
             ("users.capacity_override_active",
              "ALTER TABLE chat_users ADD COLUMN IF NOT EXISTS capacity_override_active BOOLEAN NOT NULL DEFAULT FALSE"),
+            # ── Call Recordings ────────────────────────────────────────────────
+            ("call_recordings.create_table",
+             """CREATE TABLE IF NOT EXISTS chat_call_recordings (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                attempt_id UUID NOT NULL REFERENCES chat_campaign_attempts(id) ON DELETE CASCADE,
+                campaign_id UUID,
+                agent_id UUID,
+                contact_id UUID,
+                provider VARCHAR(50),
+                leg VARCHAR(50) DEFAULT 'unknown',
+                status VARCHAR(50) DEFAULT 'pending',
+                provider_recording_id VARCHAR(255),
+                provider_url VARCHAR(500),
+                file_path VARCHAR(500),
+                file_size_bytes INTEGER,
+                mime_type VARCHAR(50) DEFAULT 'audio/mpeg',
+                duration_seconds INTEGER,
+                started_at TIMESTAMP,
+                ended_at TIMESTAMP,
+                error_message TEXT,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+             )"""),
+            ("campaign_attempts.recording_url",
+             "ALTER TABLE chat_campaign_attempts ADD COLUMN IF NOT EXISTS recording_url VARCHAR(500)"),
+            ("call_recordings.ix_attempt",
+             "CREATE INDEX IF NOT EXISTS ix_call_recordings_attempt ON chat_call_recordings(attempt_id)"),
+            ("call_recordings.ix_campaign",
+             "CREATE INDEX IF NOT EXISTS ix_call_recordings_campaign ON chat_call_recordings(campaign_id)"),
+            ("call_recordings.ix_provider_id",
+             "CREATE INDEX IF NOT EXISTS ix_call_recordings_provider_id ON chat_call_recordings(provider_recording_id)"),
         ]
     for label, sql in _migrations:
         try:
@@ -1250,6 +1282,7 @@ app.include_router(sms_connector_router.router)
 app.include_router(voice_twiml_router.router)
 app.include_router(audit_router.router)
 app.include_router(message_templates_router.router)
+app.include_router(recordings_router.router)
 
 @app.get("/")
 async def index(request: Request):
@@ -1345,6 +1378,11 @@ async def settings_page(request: Request):
 @app.get("/interactions")
 async def interactions_page(request: Request):
     return templates.TemplateResponse("interactions.html", {"request": request})
+
+
+@app.get("/recordings")
+async def recordings_page(request: Request):
+    return templates.TemplateResponse("recordings.html", {"request": request})
 
 
 @app.get("/wallboard")

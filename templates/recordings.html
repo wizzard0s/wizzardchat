@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="/static/js/theme-init.js"></script>
+    <script src="/static/js/wz-theme.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WizzardChat &ndash; Recordings</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+    <style>
+        /* ── Player panel ─────────────────────────────────────── */
+        #playerPanel {
+            position: fixed; top: 0; right: -620px; width: 610px; height: 100vh;
+            background: #121212; border-left: 1px solid #2a2a3e; z-index: 1050;
+            display: flex; flex-direction: column; transition: right .25s ease;
+            box-shadow: -6px 0 24px #00000088;
+        }
+        #playerPanel.open { right: 0; }
+        #playerPanelBody { flex: 1; overflow-y: auto; padding: 1.2rem 1.4rem; }
+        .panel-close-btn { position: absolute; top: 14px; right: 16px; }
+
+        /* ── Leg badge colours ───────────────────────────────── */
+        .leg-merged   { background: #0d6efd22; color: #93c5fd; border-color: #0d6efd55; }
+        .leg-agent    { background: #19875422; color: #86efac; border-color: #19875455; }
+        .leg-ivr      { background: #6f42c122; color: #c4b5fd; border-color: #6f42c155; }
+        .leg-hold     { background: #fd7e1422; color: #ffc078; border-color: #fd7e1455; }
+        .leg-barge    { background: #dc354522; color: #f8babd; border-color: #dc354555; }
+        .leg-transfer { background: #20c99722; color: #6edfc4; border-color: #20c99755; }
+        .leg-outbound { background: #0dcaf022; color: #7ee7f8; border-color: #0dcaf055; }
+        .leg-unknown  { background: #33333366; color: #aaa; border-color: #55555566; }
+
+        /* ── Status dots ─────────────────────────────────────── */
+        .dot-available    { color: #22c55e; }
+        .dot-pending      { color: #f59e0b; }
+        .dot-downloading  { color: #3b82f6; }
+        .dot-failed       { color: #ef4444; }
+        .dot-provider     { color: #a78bfa; }
+
+        /* ── Misc ────────────────────────────────────────────── */
+        .rec-row:hover { cursor: pointer; background: #1a1a2e !important; }
+        #overlay { display: none; position: fixed; inset: 0; background: #00000066; z-index: 1040; }
+        #overlay.show { display: block; }
+        .audio-row { background: #1a1a2e; border-radius: 8px; padding: .75rem 1rem; margin-bottom: .5rem; }
+        audio { width: 100%; margin-top: .35rem; }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav id="sidebar" class="p-3 text-white">
+    <a href="/" class="d-flex align-items-center mb-2 text-white text-decoration-none">
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+        <span class="fs-5 fw-bold">WizzardChat</span>
+    </a>
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="flex-fill text-truncate small" id="agentName">&ndash;</span>
+        <button class="btn btn-sm btn-outline-secondary" id="btnLogout" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
+    </div>
+    <select class="form-select form-select-sm av-offline mb-2" id="availabilitySelect" title="Set your availability">
+        <option value="available">&#x1F7E2; Available</option>
+        <option value="admin">&#x1F535; Admin</option>
+        <option value="lunch">&#x1F7E1; Lunch</option>
+        <option value="break">&#x1F7E0; Break</option>
+        <option value="training">&#x1F7E3; Training</option>
+        <option value="meeting">&#x1F535; Meeting</option>
+        <option value="offline" selected>&#x26AB; Offline</option>
+    </select>
+    <hr class="border-secondary">
+
+    <ul class="nav nav-pills flex-column flex-nowrap" style="flex:1 1 0;overflow-y:auto;min-height:0;">
+        <li class="nav-item" style="margin-bottom:4px;"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-monitoring',this)">
+                <span>Monitoring</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-monitoring">
+                <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a href="/wallboard" class="nav-link text-white"><i class="bi bi-display me-2"></i>Wallboard</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-operations',this)">
+                <span>Operations</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-operations">
+                <li class="nav-item"><a href="/interactions" class="nav-link text-white"><i class="bi bi-chat-square-text me-2"></i>Interactions</a></li>
+                <li class="nav-item"><a href="/recordings" class="nav-link active"><i class="bi bi-mic-fill me-2"></i>Recordings</a></li>
+                <li class="nav-item"><a href="/flows" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-engagement',this)">
+                <span>Engagement</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-engagement">
+                <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+                <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+                <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+                <li class="nav-item"><a href="/msg-templates" class="nav-link text-white"><i class="bi bi-card-text me-2"></i>Templates</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-usermgmt',this)">
+                <span>User Management</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-usermgmt">
+                <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+                <li class="nav-item"><a href="/groups" class="nav-link text-white"><i class="bi bi-collection me-2"></i>Groups</a></li>
+                <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+                <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-bizsettings',this)">
+                <span>Business Settings</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-bizsettings">
+                <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+                <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+                <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>
+                <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+                <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+                <li class="nav-item"><a href="/audit-log" class="nav-link text-white"><i class="bi bi-journal-text me-2"></i>Audit Log</a></li>
+                <li class="nav-item"><a href="/docs" target="_blank" class="nav-link text-white"><i class="bi bi-code-square me-2"></i>API Docs</a></li>
+            </ul>
+        </li>
+    </ul>
+</nav>
+
+<!-- Main -->
+<main style="margin-left:220px;padding:24px;min-height:100vh;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-mic-fill me-2"></i>Call Recordings</h4>
+        <span class="text-secondary small" id="totalLabel">Loading&hellip;</span>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-3" style="background:#1a1a2e;border-color:#2a2a3e;">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-end">
+                <div class="col-sm-3">
+                    <label class="form-label small mb-1">Campaign</label>
+                    <select class="form-select form-select-sm bg-dark text-white border-secondary" id="fCampaign">
+                        <option value="">All campaigns</option>
+                    </select>
+                </div>
+                <div class="col-sm-2">
+                    <label class="form-label small mb-1">Leg</label>
+                    <select class="form-select form-select-sm bg-dark text-white border-secondary" id="fLeg">
+                        <option value="">All legs</option>
+                        <option value="merged">Merged</option>
+                        <option value="outbound">Outbound</option>
+                        <option value="agent">Agent</option>
+                        <option value="ivr">IVR</option>
+                        <option value="hold">Hold</option>
+                        <option value="barge">Barge</option>
+                        <option value="transfer">Transfer</option>
+                    </select>
+                </div>
+                <div class="col-sm-2">
+                    <label class="form-label small mb-1">Status</label>
+                    <select class="form-select form-select-sm bg-dark text-white border-secondary" id="fStatus">
+                        <option value="">All statuses</option>
+                        <option value="available">Available</option>
+                        <option value="pending">Pending</option>
+                        <option value="downloading">Downloading</option>
+                        <option value="failed">Failed</option>
+                        <option value="provider">Provider</option>
+                    </select>
+                </div>
+                <div class="col-sm-2">
+                    <label class="form-label small mb-1">From</label>
+                    <input type="date" class="form-control form-control-sm bg-dark text-white border-secondary" id="fFrom">
+                </div>
+                <div class="col-sm-2">
+                    <label class="form-label small mb-1">To</label>
+                    <input type="date" class="form-control form-control-sm bg-dark text-white border-secondary" id="fTo">
+                </div>
+                <div class="col-sm-1">
+                    <button class="btn btn-primary btn-sm w-100" onclick="loadPage(1)"><i class="bi bi-search"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0" style="border-color:#2a2a3e;">
+            <thead style="background:#1a1a2e;">
+                <tr>
+                    <th class="small">Date</th>
+                    <th class="small">Provider</th>
+                    <th class="small">Leg</th>
+                    <th class="small">Duration</th>
+                    <th class="small">Status</th>
+                    <th class="small">Campaign</th>
+                    <th class="small">Agent</th>
+                    <th class="small">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="recTableBody">
+                <tr><td colspan="8" class="text-center text-secondary py-4">Loading&hellip;</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <nav class="mt-3">
+        <ul class="pagination pagination-sm justify-content-center" id="pager"></ul>
+    </nav>
+</main>
+
+<!-- Player panel overlay -->
+<div id="overlay" onclick="closePanel()"></div>
+
+<div id="playerPanel">
+    <button class="btn btn-sm btn-outline-secondary panel-close-btn" onclick="closePanel()">
+        <i class="bi bi-x-lg"></i>
+    </button>
+    <div class="p-3 border-bottom" style="border-color:#2a2a3e!important;">
+        <h6 class="mb-0"><i class="bi bi-mic-fill me-2 text-primary"></i><span id="ppTitle">Recording</span></h6>
+        <small class="text-secondary" id="ppMeta"></small>
+    </div>
+    <div id="playerPanelBody">
+        <!-- Leg tabs -->
+        <div id="legTabs" class="mb-3"></div>
+
+        <!-- Info cards -->
+        <div class="row g-2 mb-3" id="ppInfoCards"></div>
+
+        <!-- Delete button (supervisor+) -->
+        <div id="ppDeleteRow" class="d-none mt-2">
+            <button class="btn btn-sm btn-outline-danger" id="btnDelete" onclick="deleteRec()">
+                <i class="bi bi-trash me-1"></i>Delete recording
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── Auth helpers ──────────────────────────────────────────────────────────────
+const token  = () => localStorage.getItem('wizzardchat_token') || '';
+const authHdr = () => ({ 'Authorization': 'Bearer ' + token() });
+
+async function apiGet(url) {
+    const r = await fetch(url, { headers: authHdr() });
+    if (r.status === 401) { location.href = '/login'; return null; }
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+}
+
+async function apiDel(url) {
+    const r = await fetch(url, { method: 'DELETE', headers: authHdr() });
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let currentPage = 1;
+let totalPages  = 1;
+let currentRec  = null;
+let userRole    = '';
+
+// ── Sidebar / availability (reuse pattern from other pages) ───────────────────
+async function initUser() {
+    try {
+        const me = await apiGet('/api/v1/auth/me');
+        if (!me) return;
+        document.getElementById('agentName').textContent = me.display_name || me.username;
+        userRole = me.role;
+    } catch (_) {}
+}
+
+document.getElementById('btnLogout').addEventListener('click', async () => {
+    localStorage.removeItem('wizzardchat_token');
+    location.href = '/login';
+});
+
+function navToggle(id, hdr) {
+    const el   = document.getElementById(id);
+    const chev = hdr.querySelector('.section-chev');
+    el.classList.toggle('collapsed');
+    chev.classList.toggle('bi-chevron-down');
+    chev.classList.toggle('bi-chevron-right');
+}
+
+// ── Campaigns dropdown ────────────────────────────────────────────────────────
+async function loadCampaigns() {
+    try {
+        const data = await apiGet('/api/v1/campaigns');
+        const sel  = document.getElementById('fCampaign');
+        (Array.isArray(data) ? data : (data.items || [])).forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            sel.appendChild(opt);
+        });
+    } catch (_) {}
+}
+
+// ── Table rendering ───────────────────────────────────────────────────────────
+const LEG_LABELS = {
+    merged: 'Merged', outbound: 'Outbound', agent: 'Agent',
+    ivr: 'IVR', hold: 'Hold', barge: 'Barge', transfer: 'Transfer', unknown: 'Unknown'
+};
+const STATUS_ICONS = {
+    available:   '<i class="bi bi-circle-fill dot-available" title="Available"></i>',
+    pending:     '<i class="bi bi-circle-fill dot-pending"   title="Pending"></i>',
+    downloading: '<i class="bi bi-arrow-repeat dot-downloading spin" title="Downloading"></i>',
+    failed:      '<i class="bi bi-circle-fill dot-failed"    title="Failed"></i>',
+    provider:    '<i class="bi bi-cloud-fill dot-provider"   title="At provider"></i>',
+};
+
+function fmtDuration(secs) {
+    if (!secs) return '—';
+    const m = Math.floor(secs / 60).toString().padStart(2, '0');
+    const s = (secs % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+}
+
+function fmtDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString('en-ZA', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+async function loadPage(page) {
+    currentPage = page;
+    const params = new URLSearchParams({ limit: 50, offset: (page - 1) * 50 });
+    const campaign = document.getElementById('fCampaign').value;
+    const leg      = document.getElementById('fLeg').value;
+    const status   = document.getElementById('fStatus').value;
+    const from     = document.getElementById('fFrom').value;
+    const to       = document.getElementById('fTo').value;
+    if (campaign) params.set('campaign_id', campaign);
+    if (leg)      params.set('leg', leg);
+    if (status)   params.set('status', status);
+    if (from)     params.set('from_date', from);
+    if (to)       params.set('to_date', to);
+
+    const body = document.getElementById('recTableBody');
+    body.innerHTML = '<tr><td colspan="8" class="text-center text-secondary py-4"><i class="bi bi-arrow-repeat"></i> Loading&hellip;</td></tr>';
+
+    try {
+        const data = await apiGet('/api/v1/recordings?' + params.toString());
+        if (!data) return;
+
+        const rows  = data.items || [];
+        const total = data.total || rows.length;
+        totalPages  = Math.max(1, Math.ceil(total / 50));
+
+        document.getElementById('totalLabel').textContent = `${total.toLocaleString()} recording${total !== 1 ? 's' : ''}`;
+
+        if (!rows.length) {
+            body.innerHTML = '<tr><td colspan="8" class="text-center text-secondary py-5">No recordings found</td></tr>';
+            renderPager();
+            return;
+        }
+
+        body.innerHTML = rows.map(r => `
+            <tr class="rec-row" onclick="openPanel('${r.id}')">
+                <td class="small">${fmtDate(r.created_at)}</td>
+                <td class="small text-capitalize">${r.provider || '—'}</td>
+                <td><span class="badge border leg-${r.leg || 'unknown'} text-uppercase" style="font-size:.65rem;">${LEG_LABELS[r.leg] || r.leg}</span></td>
+                <td class="small font-monospace">${fmtDuration(r.duration_seconds)}</td>
+                <td class="small">${STATUS_ICONS[r.status] || r.status} <span class="text-secondary ms-1">${r.status}</span></td>
+                <td class="small text-truncate" style="max-width:140px;">${r.campaign_id ? r.campaign_id.slice(0, 8) + '…' : '—'}</td>
+                <td class="small text-truncate" style="max-width:120px;">${r.agent_id ? r.agent_id.slice(0, 8) + '…' : '—'}</td>
+                <td>
+                    ${r.playback_url
+                        ? `<button class="btn btn-xs btn-outline-primary py-0 px-1" onclick="event.stopPropagation();playSingle('${r.id}','${r.playback_url}')"><i class="bi bi-play-fill"></i></button>`
+                        : `<span class="text-secondary small">—</span>`
+                    }
+                </td>
+            </tr>
+        `).join('');
+
+        renderPager();
+    } catch (err) {
+        body.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">${err.message}</td></tr>`;
+    }
+}
+
+function renderPager() {
+    const ul = document.getElementById('pager');
+    ul.innerHTML = '';
+    if (totalPages <= 1) return;
+    const add = (label, page, disabled, active) => {
+        const li = document.createElement('li');
+        li.className = `page-item${disabled ? ' disabled' : ''}${active ? ' active' : ''}`;
+        li.innerHTML = `<a class="page-link" href="#" onclick="event.preventDefault();loadPage(${page})">${label}</a>`;
+        ul.appendChild(li);
+    };
+    add('&laquo;', currentPage - 1, currentPage === 1);
+    const start = Math.max(1, currentPage - 2);
+    const end   = Math.min(totalPages, currentPage + 2);
+    if (start > 1) { add('1', 1); if (start > 2) add('…', currentPage, true); }
+    for (let p = start; p <= end; p++) add(p, p, false, p === currentPage);
+    if (end < totalPages) { if (end < totalPages - 1) add('…', currentPage, true); add(totalPages, totalPages); }
+    add('&raquo;', currentPage + 1, currentPage === totalPages);
+}
+
+// ── Player panel ──────────────────────────────────────────────────────────────
+async function openPanel(id) {
+    try {
+        const rec = await apiGet(`/api/v1/recordings/${id}`);
+        if (!rec) return;
+        currentRec = rec;
+
+        document.getElementById('ppTitle').textContent =
+            (LEG_LABELS[rec.leg] || rec.leg) + ' recording — ' + (rec.provider || '');
+        document.getElementById('ppMeta').textContent =
+            fmtDate(rec.created_at) + ' · ' + fmtDuration(rec.duration_seconds) + ' · ' + (rec.mime_type || '');
+
+        // Leg audio player
+        const legTabs = document.getElementById('legTabs');
+        if (rec.playback_url) {
+            legTabs.innerHTML = `
+                <div class="audio-row">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="badge border leg-${rec.leg || 'unknown'}">${LEG_LABELS[rec.leg] || rec.leg}</span>
+                        <span class="small text-secondary">${fmtDuration(rec.duration_seconds)}</span>
+                    </div>
+                    <audio controls preload="metadata" src="${rec.playback_url}"></audio>
+                </div>`;
+        } else {
+            legTabs.innerHTML = `<p class="text-secondary small">Audio not yet available (status: ${rec.status})</p>`;
+        }
+
+        // Info cards
+        document.getElementById('ppInfoCards').innerHTML = `
+            <div class="col-6">
+                <div class="bg-dark border rounded p-2" style="border-color:#2a2a3e!important;">
+                    <div class="small text-secondary">Provider Recording ID</div>
+                    <div class="small font-monospace text-truncate">${rec.provider_recording_id || '—'}</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="bg-dark border rounded p-2" style="border-color:#2a2a3e!important;">
+                    <div class="small text-secondary">File size</div>
+                    <div class="small">${rec.file_size_bytes ? (rec.file_size_bytes / 1024).toFixed(1) + ' KB' : '—'}</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="bg-dark border rounded p-2" style="border-color:#2a2a3e!important;">
+                    <div class="small text-secondary">Attempt ID</div>
+                    <div class="small font-monospace text-truncate">${rec.attempt_id || '—'}</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="bg-dark border rounded p-2" style="border-color:#2a2a3e!important;">
+                    <div class="small text-secondary">Storage path</div>
+                    <div class="small font-monospace text-truncate">${rec.file_path || '—'}</div>
+                </div>
+            </div>`;
+
+        // Show delete button for supervisors+
+        const canDelete = ['super_admin', 'admin', 'supervisor'].includes((userRole || '').toLowerCase());
+        document.getElementById('ppDeleteRow').classList.toggle('d-none', !canDelete);
+
+        // Open panel
+        document.getElementById('overlay').classList.add('show');
+        document.getElementById('playerPanel').classList.add('open');
+    } catch (err) {
+        console.error('openPanel', err);
+    }
+}
+
+function closePanel() {
+    document.getElementById('overlay').classList.remove('show');
+    document.getElementById('playerPanel').classList.remove('open');
+    currentRec = null;
+}
+
+async function deleteRec() {
+    if (!currentRec) return;
+    if (!confirm('Delete this recording? The audio file will be removed.')) return;
+    try {
+        await apiDel(`/api/v1/recordings/${currentRec.id}`);
+        closePanel();
+        loadPage(currentPage);
+    } catch (err) {
+        alert('Delete failed: ' + err.message);
+    }
+}
+
+// Quick-play without opening panel
+function playSingle(id, url) {
+    // Open the full panel so the user has controls
+    openPanel(id);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(async () => {
+    await Promise.all([initUser(), loadCampaigns()]);
+
+    // Default date filter: last 7 days
+    const now  = new Date();
+    const week = new Date(now); week.setDate(week.getDate() - 7);
+    document.getElementById('fTo').value   = now.toISOString().slice(0, 10);
+    document.getElementById('fFrom').value = week.toISOString().slice(0, 10);
+
+    loadPage(1);
+})();
+</script>
+</body>
+</html>

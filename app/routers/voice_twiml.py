@@ -47,7 +47,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import get_current_user
 from app.database import get_db
-from app.models import AttemptStatus, Campaign, CampaignAttempt, Contact, VoiceConnector
+from app.models import AttemptStatus, Campaign, CampaignAttempt, Contact, VoiceConnector, CallRecording
 
 _log = logging.getLogger(__name__)
 
@@ -75,12 +75,15 @@ _RECORDING_DISCLOSURE = (
 @router.get("/twiml/outbound/{attempt_id}", include_in_schema=False)
 async def outbound_twiml(
     attempt_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """TwiML Twilio/Telnyx fetches when the contact answers the outbound call.
 
     Discloses recording (CPA / ECTA) then bridges the contact into a named
     conference room.  The agent joins via ``/twiml/agent/{attempt_id}``.
+    Recording status callback fires to ``/api/v1/voice/recording/twilio/{attempt_id}``
+    when Twilio finishes processing.
     """
     result = await db.execute(
         select(CampaignAttempt).where(CampaignAttempt.id == attempt_id)
@@ -95,15 +98,25 @@ async def outbound_twiml(
         )
         return _xml(xml)
 
+    base = str(request.base_url).rstrip("/")
+    recording_cb = f"{base}/api/v1/voice/recording/twilio/{attempt_id}"
     room = f"outbound-{attempt_id}"
     xml = (
         "<Response>"
         f"<Say voice=\"alice\" language=\"en-ZA\">{_RECORDING_DISCLOSURE}</Say>"
         "<Say voice=\"alice\" language=\"en-ZA\">Please hold while we connect your call.</Say>"
+        f"<Record action=\"#\" maxLength=\"7200\""
+        f" recordingStatusCallback=\"{recording_cb}\""
+        f" recordingStatusCallbackMethod=\"POST\""
+        f" playBeep=\"false\""
+        f" trim=\"do-not-trim\" />"
         "<Dial>"
         f"<Conference beep=\"false\""
         f" startConferenceOnEnter=\"false\""
         f" endConferenceOnExit=\"true\""
+        f" record=\"record-from-start\""
+        f" recordingStatusCallback=\"{recording_cb}\""
+        f" recordingStatusCallbackMethod=\"POST\""
         f" waitUrl=\"/api/v1/voice/hold\">"
         f"{room}"
         "</Conference>"
@@ -387,6 +400,7 @@ async def vonage_ncco(
         return JSONResponse(ncco)
 
     base = str(request.base_url).rstrip("/")
+    recording_cb = f"{base}/api/v1/voice/recording/vonage/{attempt_id}"
     ncco = [
         {
             "action": "talk",
@@ -400,6 +414,7 @@ async def vonage_ncco(
             "startOnEnter": False,
             "endOnExit": True,
             "record": True,
+            "recordingEventUrl": [recording_cb],
             "eventUrl": [f"{base}/api/v1/voice/vonage/event/{attempt_id}"],
             "musicOnHoldUrl": [_HOLD_MUSIC_URL],
         },
@@ -431,12 +446,32 @@ async def telnyx_event(
         return {"ok": False}
 
     event_type = body.get("data", {}).get("event_type", "")
+    payload    = body.get("data", {}).get("payload", {})
     new_status = _TELNYX_STATUS_MAP.get(event_type)
+
+    # Recording completed event
+    if event_type == "call.recording.saved":
+        rec_url      = payload.get("public_url") or payload.get("url")
+        rec_duration = payload.get("duration_millis")
+        rec_id       = payload.get("recording_id") or payload.get("id")
+        if rec_url:
+            from app.routers.recordings import _create_recording_row, _schedule_download  # noqa: PLC0415
+            rec = await _create_recording_row(
+                db=db,
+                attempt_id=attempt_id,
+                provider="telnyx",
+                leg="merged",
+                provider_recording_id=str(rec_id) if rec_id else None,
+                provider_url=rec_url,
+                duration_seconds=int(rec_duration / 1000) if rec_duration else None,
+            )
+            await _schedule_download(rec.id, rec_url, provider="telnyx", auth=None)
+        return {"ok": True}
 
     if new_status is None:
         # Treat hangup cause as failed if not normal
         if event_type == "call.hangup":
-            hangup_cause = body.get("data", {}).get("payload", {}).get("hangup_cause", "")
+            hangup_cause = payload.get("hangup_cause", "")
             if hangup_cause not in ("normal_clearing", ""):
                 new_status = AttemptStatus.FAILED
         if new_status is None:

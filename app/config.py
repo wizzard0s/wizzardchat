@@ -55,6 +55,27 @@ class Settings(BaseSettings):
     app_name: str = "WizzardChat"
     app_port: int = 8090
 
+    # ── Call Recording Storage ──────────────────────────────────────────────
+    # Set RECORDING_STORAGE=s3 to store recordings in S3 / Wasabi instead of
+    # (or in addition to) the local wizzrecordings/ folder.
+    # When set to "local" (default) files are written to wizzrecordings/.
+    # When set to "s3"  files are uploaded to S3/Wasabi AND a local cache copy
+    # is kept; set RECORDING_LOCAL_CACHE=false to skip the local cache.
+    recording_storage: str = "local"       # "local" | "s3"
+    recording_local_cache: bool = True      # keep local copy even when storage=s3
+
+    # S3 / Wasabi — both use the same boto3 code path.
+    # Wasabi endpoints:  s3.wasabisys.com  (us-east-1)
+    #                    s3.eu-central-1.wasabisys.com  (eu-central-1)
+    # AWS S3: leave recording_s3_endpoint_url blank.
+    recording_s3_bucket: str = ""
+    recording_s3_prefix: str = "wizzrecordings"  # key prefix inside the bucket
+    recording_s3_access_key: str = ""
+    recording_s3_secret_key: str = ""
+    recording_s3_region: str = "us-east-1"
+    recording_s3_endpoint_url: str = ""     # blank = AWS S3; set for Wasabi/MinIO
+    recording_s3_presign_ttl: int = 3600    # seconds for presigned playback URLs
+
     model_config = {"env_file": str(_ENV_FILE), "env_file_encoding": "utf-8"}
 
     def warn_insecure_defaults(self) -> None:

@@ -82,6 +82,25 @@ class AttemptStatus(str, enum.Enum):
     SKIPPED   = "skipped"
 
 
+class RecordingLeg(str, enum.Enum):
+    OUTBOUND  = "outbound"   # contact leg (IVR/flow, hold, ringing)
+    AGENT     = "agent"      # agent leg after bridge
+    MERGED    = "merged"     # final merged/complete recording
+    IVR       = "ivr"        # IVR/flow-only segment
+    HOLD      = "hold"       # on-hold segment
+    BARGE     = "barge"      # supervisor barge-in leg
+    TRANSFER  = "transfer"   # warm transfer leg
+    UNKNOWN   = "unknown"
+
+
+class RecordingStatus(str, enum.Enum):
+    PENDING    = "pending"    # provider notified us, download queued
+    DOWNLOADING = "downloading"
+    AVAILABLE  = "available"  # file stored locally in wizzrecordings/
+    FAILED     = "failed"     # download / processing failed
+    PROVIDER   = "provider"   # stored at provider only (no local copy)
+
+
 class FlowNodeType(str, enum.Enum):
     START = "start"
     END = "end"
@@ -663,6 +682,8 @@ class CampaignAttempt(Base):
     ended_at        = Column(DateTime)
     ring_duration   = Column(Integer)   # seconds: dialled_at → answer/no_answer
     handle_duration = Column(Integer)   # seconds: connected_at → ended_at
+    # Primary recording URL — points at the merged/full recording (local path or provider URL)
+    recording_url   = Column(String(500), nullable=True)
     created_at      = Column(DateTime, default=datetime.utcnow)
     updated_at      = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -675,6 +696,63 @@ class CampaignAttempt(Base):
     contact      = relationship("Contact",      foreign_keys=[contact_id])
     agent        = relationship("User",         foreign_keys=[agent_id])
     conversation = relationship("Conversation", foreign_keys=[conversation_id])
+    recordings   = relationship("CallRecording", back_populates="attempt",
+                                cascade="all, delete-orphan",
+                                order_by="CallRecording.started_at")
+
+
+# ──────────────── Call Recordings ────────────────
+
+class CallRecording(Base):
+    """One recording segment / leg for a campaign attempt.
+
+    A single call may produce multiple rows — one per leg (outbound contact,
+    agent, held segment, IVR, barge, transfer).  The merged/full file is the
+    row with leg=MERGED and is also referenced from
+    ``CampaignAttempt.recording_url`` for quick access.
+    """
+    __tablename__ = "chat_call_recordings"
+
+    id                  = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    attempt_id          = Column(UUID(as_uuid=True),
+                                 ForeignKey("chat_campaign_attempts.id", ondelete="CASCADE"),
+                                 nullable=False)
+    # Context back-references (denormalised for fast supervisor queries)
+    campaign_id         = Column(UUID(as_uuid=True), nullable=True)
+    agent_id            = Column(UUID(as_uuid=True), nullable=True)
+    contact_id          = Column(UUID(as_uuid=True), nullable=True)
+
+    provider            = Column(String(50))          # twilio | vonage | telnyx | …
+    leg                 = Column(String(50), default="unknown")  # RecordingLeg value
+    status              = Column(String(50), default="pending")   # RecordingStatus value
+
+    # Provider side
+    provider_recording_id = Column(String(255))       # Twilio RecordingSid, Vonage uuid, …
+    provider_url          = Column(String(500))       # raw CDN / API URL from provider webhook
+
+    # Local storage
+    # Relative to BASE_DIR/wizzrecordings/, e.g. "2026/03/15/{attempt_id}/{recording_id}.mp3"
+    file_path           = Column(String(500))         # set once downloaded
+    file_size_bytes     = Column(Integer)
+    mime_type           = Column(String(50), default="audio/mpeg")
+
+    # Timing
+    duration_seconds    = Column(Integer)
+    started_at          = Column(DateTime)
+    ended_at            = Column(DateTime)
+
+    error_message       = Column(Text)                # populated if status=FAILED
+    created_at          = Column(DateTime, default=datetime.utcnow)
+    updated_at          = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        Index("ix_call_recordings_attempt",  "attempt_id"),
+        Index("ix_call_recordings_campaign", "campaign_id"),
+        Index("ix_call_recordings_agent",    "agent_id"),
+        Index("ix_call_recordings_provider_id", "provider_recording_id"),
+    )
+
+    attempt = relationship("CampaignAttempt", back_populates="recordings")
 
 
 # ──────────────── Global Outcomes ────────────────
