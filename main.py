@@ -41,6 +41,7 @@ from app.routers import audit as audit_router
 from app.routers import recordings as recordings_router
 from app.routers import agents as agents_router
 from app.routers import message_templates as message_templates_router
+from app.routers import supervisor as supervisor_router
 
 # Project root — used for absolute paths; avoids mutating process cwd
 BASE_DIR = Path(__file__).resolve().parent
@@ -1283,6 +1284,7 @@ app.include_router(voice_twiml_router.router)
 app.include_router(audit_router.router)
 app.include_router(message_templates_router.router)
 app.include_router(recordings_router.router)
+app.include_router(supervisor_router.router)
 
 @app.get("/")
 async def index(request: Request):
@@ -1388,6 +1390,11 @@ async def recordings_page(request: Request):
 @app.get("/wallboard")
 async def wallboard_page(request: Request):
     return templates.TemplateResponse("wallboard.html", {"request": request})
+
+
+@app.get("/supervisor")
+async def supervisor_page(request: Request):
+    return templates.TemplateResponse("supervisor.html", {"request": request})
 
 
 @app.get("/audit-log")

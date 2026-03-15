@@ -513,8 +513,69 @@ function handleWsMsg(msg) {
             }
             break;
         }
+
+        case 'session_reassigned': {
+            // Supervisor removed this session from this agent
+            const key = msg.session_id;
+            if (sessions[key]) {
+                delete sessions[key];
+                if (activeKey === key) {
+                    activeKey = null;
+                    updateChatHeader();
+                }
+                renderSessionLists();
+            }
+            _agentNotify(`Supervisor ${msg.supervisor_name || ''} reassigned the conversation.`, 'warning');
+            break;
+        }
+
+        case 'call_reassigned':
+            // Supervisor reassigned this voice call away from this agent
+            _hideVoiceCard();
+            _agentNotify(`Supervisor ${msg.supervisor_name || ''} reassigned the active call to another agent.`, 'warning');
+            break;
+
+        case 'call_assigned':
+            // Supervisor assigned a voice call to this agent
+            _agentNotify(`Supervisor assigned a call to you. Join conference: ${msg.conf_name || ''}.`, 'info');
+            break;
+
+        case 'supervisor_note':
+            // Coaching note from supervisor \u2014 visible only to this agent
+            _agentNotify(`\uD83D\uDCCB Supervisor ${msg.from_name || ''}: ${msg.message}`, 'info', 8000);
+            break;
+
     }   // end switch
 }       // end handleWsMsg
+
+// \u2500\u2500 Agent notification helper \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// Creates a floating toast overlay at the top-right. bg: 'info' | 'warning' | 'danger' | 'success'
+function _agentNotify(text, bg, duration) {
+    bg = bg || 'info';
+    duration = duration || 5000;
+    var container = document.getElementById('_agentToastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = '_agentToastContainer';
+        container.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
+        document.body.appendChild(container);
+    }
+    var colours = { info: '#0dcaf0', warning: '#ffc107', danger: '#dc3545', success: '#198754' };
+    var el = document.createElement('div');
+    el.style.cssText = [
+        'padding:10px 16px', 'border-radius:8px', 'color:#fff',
+        'background:' + (colours[bg] || colours.info) + 'dd',
+        'backdrop-filter:blur(6px)', 'max-width:360px',
+        'font-size:.875rem', 'box-shadow:0 4px 16px #0007',
+        'transition:opacity .3s ease',
+    ].join(';');
+    el.textContent = text;
+    container.appendChild(el);
+    setTimeout(function() {
+        el.style.opacity = '0';
+        setTimeout(function() { el.remove(); }, 350);
+    }, duration);
+}
 
 // \u2500\u2500 Wrap-up helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 

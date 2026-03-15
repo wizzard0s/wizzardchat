@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="/static/js/theme-init.js"></script>
+    <script src="/static/js/wz-theme.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WizzardChat &ndash; Supervisor</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/css/wizzardchat.css" rel="stylesheet">
+    <style>
+        .sup-table th { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: #8b8fad; border-color: #2a2a3e; }
+        .sup-table td { vertical-align: middle; border-color: #2a2a3e; font-size: .875rem; }
+        .sup-table tbody tr:hover { background: #1a1a2e !important; cursor: default; }
+        .badge-channel { font-size: .7rem; letter-spacing: .04em; }
+        .duration-cell { font-variant-numeric: tabular-nums; }
+        .mode-btn { font-size: .75rem; padding: 2px 8px; }
+        #coachNoteBox { resize: none; }
+
+        /* Supervisor note flash shown inline */
+        .sup-note {
+            background: #0d6efd22;
+            border: 1px solid #0d6efd55;
+            border-radius: 6px;
+            color: #93c5fd;
+            font-size: .8rem;
+            padding: 4px 10px;
+            margin-top: 4px;
+        }
+
+        /* Empty-state rows */
+        .empty-row td {
+            text-align: center;
+            color: #8b8fad;
+            padding: 2rem 0;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav id="sidebar" class="p-3 text-white">
+    <a href="/" class="d-flex align-items-center mb-2 text-white text-decoration-none">
+        <i class="bi bi-chat-dots-fill me-2 fs-4"></i>
+        <span class="fs-5 fw-bold">WizzardChat</span>
+    </a>
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="flex-fill text-truncate small" id="agentName">&ndash;</span>
+        <button class="btn btn-sm btn-outline-secondary" id="btnLogout" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
+    </div>
+    <select class="form-select form-select-sm av-offline mb-2" id="availabilitySelect" title="Set your availability">
+        <option value="available">&#x1F7E2; Available</option>
+        <option value="admin">&#x1F535; Admin</option>
+        <option value="lunch">&#x1F7E1; Lunch</option>
+        <option value="break">&#x1F7E0; Break</option>
+        <option value="training">&#x1F7E3; Training</option>
+        <option value="meeting">&#x1F535; Meeting</option>
+        <option value="offline" selected>&#x26AB; Offline</option>
+    </select>
+    <hr class="border-secondary">
+
+    <ul class="nav nav-pills flex-column flex-nowrap" style="flex:1 1 0;overflow-y:auto;min-height:0;">
+        <li class="nav-item" style="margin-bottom:4px;"><a href="/agent" class="nav-link text-white"><i class="bi bi-headset me-2"></i>Agent Panel</a></li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-monitoring',this)">
+                <span>Monitoring</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-monitoring">
+                <li class="nav-item"><a href="/" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a href="/wallboard" class="nav-link text-white"><i class="bi bi-display me-2"></i>Wallboard</a></li>
+                <li class="nav-item"><a href="/supervisor" class="nav-link active"><i class="bi bi-person-video3 me-2"></i>Supervisor</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-operations',this)">
+                <span>Operations</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-operations">
+                <li class="nav-item"><a href="/interactions" class="nav-link text-white"><i class="bi bi-chat-square-text me-2"></i>Interactions</a></li>
+                <li class="nav-item"><a href="/recordings" class="nav-link text-white"><i class="bi bi-mic-fill me-2"></i>Recordings</a></li>
+                <li class="nav-item"><a href="/flows" class="nav-link text-white"><i class="bi bi-diagram-3 me-2"></i>Flows</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-engagement',this)">
+                <span>Engagement</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-engagement">
+                <li class="nav-item"><a href="/queues" class="nav-link text-white"><i class="bi bi-people me-2"></i>Queues</a></li>
+                <li class="nav-item"><a href="/contacts" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i>Contacts</a></li>
+                <li class="nav-item"><a href="/campaigns" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i>Campaigns</a></li>
+                <li class="nav-item"><a href="/msg-templates" class="nav-link text-white"><i class="bi bi-card-text me-2"></i>Templates</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-usermgmt',this)">
+                <span>User Management</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-usermgmt">
+                <li class="nav-item"><a href="/teams" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i>Teams</a></li>
+                <li class="nav-item"><a href="/groups" class="nav-link text-white"><i class="bi bi-collection me-2"></i>Groups</a></li>
+                <li class="nav-item"><a href="/roles" class="nav-link text-white"><i class="bi bi-shield-check me-2"></i>Roles</a></li>
+                <li class="nav-item"><a href="/users" class="nav-link text-white"><i class="bi bi-shield-lock me-2"></i>Users</a></li>
+            </ul>
+        </li>
+        <li class="nav-section-li">
+            <div class="nav-section-hdr" onclick="navToggle('sec-bizsettings',this)">
+                <span>Business Settings</span><i class="bi bi-chevron-down section-chev"></i>
+            </div>
+            <ul class="nav flex-column ps-2 nav-section-body" id="sec-bizsettings">
+                <li class="nav-item"><a href="/outcomes" class="nav-link text-white"><i class="bi bi-flag me-2"></i>Outcomes</a></li>
+                <li class="nav-item"><a href="/connectors" class="nav-link text-white"><i class="bi bi-plug-fill me-2"></i>Connectors</a></li>
+                <li class="nav-item"><a href="/tags" class="nav-link text-white"><i class="bi bi-tags me-2"></i>Tags</a></li>
+                <li class="nav-item"><a href="/office-hours" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Office Hours</a></li>
+                <li class="nav-item"><a href="/settings" class="nav-link text-white"><i class="bi bi-gear-fill me-2"></i>System Settings</a></li>
+                <li class="nav-item"><a href="/audit-log" class="nav-link text-white"><i class="bi bi-journal-text me-2"></i>Audit Log</a></li>
+                <li class="nav-item"><a href="/docs" target="_blank" class="nav-link text-white"><i class="bi bi-code-square me-2"></i>API Docs</a></li>
+            </ul>
+        </li>
+    </ul>
+</nav>
+
+<!-- Main -->
+<main style="margin-left:220px;padding:24px;min-height:100vh;">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="bi bi-person-video3 me-2"></i>Supervisor Panel</h4>
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-secondary small" id="refreshLabel"></span>
+            <button class="btn btn-sm btn-outline-secondary" id="btnRefresh" title="Refresh now">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <span class="badge bg-secondary ms-1" id="autoLabel">Auto-refresh 15s</span>
+        </div>
+    </div>
+
+    <!-- ── Active voice calls ──────────────────────────────────────────────── -->
+    <div class="card mb-4" style="background:#1a1a2e;border-color:#2a2a3e;">
+        <div class="card-header d-flex align-items-center gap-2" style="background:#161622;border-color:#2a2a3e;">
+            <i class="bi bi-telephone-fill text-success"></i>
+            <span class="fw-semibold">Active voice calls</span>
+            <span class="badge bg-success ms-1" id="voiceBadge">0</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark mb-0 sup-table">
+                    <thead>
+                        <tr>
+                            <th>Campaign</th>
+                            <th>Contact</th>
+                            <th>Agent</th>
+                            <th class="duration-cell">Duration</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="voiceTableBody">
+                        <tr class="empty-row"><td colspan="5">No active calls</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Live chat / omnichannel sessions ───────────────────────────────── -->
+    <div class="card mb-4" style="background:#1a1a2e;border-color:#2a2a3e;">
+        <div class="card-header d-flex align-items-center gap-2" style="background:#161622;border-color:#2a2a3e;">
+            <i class="bi bi-chat-dots-fill text-info"></i>
+            <span class="fw-semibold">Live sessions</span>
+            <span class="badge bg-info text-dark ms-1" id="sessionBadge">0</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark mb-0 sup-table">
+                    <thead>
+                        <tr>
+                            <th>Channel</th>
+                            <th>Contact</th>
+                            <th>Agent</th>
+                            <th>Status</th>
+                            <th class="duration-cell">Wait</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessionTableBody">
+                        <tr class="empty-row"><td colspan="6">No active sessions</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Agents online ──────────────────────────────────────────────────── -->
+    <div class="card" style="background:#1a1a2e;border-color:#2a2a3e;">
+        <div class="card-header d-flex align-items-center gap-2" style="background:#161622;border-color:#2a2a3e;">
+            <i class="bi bi-people-fill text-warning"></i>
+            <span class="fw-semibold">Agents online</span>
+            <span class="badge bg-warning text-dark ms-1" id="agentBadge">0</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark mb-0 sup-table">
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th>Availability</th>
+                            <th class="text-center">Active sessions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="agentTableBody">
+                        <tr class="empty-row"><td colspan="3">No agents connected</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- ── Barge-in modal ──────────────────────────────────────────────────────── -->
+<div class="modal fade" id="bargeModal" tabindex="-1" aria-labelledby="bargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#1a1a2e;border-color:#2a2a3e;">
+            <div class="modal-header" style="border-color:#2a2a3e;">
+                <h5 class="modal-title" id="bargeModalLabel"><i class="bi bi-telephone-fill me-2"></i>Join call</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="bargeAttemptId">
+                <input type="hidden" id="bargeConnectorId">
+                <div class="mb-3">
+                    <label class="form-label small">Mode</label>
+                    <div class="d-flex gap-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="bargeMode" id="modeListen" value="listen" checked>
+                            <label class="form-check-label small" for="modeListen">
+                                <i class="bi bi-ear-fill text-info me-1"></i>Listen
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="bargeMode" id="modeBarge" value="barge">
+                            <label class="form-check-label small" for="modeBarge">
+                                <i class="bi bi-megaphone-fill text-danger me-1"></i>Barge
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="bargeMode" id="modeWhisper" value="whisper">
+                            <label class="form-check-label small" for="modeWhisper">
+                                <i class="bi bi-chat-right-text-fill text-warning me-1"></i>Whisper
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-text">Listen: muted. Barge: full 3-way. Whisper: only the agent hears you.</div>
+                </div>
+                <!-- Tabs: Browser vs Phone -->
+                <ul class="nav nav-tabs border-secondary mb-3" id="bargeTabs">
+                    <li class="nav-item"><button class="nav-link active text-white" data-bs-toggle="tab" data-bs-target="#tabBrowser">Browser</button></li>
+                    <li class="nav-item"><button class="nav-link text-secondary" data-bs-toggle="tab" data-bs-target="#tabPhone">Phone</button></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="tabBrowser">
+                        <p class="text-secondary small mb-2">Your browser will connect to the live call using your headset.</p>
+                        <div id="bargeStatus" class="d-none alert alert-info py-2 small mb-2"></div>
+                    </div>
+                    <div class="tab-pane fade" id="tabPhone">
+                        <label class="form-label small">Your phone number (E.164)</label>
+                        <input type="tel" class="form-control bg-dark text-white border-secondary" id="bargeSupervisorPhone" placeholder="+27821234567">
+                        <div class="form-text">The platform will call this number and join you to the conference.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-color:#2a2a3e;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="btnBargeJoin">
+                    <i class="bi bi-telephone-fill me-1"></i>Join
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Reassign modal ──────────────────────────────────────────────────────── -->
+<div class="modal fade" id="reassignModal" tabindex="-1" aria-labelledby="reassignModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#1a1a2e;border-color:#2a2a3e;">
+            <div class="modal-header" style="border-color:#2a2a3e;">
+                <h5 class="modal-title" id="reassignModalLabel"><i class="bi bi-arrow-left-right me-2"></i>Reassign</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="reassignTargetId">
+                <input type="hidden" id="reassignType"> <!-- 'voice' | 'chat' -->
+                <p class="small text-secondary mb-3" id="reassignDesc"></p>
+                <div class="mb-3">
+                    <label class="form-label small">Assign to agent</label>
+                    <select class="form-select bg-dark text-white border-secondary" id="reassignAgentSelect">
+                        <option value="">Loading agents&hellip;</option>
+                    </select>
+                </div>
+                <div id="reassignQueueRow" class="mb-2 d-none">
+                    <label class="form-label small">Or re-queue</label>
+                    <select class="form-select bg-dark text-white border-secondary" id="reassignQueueSelect">
+                        <option value="">— select queue —</option>
+                    </select>
+                    <div class="form-text">If a queue is selected, the agent field is ignored and the session is returned to the queue.</div>
+                </div>
+                <div class="form-check mt-2" id="selfTakeRow">
+                    <input class="form-check-input" type="checkbox" id="claimSelf">
+                    <label class="form-check-label small" for="claimSelf">Claim for myself (supervisor)</label>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-color:#2a2a3e;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnReassignConfirm">Reassign</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Coach note modal (chat sessions) ──────────────────────────────────── -->
+<div class="modal fade" id="coachModal" tabindex="-1" aria-labelledby="coachModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#1a1a2e;border-color:#2a2a3e;">
+            <div class="modal-header" style="border-color:#2a2a3e;">
+                <h5 class="modal-title" id="coachModalLabel"><i class="bi bi-chat-right-text me-2"></i>Send coaching note</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="coachConversationId">
+                <p class="small text-secondary mb-2" id="coachDesc">The note is delivered directly to the agent and is not visible to the contact.</p>
+                <textarea class="form-control bg-dark text-white border-secondary" id="coachNoteBox" rows="3" maxlength="500" placeholder="Type your coaching note&hellip;"></textarea>
+            </div>
+            <div class="modal-footer" style="border-color:#2a2a3e;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning text-dark" id="btnSendNote">
+                    <i class="bi bi-send me-1"></i>Send
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://sdk.twilio.com/js/voice/2.10/twilio.min.js"></script>
+<script>
+'use strict';
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+const TOKEN_KEY = 'wizzardchat_token';
+const token = localStorage.getItem(TOKEN_KEY);
+if (!token) { window.location.href = '/login'; }
+
+const HEADERS = { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let liveCalls    = [];
+let liveSessions = [];
+let onlineAgents = [];
+let allAgents    = [];   // from /api/v1/users — for reassign picker
+let allQueues    = [];   // from /api/v1/queues
+let twilioDevice = null; // active supervisor WebRTC device
+
+// ── Utility ───────────────────────────────────────────────────────────────────
+function esc(v) {
+    return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDuration(secs) {
+    if (secs == null || secs < 0) return '—';
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    if (h) return `${h}h ${m}m`;
+    if (m) return `${m}m ${String(s).padStart(2,'0')}s`;
+    return `${s}s`;
+}
+
+function showFeedback(msg, type) {
+    type = type || 'info';
+    const colours = { info: '#0dcaf0', warning: '#ffc107', danger: '#dc3545', success: '#198754' };
+    let c = document.getElementById('_supToastContainer');
+    if (!c) {
+        c = document.createElement('div');
+        c.id = '_supToastContainer';
+        c.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
+        document.body.appendChild(c);
+    }
+    const el = document.createElement('div');
+    el.style.cssText = [
+        'padding:10px 18px','border-radius:8px','color:#fff',
+        'background:' + (colours[type] || colours.info) + 'dd',
+        'backdrop-filter:blur(6px)','max-width:340px','font-size:.875rem',
+        'box-shadow:0 4px 16px #0007','transition:opacity .3s ease',
+    ].join(';');
+    el.textContent = msg;
+    c.appendChild(el);
+    setTimeout(function() { el.style.opacity='0'; setTimeout(function(){ el.remove(); }, 350); }, 4500);
+}
+
+// ── Data fetching ─────────────────────────────────────────────────────────────
+async function fetchAll() {
+    document.getElementById('refreshLabel').textContent = 'Refreshing…';
+    try {
+        const [callsRes, sessRes, agRes] = await Promise.all([
+            fetch('/api/v1/supervisor/live-calls',    { headers: HEADERS }),
+            fetch('/api/v1/supervisor/live-sessions', { headers: HEADERS }),
+            fetch('/api/v1/supervisor/agents-online', { headers: HEADERS }),
+        ]);
+        if (callsRes.status === 401 || sessRes.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+        liveCalls    = callsRes.ok    ? await callsRes.json()  : [];
+        liveSessions = sessRes.ok     ? await sessRes.json()   : [];
+        onlineAgents = agRes.ok       ? await agRes.json()     : [];
+        renderVoiceTable();
+        renderSessionTable();
+        renderAgentTable();
+        document.getElementById('refreshLabel').textContent =
+            'Last updated ' + new Date().toLocaleTimeString('en-ZA', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    } catch (err) {
+        document.getElementById('refreshLabel').textContent = 'Error: ' + err.message;
+    }
+}
+
+async function fetchAgentsAndQueues() {
+    try {
+        const [aRes, qRes] = await Promise.all([
+            fetch('/api/v1/users?page=1&per_page=200', { headers: HEADERS }),
+            fetch('/api/v1/queues',                    { headers: HEADERS }),
+        ]);
+        allAgents = aRes.ok ? (await aRes.json()).users || [] : [];
+        allQueues = qRes.ok ? (await qRes.json())            : [];
+    } catch (_) { /* best-effort */ }
+}
+
+// ── Voice call table ──────────────────────────────────────────────────────────
+function renderVoiceTable() {
+    const tbody = document.getElementById('voiceTableBody');
+    document.getElementById('voiceBadge').textContent = liveCalls.length;
+    if (!liveCalls.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No active calls</td></tr>';
+        return;
+    }
+    tbody.innerHTML = liveCalls.map(function(c) {
+        const connId = esc(c.connector_id || '');
+        const attId  = esc(c.attempt_id);
+        return `<tr>
+            <td>${esc(c.campaign_name || '—')}</td>
+            <td>
+                <div>${esc(c.contact_display)}</div>
+                <div class="text-secondary small">${esc(c.contact_phone || '')}</div>
+            </td>
+            <td>${esc(c.agent_name || '—')}</td>
+            <td class="duration-cell" data-started="${esc(c.connected_at || '')}">${fmtDuration(c.duration_seconds)}</td>
+            <td class="text-end">
+                <button class="btn btn-sm btn-outline-info mode-btn me-1"
+                        title="Listen / Barge / Whisper"
+                        onclick="openBargeModal('${attId}','${connId}')">
+                    <i class="bi bi-ear-fill"></i> Monitor
+                </button>
+                <button class="btn btn-sm btn-outline-secondary mode-btn"
+                        title="Reassign to another agent"
+                        onclick="openReassignVoice('${attId}', ${JSON.stringify(esc(c.agent_name || ''))})">
+                    <i class="bi bi-arrow-left-right"></i>
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+// ── Session table ─────────────────────────────────────────────────────────────
+const CHANNEL_ICON = {
+    chat: 'bi-chat-dots-fill text-info',
+    whatsapp: 'bi-whatsapp text-success',
+    sms: 'bi-phone-fill text-warning',
+    email: 'bi-envelope-fill text-secondary',
+    voice: 'bi-telephone-fill text-success',
+};
+
+function renderSessionTable() {
+    const tbody = document.getElementById('sessionTableBody');
+    document.getElementById('sessionBadge').textContent = liveSessions.length;
+    if (!liveSessions.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No active sessions</td></tr>';
+        return;
+    }
+    tbody.innerHTML = liveSessions.map(function(s) {
+        const icon = CHANNEL_ICON[s.channel] || 'bi-chat-fill';
+        const sid  = esc(s.conversation_id);
+        const statusBadge = s.status === 'active'
+            ? '<span class="badge bg-success">Active</span>'
+            : '<span class="badge bg-secondary">Waiting</span>';
+        return `<tr>
+            <td><i class="bi ${icon} me-1"></i><span class="badge-channel text-uppercase">${esc(s.channel)}</span></td>
+            <td>${esc(s.contact_display)}</td>
+            <td>${s.agent_name ? esc(s.agent_name) : '<span class="text-secondary">—</span>'}</td>
+            <td>${statusBadge}</td>
+            <td class="duration-cell">${fmtDuration(s.elapsed_seconds)}</td>
+            <td class="text-end">
+                <button class="btn btn-sm btn-outline-warning mode-btn me-1"
+                        title="Send coaching note to agent"
+                        onclick="openCoachModal('${sid}', ${JSON.stringify(esc(s.agent_name || ''))})">
+                    <i class="bi bi-chat-right-text-fill"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary mode-btn"
+                        title="Reassign or take over session"
+                        onclick="openReassignChat('${sid}', ${JSON.stringify(esc(s.agent_name || ''))})">
+                    <i class="bi bi-arrow-left-right"></i>
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+// ── Agent table ───────────────────────────────────────────────────────────────
+const AV_COLOUR = {
+    available: 'success', admin: 'primary', lunch: 'warning',
+    break: 'warning', training: 'info', meeting: 'primary', offline: 'secondary',
+};
+
+function renderAgentTable() {
+    const tbody = document.getElementById('agentTableBody');
+    document.getElementById('agentBadge').textContent = onlineAgents.length;
+    if (!onlineAgents.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="3">No agents connected</td></tr>';
+        return;
+    }
+    tbody.innerHTML = onlineAgents.map(function(a) {
+        const av  = a.availability || 'offline';
+        const col = AV_COLOUR[av] || 'secondary';
+        return `<tr>
+            <td>${esc(a.full_name || a.user_id)}</td>
+            <td><span class="badge bg-${col}">${esc(av)}</span></td>
+            <td class="text-center">${a.load ?? 0}</td>
+        </tr>`;
+    }).join('');
+}
+
+// ── Barge-in modal ────────────────────────────────────────────────────────────
+function openBargeModal(attemptId, connectorId) {
+    document.getElementById('bargeAttemptId').value   = attemptId;
+    document.getElementById('bargeConnectorId').value = connectorId;
+    document.getElementById('bargeStatus').classList.add('d-none');
+    document.getElementById('bargeStatus').textContent = '';
+    document.getElementById('bargeSupervisorPhone').value = '';
+    document.querySelector('input[name="bargeMode"][value="listen"]').checked = true;
+    new bootstrap.Modal(document.getElementById('bargeModal')).show();
+}
+
+document.getElementById('btnBargeJoin').addEventListener('click', async function() {
+    const attemptId   = document.getElementById('bargeAttemptId').value;
+    const connectorId = document.getElementById('bargeConnectorId').value;
+    const mode        = document.querySelector('input[name="bargeMode"]:checked').value;
+    const phone       = document.getElementById('bargeSupervisorPhone').value.trim();
+    const activeTab   = document.querySelector('#bargeTabs .nav-link.active')?.dataset.bsTarget;
+
+    if (!connectorId) {
+        showFeedback('No voice connector found for this call.', 'warning');
+        return;
+    }
+
+    const body = { connector_id: connectorId, mode };
+    if (activeTab === '#tabPhone') {
+        if (!phone) { showFeedback('Enter your phone number.', 'warning'); return; }
+        body.supervisor_phone = phone;
+    }
+
+    this.disabled = true;
+    const statusEl = document.getElementById('bargeStatus');
+    statusEl.textContent = 'Connecting…';
+    statusEl.classList.remove('d-none','alert-info','alert-danger');
+    statusEl.classList.add('alert-info');
+
+    try {
+        const res = await fetch('/api/v1/supervisor/barge/' + attemptId, {
+            method: 'POST', headers: HEADERS, body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || res.statusText);
+
+        if (data.method === 'phone') {
+            statusEl.textContent = `Calling your phone now (${data.call_sid || ''})…`;
+            bootstrap.Modal.getInstance(document.getElementById('bargeModal'))?.hide();
+            showFeedback('Calling your phone. Answer to join the conference.', 'success');
+        } else {
+            // Browser SDK connect
+            await initBargeDevice(data, mode);
+            bootstrap.Modal.getInstance(document.getElementById('bargeModal'))?.hide();
+        }
+    } catch (err) {
+        statusEl.textContent = 'Error: ' + err.message;
+        statusEl.classList.remove('alert-info');
+        statusEl.classList.add('alert-danger');
+    } finally {
+        this.disabled = false;
+    }
+});
+
+async function initBargeDevice(data, mode) {
+    if (twilioDevice) {
+        try { await twilioDevice.destroy(); } catch (_) {}
+        twilioDevice = null;
+    }
+    twilioDevice = new Twilio.Device(data.credentials.token, { logLevel: 1 });
+    await new Promise(function(resolve, reject) {
+        twilioDevice.once('registered', resolve);
+        twilioDevice.once('error', reject);
+        twilioDevice.register();
+    });
+    const params = {
+        attempt_id: data.attempt_id,
+        mode,
+        coach_call_sid: data.coach_call_sid || '',
+    };
+    await twilioDevice.connect({ params });
+    showFeedback('Joined call in ' + mode + ' mode.', 'success');
+}
+
+// ── Reassign modal (voice) ────────────────────────────────────────────────────
+function openReassignVoice(attemptId, currentAgentName) {
+    document.getElementById('reassignTargetId').value = attemptId;
+    document.getElementById('reassignType').value     = 'voice';
+    document.getElementById('reassignDesc').textContent =
+        'Voice call' + (currentAgentName ? ' (currently: ' + currentAgentName + ')' : '');
+    document.getElementById('reassignQueueRow').classList.add('d-none');
+    document.getElementById('selfTakeRow').classList.add('d-none');
+    _populateAgentSelect();
+    new bootstrap.Modal(document.getElementById('reassignModal')).show();
+}
+
+// ── Reassign modal (chat) ─────────────────────────────────────────────────────
+function openReassignChat(convId, currentAgentName) {
+    document.getElementById('reassignTargetId').value = convId;
+    document.getElementById('reassignType').value     = 'chat';
+    document.getElementById('reassignDesc').textContent =
+        'Chat session' + (currentAgentName ? ' (currently: ' + currentAgentName + ')' : '');
+    document.getElementById('reassignQueueRow').classList.remove('d-none');
+    document.getElementById('selfTakeRow').classList.remove('d-none');
+    _populateAgentSelect();
+    _populateQueueSelect();
+    new bootstrap.Modal(document.getElementById('reassignModal')).show();
+}
+
+function _populateAgentSelect() {
+    const sel = document.getElementById('reassignAgentSelect');
+    sel.innerHTML = '<option value="">— select agent —</option>' +
+        allAgents.map(function(a) {
+            return '<option value="' + esc(a.id) + '">' + esc(a.full_name || a.email) + '</option>';
+        }).join('');
+}
+
+function _populateQueueSelect() {
+    const sel = document.getElementById('reassignQueueSelect');
+    sel.innerHTML = '<option value="">— select queue —</option>' +
+        allQueues.map(function(q) {
+            return '<option value="' + esc(q.id) + '">' + esc(q.name) + '</option>';
+        }).join('');
+}
+
+document.getElementById('claimSelf').addEventListener('change', function() {
+    const agentSel = document.getElementById('reassignAgentSelect');
+    agentSel.disabled = this.checked;
+    if (this.checked) agentSel.value = '';
+});
+
+document.getElementById('btnReassignConfirm').addEventListener('click', async function() {
+    const targetId = document.getElementById('reassignTargetId').value;
+    const type     = document.getElementById('reassignType').value;
+    const claimSelf= document.getElementById('claimSelf').checked;
+    const agentId  = claimSelf ? '' : document.getElementById('reassignAgentSelect').value;
+    const queueId  = document.getElementById('reassignQueueSelect').value;
+
+    this.disabled = true;
+    try {
+        let url, body;
+        if (type === 'voice') {
+            if (!agentId) { showFeedback('Select an agent.', 'warning'); return; }
+            url  = '/api/v1/supervisor/reassign/voice/' + targetId;
+            body = { to_agent_id: agentId };
+        } else {
+            url  = '/api/v1/supervisor/reassign/chat/' + targetId;
+            body = {};
+            if (queueId)       body.to_queue_id = queueId;
+            else if (agentId)  body.to_agent_id  = agentId;
+            // else claim self — backend defaults to current_user
+        }
+        const res  = await fetch(url, { method: 'POST', headers: HEADERS, body: JSON.stringify(body) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || res.statusText);
+        bootstrap.Modal.getInstance(document.getElementById('reassignModal'))?.hide();
+        showFeedback('Reassigned successfully.', 'success');
+        fetchAll();
+    } catch (err) {
+        showFeedback('Reassign failed: ' + err.message, 'danger');
+    } finally {
+        this.disabled = false;
+    }
+});
+
+// ── Coach note modal ──────────────────────────────────────────────────────────
+function openCoachModal(convId, agentName) {
+    document.getElementById('coachConversationId').value = convId;
+    document.getElementById('coachDesc').textContent =
+        'Note will be delivered to agent' + (agentName ? ' ' + agentName : '') +
+        ' and is not visible to the contact.';
+    document.getElementById('coachNoteBox').value = '';
+    new bootstrap.Modal(document.getElementById('coachModal')).show();
+}
+
+document.getElementById('btnSendNote').addEventListener('click', async function() {
+    const convId  = document.getElementById('coachConversationId').value;
+    const message = document.getElementById('coachNoteBox').value.trim();
+    if (!message) { showFeedback('Type a note before sending.', 'warning'); return; }
+    this.disabled = true;
+    try {
+        const res  = await fetch('/api/v1/supervisor/chat-message/' + convId, {
+            method: 'POST', headers: HEADERS,
+            body: JSON.stringify({ message }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || res.statusText);
+        bootstrap.Modal.getInstance(document.getElementById('coachModal'))?.hide();
+        showFeedback('Coaching note sent to agent.', 'success');
+    } catch (err) {
+        showFeedback('Failed to send note: ' + err.message, 'danger');
+    } finally {
+        this.disabled = false;
+    }
+});
+
+// ── Sidebar helpers ───────────────────────────────────────────────────────────
+function navToggle(id, hdr) {
+    const body = document.getElementById(id);
+    if (!body) return;
+    const open = !body.classList.contains('collapsed');
+    body.classList.toggle('collapsed', open);
+    hdr.querySelector('.section-chev')?.classList.toggle('rotated', open);
+}
+
+document.getElementById('btnLogout').addEventListener('click', function() {
+    localStorage.removeItem(TOKEN_KEY);
+    window.location.href = '/login';
+});
+
+// Populate agent name from token
+(function() {
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const nameEl = document.getElementById('agentName');
+        if (nameEl) nameEl.textContent = payload.sub || payload.name || '—';
+    } catch (_) {}
+})();
+
+// ── Auto-refresh ──────────────────────────────────────────────────────────────
+document.getElementById('btnRefresh').addEventListener('click', fetchAll);
+
+let refreshInterval = setInterval(fetchAll, 15000);
+
+// Tick: update duration cells every second without a full refresh
+setInterval(function() {
+    document.querySelectorAll('.duration-cell[data-started]').forEach(function(td) {
+        const started = td.dataset.started;
+        if (!started) return;
+        const diff = Math.floor((Date.now() - new Date(started).getTime()) / 1000);
+        td.textContent = fmtDuration(diff);
+    });
+}, 1000);
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+(async function init() {
+    await fetchAgentsAndQueues();
+    await fetchAll();
+})();
+</script>
+</body>
+</html>

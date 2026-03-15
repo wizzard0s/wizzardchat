@@ -550,23 +550,81 @@ async def africastalking_event(
 # ─── Agent TwiML App callback (browser SDK) ───────────────────────────────────
 
 @router.post("/twiml/agent-connect", include_in_schema=False)
-async def agent_twiml_connect(attempt_id: str = Form(...)):
-    """Twilio posts here (via TwiML App) when the agent browser SDK connects.
+async def agent_twiml_connect(
+    attempt_id: str = Form(...),
+    mode: str = Form(default="agent"),        # agent | listen | barge | whisper
+    coach_call_sid: str = Form(default=""),   # agent call SID for Twilio coaching
+):
+    """Twilio posts here (via TwiML App) when the agent or supervisor browser SDK connects.
 
-    The browser SDK passes ``attempt_id`` via ``device.connect({params: ...})``.
-    Returns TwiML that puts the agent into the named conference for that attempt.
+    The browser SDK passes params via ``device.connect({params: ...})``.
+    Returns TwiML that puts the caller into the named conference for that attempt.
+
+    Supervisor modes
+    ----------------
+    listen  — muted; supervisor hears all but cannot be heard.
+    barge   — full 3-way; supervisor speaks and is heard by everyone.
+    whisper — supervisor hears all and is heard *only* by the agent
+              (requires ``coach_call_sid``: the agent's active call SID).
     """
     room = f"outbound-{attempt_id}"
+    if mode == "listen":
+        conf_attrs = (
+            'beep="false" startConferenceOnEnter="true"'
+            ' endConferenceOnExit="false" muted="true"'
+        )
+    elif mode == "whisper" and coach_call_sid:
+        conf_attrs = (
+            'beep="false" startConferenceOnEnter="true"'
+            f' endConferenceOnExit="false" coaching="true"'
+            f' callSidToCoach="{coach_call_sid}"'
+        )
+    else:  # agent / barge
+        conf_attrs = (
+            'beep="false" startConferenceOnEnter="true"'
+            ' endConferenceOnExit="true"'
+        )
     xml = (
-        "<Response>"
-        "<Dial>"
-        f"<Conference beep=\"false\""
-        f" startConferenceOnEnter=\"true\""
-        f" endConferenceOnExit=\"true\">"
-        f"{room}"
-        "</Conference>"
-        "</Dial>"
-        "</Response>"
+        "<Response><Dial>"
+        f"<Conference {conf_attrs}>{room}</Conference>"
+        "</Dial></Response>"
+    )
+    return _xml(xml)
+
+
+@router.get("/twiml/supervisor/{attempt_id}", include_in_schema=False)
+async def supervisor_twiml(
+    attempt_id: uuid.UUID,
+    mode: str = Query(default="listen"),
+    coach_call_sid: str = Query(default=""),
+):
+    """TwiML endpoint for phone-based supervisor dial-in.
+
+    When the supervisor supplies a phone number, the platform places an outbound
+    Twilio call to that number with this URL as the webhook.  The response joins
+    the supervisor's inbound leg to the running conference in the requested mode.
+    """
+    room = f"outbound-{attempt_id}"
+    if mode == "listen":
+        conf_attrs = (
+            'beep="false" startConferenceOnEnter="true"'
+            ' endConferenceOnExit="false" muted="true"'
+        )
+    elif mode == "whisper" and coach_call_sid:
+        conf_attrs = (
+            'beep="false" startConferenceOnEnter="true"'
+            f' endConferenceOnExit="false" coaching="true"'
+            f' callSidToCoach="{coach_call_sid}"'
+        )
+    else:
+        conf_attrs = (
+            'beep="false" startConferenceOnEnter="true"'
+            ' endConferenceOnExit="false"'
+        )
+    xml = (
+        "<Response><Dial>"
+        f"<Conference {conf_attrs}>{room}</Conference>"
+        "</Dial></Response>"
     )
     return _xml(xml)
 
