@@ -128,14 +128,44 @@ async def outbound_twiml(
 
 @router.get("/twiml/agent/{attempt_id}", include_in_schema=False)
 async def agent_twiml(attempt_id: uuid.UUID):
-    """TwiML for the agent WebRTC / SIP leg — joins the same conference room."""
+    """TwiML for the agent WebRTC / SIP leg — joins the same conference room.
+
+    Uses ``endConferenceOnExit="false"`` so the conference survives when the
+    agent disconnects during a warm transfer.  The contact leg already carries
+    ``endConferenceOnExit="true"``, which correctly tears down the room when
+    the contact hangs up.
+    """
     room = f"outbound-{attempt_id}"
     xml = (
         "<Response>"
         "<Dial>"
         f"<Conference beep=\"false\""
         f" startConferenceOnEnter=\"true\""
-        f" endConferenceOnExit=\"true\">"
+        f" endConferenceOnExit=\"false\">"
+        f"{room}"
+        "</Conference>"
+        "</Dial>"
+        "</Response>"
+    )
+    return _xml(xml)
+
+
+@router.get("/twiml/transfer/{attempt_id}", include_in_schema=False)
+async def transfer_twiml(attempt_id: uuid.UUID):
+    """TwiML for the warm-transfer target leg.
+
+    Twilio fetches this URL when the outbound Calls API dials the transfer
+    target.  The target joins the existing conference as an equal participant.
+    ``endConferenceOnExit="false"`` ensures the conference stays alive after
+    the transfer target hangs up so the contact call is not orphaned.
+    """
+    room = f"outbound-{attempt_id}"
+    xml = (
+        "<Response>"
+        "<Dial>"
+        f"<Conference beep=\"false\""
+        f" startConferenceOnEnter=\"true\""
+        f" endConferenceOnExit=\"false\">"
         f"{room}"
         "</Conference>"
         "</Dial>"

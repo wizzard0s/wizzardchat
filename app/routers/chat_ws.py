@@ -173,6 +173,50 @@ async def _twilio_conference_participant(
         return False
 
 
+async def _twilio_warm_transfer(
+    account_sid: str,
+    auth_token: str,
+    from_number: str,
+    to_number: str,
+    twiml_url: str,
+) -> str | None:
+    """Dial a third party into the existing conference room for a warm transfer.
+
+    Uses the Twilio REST API to place a new outbound call whose TwiML URL
+    instructs Twilio to join the transfer target into the named conference.
+    Returns the new call SID on success, or None on failure.
+
+    Args:
+        account_sid: Twilio account SID.
+        auth_token:  Twilio auth token.
+        from_number: Caller ID shown to the transfer target (usually the campaign outbound number).
+        to_number:   Phone number to dial in E.164 format (e.g. ``+27821234567``).
+        twiml_url:   Publicly reachable URL that returns TwiML joining the conference.
+    """
+    creds = base64.b64encode(f"{account_sid}:{auth_token}".encode()).decode()
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            r = await client.post(
+                f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Calls.json",
+                data={
+                    "To":   to_number,
+                    "From": from_number,
+                    "Url":  twiml_url,
+                    "StatusCallbackMethod": "POST",
+                },
+                headers={"Authorization": f"Basic {creds}"},
+            )
+        if r.status_code in (200, 201):
+            sid = r.json().get("sid", "")
+            _log.info("warm_transfer: dialled %s → call SID %s", to_number, sid)
+            return sid
+        _log.warning("warm_transfer: Twilio returned %s — %s", r.status_code, r.text[:200])
+        return None
+    except Exception as exc:
+        _log.warning("warm_transfer error: %s", exc)
+        return None
+
+
 async def _twilio_mute_agent_participant(
     account_sid: str, auth_token: str, conference_name: str, contact_call_sid: str, muted: bool
 ) -> bool:
@@ -2905,10 +2949,36 @@ async def agent_ws(websocket: WebSocket, token: str = Query(...)):
                                 "type": "call_mute_ack", "attempt_id": _vc_attempt_str, "muted": False,
                             })
                         elif msg_type == "call_transfer_number":
-                            _log.info(
-                                "call_transfer_number: attempt=%s to=%s (provider action deferred)",
-                                _vc_attempt_str, msg.get("to_number", ""),
-                            )
+                            to_number = (msg.get("to_number") or "").strip()
+                            if not to_number:
+                                await manager.send_agent(user_id, {
+                                    "type": "call_transfer_ack",
+                                    "attempt_id": _vc_attempt_str,
+                                    "ok": False,
+                                    "error": "no to_number supplied",
+                                })
+                            else:
+                                from_number = (
+                                    getattr(_vc_conn, "caller_id_override", None)
+                                    or ((_vc_conn.did_numbers or [None])[0] if _vc_conn.did_numbers else None)
+                                    or ""
+                                )
+                                base_url = _settings.public_base_url.rstrip("/")
+                                twiml_url = f"{base_url}/api/v1/voice/twiml/transfer/{_vc_attempt_str}"
+                                transfer_sid = await _twilio_warm_transfer(
+                                    _acct, _tok,
+                                    from_number=from_number,
+                                    to_number=to_number,
+                                    twiml_url=twiml_url,
+                                )
+                                await manager.send_agent(user_id, {
+                                    "type": "call_transfer_ack",
+                                    "attempt_id": _vc_attempt_str,
+                                    "ok": bool(transfer_sid),
+                                    "transfer_call_sid": transfer_sid or "",
+                                    "to_number": to_number,
+                                    "error": "" if transfer_sid else "Twilio call failed — check credentials and numbers",
+                                })
                     else:
                         # No Twilio connector configured — send optimistic ack so the UI updates
                         if msg_type == "call_hangup":

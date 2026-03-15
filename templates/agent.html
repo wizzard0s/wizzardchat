@@ -1255,7 +1255,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="background:#1e2029; border:1px solid #2e3140;">
             <div class="modal-header" style="border-bottom:1px solid #2e3140;">
-                <h5 class="modal-title"><i class="bi bi-telephone-forward-fill me-2 text-primary"></i>Transfer Call</h5>
+                <h5 class="modal-title"><i class="bi bi-telephone-forward-fill me-2 text-primary"></i>Warm Transfer</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -1264,10 +1264,25 @@
                     <input type="tel" class="form-control form-control-sm bg-dark text-light border-secondary"
                            id="vcTransferPhone" placeholder="+27 XX XXX XXXX">
                 </div>
+                <!-- Status shown while the transfer target is being dialled -->
+                <div id="vcTransferStatus" class="d-none">
+                    <div class="d-flex align-items-center gap-2 text-info small mb-2">
+                        <span class="spinner-border spinner-border-sm" id="vcTransferSpinner"></span>
+                        <span id="vcTransferStatusText">Connecting transfer target…</span>
+                    </div>
+                    <div class="text-muted small">All three parties can now speak. Click <strong>Complete Transfer</strong> to leave the conference and hand off the call.</div>
+                </div>
             </div>
-            <div class="modal-footer" style="border-top:1px solid #2e3140; background:#12141a;">
-                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary btn-sm" id="vcBtnDoTransfer"><i class="bi bi-telephone-forward-fill me-1"></i>Transfer</button>
+            <div class="modal-footer d-flex justify-content-between" style="border-top:1px solid #2e3140; background:#12141a;">
+                <button class="btn btn-success btn-sm d-none" id="vcBtnCompleteTransfer">
+                    <i class="bi bi-check2-circle me-1"></i>Complete Transfer
+                </button>
+                <div class="d-flex gap-2 ms-auto">
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary btn-sm" id="vcBtnDoTransfer">
+                        <i class="bi bi-telephone-forward-fill me-1"></i>Dial Target
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1278,7 +1293,7 @@
     <script src="/static/js/sidebar.js"></script>
 
 <script src="/static/js/voice_device.js?v=1"></script>
-<script src="/static/js/agent.js?v=19"></script>
+<script src="/static/js/agent.js?v=20"></script>
 
 
 

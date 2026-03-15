@@ -54,6 +54,9 @@ class Settings(BaseSettings):
     # App
     app_name: str = "WizzardChat"
     app_port: int = 8090
+    # Public base URL — used to build Twilio callback / TwiML URLs.
+    # Set PUBLIC_BASE_URL in .env when running behind a reverse proxy or ngrok.
+    public_base_url: str = "http://localhost:8090"
 
     # ── Call Recording Storage ──────────────────────────────────────────────
     # Set RECORDING_STORAGE=s3 to store recordings in S3 / Wasabi instead of

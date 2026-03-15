@@ -107,9 +107,13 @@ const el = {
     vcBtnMute:       $('vcBtnMute'),
     vcBtnHold:       $('vcBtnHold'),
     vcBtnHangup:     $('vcBtnHangup'),
-    vcBtnTransfer:   $('vcBtnTransfer'),
-    vcTransferModal: $('vcTransferModal'),
-    vcBtnDoTransfer: $('vcBtnDoTransfer'),
+    vcBtnTransfer:         $('vcBtnTransfer'),
+    vcTransferModal:       $('vcTransferModal'),
+    vcBtnDoTransfer:       $('vcBtnDoTransfer'),
+    vcBtnCompleteTransfer: $('vcBtnCompleteTransfer'),
+    vcTransferStatus:      $('vcTransferStatus'),
+    vcTransferSpinner:     $('vcTransferSpinner'),
+    vcTransferStatusText:  $('vcTransferStatusText'),
     // dialler view
     diallerView:         $('diallerView'),
     dpBtnOpenPanel:      $('dpBtnOpenPanel'),
@@ -452,6 +456,24 @@ function handleWsMsg(msg) {
             if (voiceCall && msg.attempt_id === voiceCall.attemptId) {
                 voiceCall.muted = !!msg.muted;
                 _syncVoiceCardState();
+            }
+            break;
+
+        case 'call_transfer_ack':
+            if (voiceCall && msg.attempt_id === voiceCall.attemptId) {
+                // Hide the dialling spinner regardless of outcome
+                el.vcTransferSpinner?.classList.add('d-none');
+                if (msg.ok) {
+                    voiceCall.transferring = true;
+                    voiceCall.transferCallSid = msg.transfer_call_sid || '';
+                    if (el.vcTransferStatusText) el.vcTransferStatusText.textContent = `Connected — ${msg.to_number} is in the call`;
+                    el.vcBtnCompleteTransfer?.classList.remove('d-none');
+                    el.vcBtnDoTransfer?.setAttribute('disabled', 'disabled');
+                } else {
+                    if (el.vcTransferStatusText) el.vcTransferStatusText.textContent = `Transfer failed: ${msg.error || 'unknown error'}`;
+                    el.vcTransferStatus?.classList.remove('text-info');
+                    el.vcTransferStatus?.classList.add('text-danger');
+                }
             }
             break;
 
@@ -1602,8 +1624,32 @@ function bindUI() {
         if (!voiceCall) return;
         const phone = $('vcTransferPhone')?.value?.trim();
         if (!phone) return;
+        // Show dialling spinner inside the modal while we wait for call_transfer_ack
+        if (el.vcTransferSpinner) el.vcTransferSpinner.classList.remove('d-none');
+        if (el.vcTransferStatusText) el.vcTransferStatusText.textContent = `Dialling ${phone}…`;
+        if (el.vcTransferStatus) el.vcTransferStatus.classList.remove('d-none');
+        el.vcBtnDoTransfer?.setAttribute('disabled', 'disabled');
         wsSend({ type: 'call_transfer_number', attempt_id: voiceCall.attemptId, to_number: phone });
+    });
+
+    // Reset transfer modal state each time it is opened
+    el.vcTransferModal?.addEventListener('show.bs.modal', () => {
+        $('vcTransferPhone').value = '';
+        el.vcTransferStatus?.classList.add('d-none');
+        el.vcTransferStatus?.classList.remove('text-danger');
+        el.vcTransferStatus?.classList.add('text-info');
+        el.vcTransferSpinner?.classList.remove('d-none');
+        if (el.vcTransferStatusText) el.vcTransferStatusText.textContent = 'Connecting transfer target…';
+        el.vcBtnCompleteTransfer?.classList.add('d-none');
+        el.vcBtnDoTransfer?.removeAttribute('disabled');
+    });
+
+    el.vcBtnCompleteTransfer?.addEventListener('click', () => {
+        // Agent drops from the conference; contact + transfer target remain
+        if (_vzDevice) _vzDevice.disconnectAll();
+        if (el.vcBtnCompleteTransfer) el.vcBtnCompleteTransfer.classList.add('d-none');
         bootstrap.Modal.getInstance(el.vcTransferModal)?.hide();
+        if (voiceCall) voiceCall.transferring = false;
     });
 
     // Logout
